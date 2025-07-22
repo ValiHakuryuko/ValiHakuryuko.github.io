@@ -1,25 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Base URL -->
   <base href="/" />
+
   <!-- Favicon and Manifest -->
-  <link rel="icon" type="image/png" href="https://valihakuryuko.github.io/favicon-96x96.png" sizes="96x96">
-  <link rel="icon" type="image/svg+xml" href="https://valihakuryuko.github.io/favicon.svg">
-  <link rel="shortcut icon" href="https://valihakuryuko.github.io/favicon.ico">
-  <link rel="apple-touch-icon" sizes="180x180" href="https://valihakuryuko.github.io/apple-touch-icon.png">
-  <link rel="manifest" href="https://valihakuryuko.github.io/site.webmanifest">
-  <!-- Meta & Title -->
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://valihakuryuko.github.io/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="https://valihakuryuko.github.io/favicon.svg" />
+  <link rel="shortcut icon" href="https://valihakuryuko.github.io/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="https://valihakuryuko.github.io/apple-touch-icon.png" />
+  <link rel="manifest" href="https://valihakuryuko.github.io/site.webmanifest" />
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vali's Blog</title>
-  <!-- Stylesheet -->
-  <link rel="stylesheet" href="style.css">
+
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+
+  <!-- Sidebar toggle for mobile -->
+  <button id="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="true">☰</button>
+
   <div class="container">
     <aside class="sidebar">
-      <img src="profile.jpg" alt="Profile Picture" class="profile-pic">
+      <img src="profile.jpg" alt="Profile Picture" class="profile-pic" />
       <h1>Vali Hakuryuko</h1>
       <p>Web Penetration Enthusiast</p>
       <nav>
@@ -33,21 +37,24 @@
     <main class="content">
       <section id="about" class="card">
         <h2>About Me</h2>
-        <p>Hello! I'm Vali. I’m passionate about cybersecurity, web technologies, web pentestering and hands-on learning through projects.</p>
+        <p><span id="typed-text"></span><span class="cursor">|</span></p>
       </section>
 
       <section id="projects" class="card">
         <h2>Projects</h2>
         <ul>
-          <li><strong>Host Local Server with XAMPP + LocalToNet</strong><br>A tutorial and walkthrough on local server hosting and exposing it securely.</li>
+          <li>
+            <strong>Host Local Server with XAMPP + LocalToNet</strong><br />
+            A tutorial and walkthrough on local server hosting and exposing it securely.
+          </li>
         </ul>
       </section>
 
       <section id="contact" class="card">
         <h2>Contact</h2>
-        <p><img src="github.png" alt="GitHub Icon"> @ <a href="https://github.com/ValiHakuryuko" target="_blank">ValiHakuryuko</a></p>
-        <p><img src="gmail.png" alt="Gmail Icon"> @ <a href="mailto:valihakuryuko@gmail.com">valihakuryuko@gmail.com</a></p>
-        <p><img src="reddit.png" alt="Reddit Icon"> @ <a href="https://www.reddit.com/user/King_Of_Cursz/">King_Of_Cursz</a></p>
+        <p><img src="github.png" alt="GitHub Icon" /> @ <a href="https://github.com/ValiHakuryuko" target="_blank" rel="noopener">ValiHakuryuko</a></p>
+        <p><img src="gmail.png" alt="Gmail Icon" /> @ <a href="mailto:valihakuryuko@gmail.com">valihakuryuko@gmail.com</a></p>
+        <p><img src="reddit.png" alt="Reddit Icon" /> @ <a href="https://www.reddit.com/user/King_Of_Cursz/">King_Of_Cursz</a></p>
       </section>
 
       <footer>
@@ -56,7 +63,9 @@
     </main>
   </div>
 
-  <!-- Theme Toggle Script -->
+  <!-- Back to Top Button -->
+  <button id="back-to-top" aria-label="Back to top" title="Back to top">↑</button>
+
   <script src="script.js"></script>
 </body>
 </html>
