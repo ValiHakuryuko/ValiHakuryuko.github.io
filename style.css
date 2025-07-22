@@ -1,183 +1,141 @@
-/* General Reset */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* Reset to last known working version with:
+   - Black sidebar
+   - White text in dark mode
+   - Sidebar remains consistent between themes
+   - Clean card layout for blog
+   - Toggle theme switches content area only */
+
+:root {
+  --bg-color: #121212;
+  --text-color: #ffffff;
+  --card-bg: #1e1e1e;
+  --link-color: #4ea8de;
+  --sidebar-bg: #000000;
+  --highlight-color: yellow;
 }
 
-/* Layout */
+body.light-theme {
+  --bg-color: #f9f9f9;
+  --text-color: #000000;
+  --card-bg: #ffffff;
+  --link-color: #0066cc;
+  --sidebar-bg: #000000; /* Sidebar remains black */
+  --highlight-color: orange;
+}
+
 body {
-  display: flex;
-  justify-content: center;
-  background-color: #121212;
-  color: #f0f0f0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  font-family: Arial, sans-serif;
   transition: background-color 0.3s, color 0.3s;
 }
 
 .container {
   display: flex;
-  width: 100%;
-  max-width: 1200px;
   min-height: 100vh;
 }
 
-/* Sidebar */
 .sidebar {
-  width: 250px;
+  background-color: var(--sidebar-bg);
+  color: #ffffff;
   padding: 20px;
-  background-color: #000000; /* Always black */
+  width: 250px;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  border-right: 2px solid #333;
 }
 
 .profile-pic {
-  width: 120px;
-  height: 120px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  object-fit: cover;
   margin-bottom: 15px;
 }
 
 .sidebar h1 {
-  font-size: 22px;
-  margin-bottom: 5px;
-  text-align: center;
+  font-size: 1.5em;
+  margin: 10px 0 5px;
 }
 
 .sidebar p {
-  font-size: 14px;
-  color: #ccc;
-  margin-bottom: 20px;
+  margin: 0 0 20px;
+  font-size: 0.9em;
   text-align: center;
 }
 
-.sidebar nav {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
-  width: 100%;
-}
-
 .sidebar nav a {
+  display: block;
+  margin: 5px 0;
+  color: #ffffff;
   text-decoration: none;
-  color: #f0f0f0;
-  padding: 8px;
-  border-radius: 5px;
-  transition: background 0.2s;
+  transition: color 0.3s;
 }
 
-.sidebar nav a:hover,
-.sidebar nav a[aria-current="page"] {
-  background-color: #222;
+.sidebar nav a:hover {
+  color: var(--link-color);
 }
 
 .theme-toggle {
-  padding: 10px;
-  font-size: 14px;
-  cursor: pointer;
-  background-color: #444;
-  color: #fff;
+  margin-top: auto;
+  padding: 10px 15px;
+  background-color: var(--link-color);
+  color: white;
   border: none;
-  border-radius: 6px;
-  transition: background-color 0.3s;
+  cursor: pointer;
+  border-radius: 5px;
 }
 
 .theme-toggle:hover {
-  background-color: #666;
+  opacity: 0.9;
 }
 
-/* Content */
 .content {
-  flex: 1;
+  flex-grow: 1;
   padding: 40px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
 }
 
-/* Blog Section */
 .card {
-  background-color: #1e1e1e;
-  border-radius: 8px;
-  padding: 30px;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.3s;
-}
-
-.card h2 {
+  background-color: var(--card-bg);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
   margin-bottom: 20px;
-  font-size: 26px;
-}
-
-/* Blog Post */
-.blog-post {
-  margin-bottom: 40px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #444;
 }
 
 .blog-post h3 {
-  margin-bottom: 5px;
+  margin-top: 0;
+  font-size: 1.3em;
+  color: var(--link-color);
 }
 
 .blog-post time {
-  font-size: 13px;
-  color: #aaa;
-  margin-bottom: 10px;
-  display: block;
+  font-size: 0.9em;
+  color: #ccc;
 }
 
 .blog-post p {
-  margin: 10px 0;
+  margin: 10px 0 10px;
 }
 
 .blog-post a {
-  color: #00b7ff;
+  display: inline-block;
+  margin-top: 5px;
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+.blog-post a:hover {
   text-decoration: underline;
 }
 
-/* Search */
-.search-container {
-  margin-bottom: 20px;
-}
-
-.search-container input {
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: none;
-  width: 100%;
-  max-width: 400px;
-  font-size: 16px;
-}
-
-/* Highlighted Text */
+/* Highlighted search */
 .highlight {
-  background-color: yellow;
-  color: black;
-  font-weight: bold;
-}
-
-/* Light Theme */
-.light-theme {
-  background-color: #f4f4f4;
-  color: #000000;
-}
-
-.light-theme .card {
-  background-color: #ffffff;
-  color: #000000;
-}
-
-.light-theme .sidebar {
-  background-color: #000000; /* Keep sidebar black */
-}
-
-.light-theme .sidebar nav a {
-  color: #f0f0f0;
-}
-
-.light-theme .theme-toggle {
-  background-color: #222;
-  color: #fff;
+  background-color: var(--highlight-color);
+  padding: 0 2px;
+  border-radius: 3px;
 }
