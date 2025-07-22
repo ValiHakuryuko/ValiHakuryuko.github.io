@@ -137,6 +137,22 @@ button:focus {
   transform: scale(1.05);
 }
 
+.search-bar {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--text-color);
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.search-bar:focus {
+  outline: none;
+  border-color: var(--accent-color, #00f);
+}
+
 /* Main content area */
 .content {
   flex-grow: 1;
