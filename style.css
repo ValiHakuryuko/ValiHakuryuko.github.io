@@ -22,7 +22,7 @@ body {
   flex-direction: column;
   align-items: center;
 
-  /* Slide-in animation */
+  /* 5. Slide-in animation */
   transform: translateX(-50px);
   opacity: 0;
   animation: slideInSidebar 0.8s ease-out forwards;
@@ -78,6 +78,7 @@ body {
   transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
+/* 4. Theme toggle hover effect */
 .theme-toggle:hover {
   background-color: #00bfff;
   color: #111 !important;
@@ -90,6 +91,7 @@ body {
   padding: 2rem;
 }
 
+/* 1. Fade-in animation for cards */
 .card {
   background-color: #2c2c2c;
   color: #f0f0f0;
@@ -99,21 +101,14 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   transition: background-color 0.3s, color 0.3s, transform 0.3s ease, box-shadow 0.3s ease;
 
-  /* Fade-in animation */
   opacity: 0;
   transform: translateY(20px);
   animation: fadeInUp 0.6s ease forwards;
 }
 
-.card:nth-of-type(2) {
-  animation-delay: 0.2s;
-}
-.card:nth-of-type(3) {
-  animation-delay: 0.4s;
-}
-.card:nth-of-type(4) {
-  animation-delay: 0.6s;
-}
+.card:nth-of-type(2) { animation-delay: 0.2s; }
+.card:nth-of-type(3) { animation-delay: 0.4s; }
+.card:nth-of-type(4) { animation-delay: 0.6s; }
 
 @keyframes fadeInUp {
   to {
@@ -122,6 +117,7 @@ body {
   }
 }
 
+/* 2. Card hover scale & shadow */
 .card:hover {
   transform: scale(1.02);
   box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3);
@@ -133,13 +129,13 @@ body {
   padding-bottom: 0.5rem;
 }
 
-/* Contact Section */
-#Contact p {
+/* Contact Section (corrected selector) */
+#contact p {
   margin: 0.8rem 0;
   line-height: 1.5;
 }
 
-#Contact img {
+#contact img {
   width: 2.5em !important;
   height: 2.5em !important;
   border-radius: 50%;
