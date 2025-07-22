@@ -1,3 +1,4 @@
+/* Global */
 body {
   margin: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -64,7 +65,7 @@ body {
   font-weight: bold;
 }
 
-/* Main Content (Card Style) */
+/* Main Content */
 .content {
   flex-grow: 1;
   padding: 2rem;
@@ -86,6 +87,20 @@ body {
   padding-bottom: 0.5rem;
 }
 
+/* Contact Section */
+#Contact p {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.8rem 0;
+}
+
+#Contact img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
 /* Footer */
 footer {
   text-align: center;
@@ -93,7 +108,7 @@ footer {
   font-size: 0.9rem;
 }
 
-/* Light Theme */
+/* Light Theme Overrides */
 body.light-theme {
   background-color: #f4f4f4;
   color: #222;
@@ -104,6 +119,23 @@ body.light-theme .card {
   color: #222;
 }
 
+body.light-theme footer {
+  color: #222;
+}
+
 body.light-theme footer a {
   color: #00bfff;
+}
+
+/* Preserve dark sidebar even in light theme */
+body.light-theme .sidebar {
+  background-color: #111 !important;
+  color: white !important;
+}
+
+body.light-theme .sidebar h1,
+body.light-theme .sidebar p,
+body.light-theme .sidebar nav a,
+body.light-theme .theme-toggle {
+  color: white !important;
 }
