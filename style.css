@@ -21,6 +21,18 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  /* Slide-in animation */
+  transform: translateX(-50px);
+  opacity: 0;
+  animation: slideInSidebar 0.8s ease-out forwards;
+}
+
+@keyframes slideInSidebar {
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .sidebar .profile-pic {
@@ -63,6 +75,13 @@ body {
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background-color: #00bfff;
+  color: #111 !important;
+  transform: scale(1.05);
 }
 
 /* Main Content */
@@ -78,7 +97,34 @@ body {
   margin-bottom: 2rem;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.3s, color 0.3s;
+  transition: background-color 0.3s, color 0.3s, transform 0.3s ease, box-shadow 0.3s ease;
+
+  /* Fade-in animation */
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.card:nth-of-type(2) {
+  animation-delay: 0.2s;
+}
+.card:nth-of-type(3) {
+  animation-delay: 0.4s;
+}
+.card:nth-of-type(4) {
+  animation-delay: 0.6s;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3);
 }
 
 .card h2 {
@@ -94,8 +140,8 @@ body {
 }
 
 #Contact img {
-  width: 5em !important;
-  height: 5em !important;
+  width: 2.5em !important;
+  height: 2.5em !important;
   border-radius: 50%;
   object-fit: cover;
   vertical-align: middle;
