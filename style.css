@@ -1,159 +1,137 @@
 :root {
-  --bg-light: #f0f0f0;
-  --bg-dark: #1a1a1a;
-  --card-light: #ffffff;
-  --card-dark: #2a2a2a;
-  --text-light: #1a1a1a;
-  --text-dark: #e0e0e0;
-  --accent: #00bfff;
+  --bg-light: #f2f2f2;
+  --bg-dark: #1f1f1f;
+  --text-light: #000000;
+  --text-dark: #ffffff;
+  --primary-accent: #00ffff; /* Cyan */
 }
 
 body {
   margin: 0;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: Arial, sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-light);
+  transition: background-color 0.3s, color 0.3s;
   display: flex;
-  background-color: var(--bg-dark);
-  color: var(--text-dark);
-  transition: all 0.3s ease;
 }
 
-.container {
-  display: flex;
-  width: 100%;
-  min-height: 100vh;
-}
-
-/* Sidebar */
 .sidebar {
   width: 250px;
-  background-color: var(--card-dark);
-  padding: 30px 20px;
-  text-align: center;
-  box-shadow: 2px 0 5px rgba(0,0,0,0.3);
-}
-
-.profile-pic {
-  width: 120px;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 50%;
-  margin-bottom: 20px;
-}
-
-.sidebar h1 {
-  font-size: 1.6rem;
-  margin-bottom: 5px;
-}
-
-.sidebar p {
-  font-size: 0.95rem;
-  color: #aaa;
-  margin-bottom: 20px;
-}
-
-.sidebar nav {
+  height: 100vh;
+  background-color: #2a2a2a;
+  color: white;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
+  align-items: center;
+  position: fixed;
+  left: 0;
+  top: 0;
+}
+
+.sidebar img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  margin-bottom: 1rem;
+  object-fit: cover;
+}
+
+.sidebar h2 {
+  margin: 0.5rem 0;
+  color: var(--primary-accent);
+  text-align: center;
 }
 
 .sidebar nav a {
+  color: white;
   text-decoration: none;
-  color: var(--accent);
+  margin: 0.5rem 0;
+  display: block;
+  text-align: center;
   font-weight: bold;
-  transition: color 0.3s ease;
 }
 
 .sidebar nav a:hover {
-  color: #009ac9;
+  color: var(--primary-accent);
 }
 
-#theme-toggle {
-  background-color: transparent;
-  border: 1px solid var(--accent);
-  color: var(--accent);
-  padding: 8px 12px;
-  cursor: pointer;
-  border-radius: 5px;
+.main-content {
+  margin-left: 250px;
+  padding: 2rem;
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.theme-toggle {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 0.9rem;
 }
 
-#theme-toggle:hover {
-  background-color: var(--accent);
-  color: #000;
+.theme-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
 }
 
-/* Main Content */
-.content {
-  flex: 1;
-  padding: 40px;
+.theme-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #888;
+  border-radius: 34px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.slider:before {
+  content: "";
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+input:checked + .slider {
+  background-color: var(--primary-accent);
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+body.dark-mode {
   background-color: var(--bg-dark);
+  color: var(--text-dark);
 }
 
-.content section {
-  background-color: var(--card-dark);
-  padding: 30px;
-  border-radius: 10px;
-  margin-bottom: 30px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+body.dark-mode .main-content {
+  color: var(--text-dark);
 }
 
-.content h2 {
-  border-bottom: 2px solid var(--accent);
-  margin-bottom: 15px;
-  color: #fff;
+body.dark-mode .sidebar {
+  background-color: #181818;
 }
 
-ul {
-  list-style-type: none;
-  padding-left: 0;
-}
-
-ul li {
-  margin-bottom: 15px;
-}
-
-/* Footer */
-footer {
-  text-align: center;
-  font-size: 0.85rem;
-  margin-top: 40px;
-}
-
-footer a {
-  color: var(--accent);
-  text-decoration: none;
-}
-
-footer a:hover {
-  text-decoration: underline;
-}
-
-/* Light theme */
-body.light {
-  background-color: var(--bg-light);
-  color: var(--text-light);
-}
-
-body.light .sidebar {
-  background-color: var(--card-light);
-}
-
-body.light .content {
-  background-color: var(--bg-light);
-}
-
-body.light .content section {
-  background-color: var(--card-light);
-}
-
-body.light footer,
-body.light .sidebar nav a {
-  color: var(--accent);
-}
-
-body.light #theme-toggle {
-  border-color: var(--accent);
-  color: var(--accent);
+body.dark-mode .sidebar nav a {
+  color: #ddd;
 }
