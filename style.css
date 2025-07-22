@@ -1,33 +1,14 @@
-/* Reset to last known working version with:
-   - Black sidebar
-   - White text in dark mode
-   - Sidebar remains consistent between themes
-   - Clean card layout for blog
-   - Toggle theme switches content area only */
-
-:root {
-  --bg-color: #121212;
-  --text-color: #ffffff;
-  --card-bg: #1e1e1e;
-  --link-color: #4ea8de;
-  --sidebar-bg: #000000;
-  --highlight-color: yellow;
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
 }
 
-body.light-theme {
-  --bg-color: #f9f9f9;
-  --text-color: #000000;
-  --card-bg: #ffffff;
-  --link-color: #0066cc;
-  --sidebar-bg: #000000; /* Sidebar remains black */
-  --highlight-color: orange;
-}
-
+/* Global styles */
 body {
-  background-color: var(--bg-color);
-  color: var(--text-color);
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #1e1e1e;
+  color: #f0f0f0;
   transition: background-color 0.3s, color 0.3s;
 }
 
@@ -36,106 +17,281 @@ body {
   min-height: 100vh;
 }
 
+/* Sidebar toggle button (always visible for testing) */
+/* Sidebar background stays black */
 .sidebar {
-  background-color: var(--sidebar-bg);
-  color: #ffffff;
-  padding: 20px;
+  background-color: #111 !important;
+  color: white !important;
+  padding: 2rem 1rem;
   width: 250px;
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  transition: transform 0.3s ease;
 }
 
-.profile-pic {
+/* Sidebar toggle button with blue background */
+#sidebar-toggle {
+  display: block !important;
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1001;
+  background: #00bfff;  /* Bright blue */
+  color: #111;
+  border: none;
+  width: 30px;
+  height: 30px;
+  font-size: 20px;
+  line-height: 30px;
+  text-align: center;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  padding: 0;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 250px;
+    transform: translateX(-260px);
+    z-index: 1000;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .content {
+    margin-top: 3rem; /* space for toggle button */
+    padding: 1rem;
+  }
+}
+
+/* Profile pic */
+.sidebar .profile-pic {
   width: 100px;
   height: 100px;
+  object-fit: cover;
   border-radius: 50%;
-  margin-bottom: 15px;
+  margin-bottom: 1rem;
 }
 
-.sidebar h1 {
-  font-size: 1.5em;
-  margin: 10px 0 5px;
-}
-
-.sidebar p {
-  margin: 0 0 20px;
-  font-size: 0.9em;
+/* Sidebar text */
+.sidebar h1,
+.sidebar p,
+.sidebar nav a,
+.theme-toggle {
+  color: white !important;
   text-align: center;
+}
+
+.sidebar nav {
+  margin: 1rem 0;
 }
 
 .sidebar nav a {
   display: block;
-  margin: 5px 0;
-  color: #ffffff;
+  margin: 0.5rem 0;
   text-decoration: none;
+  font-weight: bold;
   transition: color 0.3s;
 }
 
 .sidebar nav a:hover {
-  color: var(--link-color);
+  color: #00bfff;
 }
 
+/* Focus styles for accessibility */
+a:focus,
+button:focus {
+  outline: 2px solid #00bfff;
+  outline-offset: 2px;
+  outline-radius: 4px;
+}
+
+/* Theme toggle button */
 .theme-toggle {
   margin-top: auto;
-  padding: 10px 15px;
-  background-color: var(--link-color);
-  color: white;
-  border: none;
+  padding: 0.5rem 1rem;
+  border: 1px solid #00bfff;
+  background: transparent;
+  border-radius: 4px;
   cursor: pointer;
-  border-radius: 5px;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .theme-toggle:hover {
-  opacity: 0.9;
+  background-color: #00bfff;
+  color: #111 !important;
+  transform: scale(1.05);
 }
 
+.search-bar {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--text-color);
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.search-bar:focus {
+  outline: none;
+  border-color: var(--accent-color, #00f);
+}
+
+mark {
+  background-color: #00bfff;
+  color: black;
+  font-weight: bold;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+/* Main content area */
 .content {
   flex-grow: 1;
-  padding: 40px;
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  transition: background-color 0.3s, color 0.3s;
+  padding: 2rem;
 }
 
+/* Cards with fade-in and hover */
 .card {
-  background-color: var(--card-bg);
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-  margin-bottom: 20px;
+  background-color: #2c2c2c;
+  color: #f0f0f0;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s, color 0.3s, transform 0.3s ease, box-shadow 0.3s ease;
+
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.6s ease forwards;
 }
 
-.blog-post h3 {
+.card:nth-of-type(2) {
+  animation-delay: 0.2s;
+}
+.card:nth-of-type(3) {
+  animation-delay: 0.4s;
+}
+.card:nth-of-type(4) {
+  animation-delay: 0.6s;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card hover effect */
+.card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 191, 255, 0.3);
+}
+
+/* Card headers */
+.card h2 {
   margin-top: 0;
-  font-size: 1.3em;
-  color: var(--link-color);
+  border-bottom: 2px solid #00bfff;
+  padding-bottom: 0.5rem;
 }
 
-.blog-post time {
-  font-size: 0.9em;
-  color: #ccc;
+/* Contact icons */
+#contact p {
+  margin: 0.8rem 0;
+  line-height: 1.5;
 }
 
-.blog-post p {
-  margin: 10px 0 10px;
+#contact img {
+  width: 2.5em !important;
+  height: 2.5em !important;
+  border-radius: 50%;
+  object-fit: cover;
+  vertical-align: middle;
+  margin-right: 0.5em;
+  transition: transform 0.3s ease, filter 0.3s ease;
 }
 
-.blog-post a {
-  display: inline-block;
-  margin-top: 5px;
-  color: var(--link-color);
-  text-decoration: none;
+#contact img:hover {
+  transform: scale(1.2);
+  filter: drop-shadow(0 0 4px #00bfff);
 }
 
-.blog-post a:hover {
-  text-decoration: underline;
+/* Footer */
+footer {
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.9rem;
 }
 
-/* Highlighted search */
-.highlight {
-  background-color: var(--highlight-color);
-  padding: 0 2px;
-  border-radius: 3px;
+/* Back to Top Button */
+#back-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background-color: #00bfff;
+  border: none;
+  color: #111;
+  font-size: 1.5rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+  user-select: none;
+}
+
+#back-to-top.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Light Theme */
+body.light-theme {
+  background-color: #f4f4f4;
+  color: #222;
+}
+
+body.light-theme .card {
+  background-color: #ffffff;
+  color: #222;
+}
+
+body.light-theme footer {
+  color: #222;
+}
+
+body.light-theme footer a {
+  color: #00bfff;
+}
+
+/* Keep Sidebar Dark in Light Theme */
+body.light-theme .sidebar {
+  background-color: #111 !important;
+  color: white !important;
+}
+
+body.light-theme .sidebar h1,
+body.light-theme .sidebar p,
+body.light-theme .sidebar nav a,
+body.light-theme .theme-toggle {
+  color: white !important;
 }
