@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vali's Blog - Posts</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <img src="profile.jpg" alt="Profile Picture" class="profile-pic" />
+      <h1>Vali Hakuryuko</h1>
+      <p>Web Penetration Enthusiast</p>
+      <nav>
+        <a href="index.html#about">About</a>
+        <a href="index.html#projects">Projects</a>
+        <a href="blog.html" aria-current="page">Blog</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light and dark theme">Toggle Theme</button>
+    </aside>
+
+    <main class="content">
+      <section id="blog" class="card">
+        <h2>Blog Posts</h2>
+
+        <article class="blog-post">
+          <h3>Getting Started with Burp Suite</h3>
+          <time datetime="2025-07-22">July 22, 2025</time>
+          <p>This post covers the basics of Burp Suite and how to set it up for web testing.</p>
+          <a href="blog/burp-suite-basics.html">Read more</a>
+        </article>
+
+        <article class="blog-post">
+          <h3>Understanding SQL Injection</h3>
+          <time datetime="2025-06-15">June 15, 2025</time>
+          <p>An overview of SQL injection vulnerabilities and how to test for them.</p>
+          <a href="blog/sql-injection.html">Read more</a>
+        </article>
+
+        <!-- Add more blog posts here -->
+
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
