@@ -28,3 +28,21 @@ document.addEventListener('DOMContentLoaded', () => {
 function toggleTheme() {
   document.body.classList.toggle('light-theme');
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("searchBar");
+  const posts = document.querySelectorAll(".blog-post");
+
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase();
+
+    posts.forEach((post) => {
+      const text = post.textContent.toLowerCase();
+      if (text.includes(query)) {
+        post.style.display = "block";
+      } else {
+        post.style.display = "none";
+      }
+    });
+  });
+});
