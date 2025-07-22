@@ -1,48 +1,66 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const sidebar = document.querySelector('.sidebar');
-  const toggleBtn = document.getElementById('sidebar-toggle');
-  const backToTopBtn = document.getElementById('back-to-top');
-
-  // Toggle sidebar open/close on button click
-  toggleBtn.addEventListener('click', () => {
-    const isOpen = sidebar.classList.toggle('open');
-    toggleBtn.setAttribute('aria-expanded', isOpen);
-  });
-
-  // Show/hide Back to Top button on scroll
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 300) {
-      backToTopBtn.classList.add('show');
-    } else {
-      backToTopBtn.classList.remove('show');
-    }
-  });
-
-  // Smooth scroll to top on Back to Top button click
-  backToTopBtn.addEventListener('click', () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
-});
-
-// Theme toggle function (make sure you have a button with class 'theme-toggle' in your HTML)
-function toggleTheme() {
-  document.body.classList.toggle('light-theme');
-}
-
 document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("searchBar");
-  const posts = document.querySelectorAll(".blog-post");
+  const cards = document.querySelectorAll(".card");
 
   searchInput.addEventListener("input", () => {
-    const query = searchInput.value.toLowerCase();
+    const query = searchInput.value.trim().toLowerCase();
 
-    posts.forEach((post) => {
+    cards.forEach((card) => {
+      const post = card.querySelector(".blog-post");
+
+      if (!post) return;
+
       const text = post.textContent.toLowerCase();
+
+      // Remove old highlights
+      const highlights = card.querySelectorAll("mark");
+      highlights.forEach(mark => {
+        const parent = mark.parentNode;
+        parent.replaceChild(document.createTextNode(mark.textContent), mark);
+        parent.normalize(); // merge adjacent text nodes
+      });
+
       if (text.includes(query)) {
-        post.style.display = "block";
+        card.style.display = "block";
+
+        if (query !== "") {
+          highlightMatches(post, query);
+        }
       } else {
-        post.style.display = "none";
+        card.style.display = "none";
       }
     });
   });
+
+  function highlightMatches(element, keyword) {
+    const regex = new RegExp(`(${keyword})`, "gi");
+
+    const walker = document.createTreeWalker(
+      element,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: (node) =>
+          node.parentNode.nodeName !== "SCRIPT" &&
+          node.parentNode.nodeName !== "STYLE" &&
+          node.textContent.toLowerCase().includes(keyword)
+            ? NodeFilter.FILTER_ACCEPT
+            : NodeFilter.FILTER_REJECT,
+      },
+      false
+    );
+
+    const nodes = [];
+    while (walker.nextNode()) {
+      nodes.push(walker.currentNode);
+    }
+
+    nodes.forEach((node) => {
+      const span = document.createElement("span");
+      span.innerHTML = node.textContent.replace(
+        regex,
+        "<mark>$1</mark>"
+      );
+      node.parentNode.replaceChild(span, node);
+    });
+  }
 });
