@@ -1,7 +1,21 @@
 document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("searchBar");
   const cards = document.querySelectorAll(".card");
+  const themeToggle = document.getElementById("theme-toggle");
 
+  // Apply saved theme on load
+  if (localStorage.getItem("theme") === "light") {
+    document.body.classList.add("light-theme");
+  }
+
+  // Theme toggle button logic
+  themeToggle.addEventListener("click", () => {
+    document.body.classList.toggle("light-theme");
+    const currentTheme = document.body.classList.contains("light-theme") ? "light" : "dark";
+    localStorage.setItem("theme", currentTheme);
+  });
+
+  // Search logic
   searchInput.addEventListener("input", () => {
     const query = searchInput.value.trim().toLowerCase();
 
@@ -14,10 +28,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Remove old highlights
       const highlights = card.querySelectorAll("mark");
-      highlights.forEach(mark => {
+      highlights.forEach((mark) => {
         const parent = mark.parentNode;
         parent.replaceChild(document.createTextNode(mark.textContent), mark);
-        parent.normalize(); // merge adjacent text nodes
+        parent.normalize();
       });
 
       if (text.includes(query)) {
@@ -32,6 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Highlight function
   function highlightMatches(element, keyword) {
     const regex = new RegExp(`(${keyword})`, "gi");
 
@@ -49,24 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
       false
     );
 
-function toggleTheme() {
-  document.body.classList.toggle("light-theme");
-
-  // Optional: save user preference
-  if (document.body.classList.contains("light-theme")) {
-    localStorage.setItem("theme", "light");
-  } else {
-    localStorage.setItem("theme", "dark");
-  }
-}
-
-// Apply saved theme on load
-document.addEventListener("DOMContentLoaded", () => {
-  if (localStorage.getItem("theme") === "light") {
-    document.body.classList.add("light-theme");
-  }
-});
-
     const nodes = [];
     while (walker.nextNode()) {
       nodes.push(walker.currentNode);
@@ -74,10 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     nodes.forEach((node) => {
       const span = document.createElement("span");
-      span.innerHTML = node.textContent.replace(
-        regex,
-        "<mark>$1</mark>"
-      );
+      span.innerHTML = node.textContent.replace(regex, "<mark>$1</mark>");
       node.parentNode.replaceChild(span, node);
     });
   }
