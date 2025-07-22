@@ -49,6 +49,24 @@ document.addEventListener("DOMContentLoaded", () => {
       false
     );
 
+function toggleTheme() {
+  document.body.classList.toggle("light-theme");
+
+  // Optional: save user preference
+  if (document.body.classList.contains("light-theme")) {
+    localStorage.setItem("theme", "light");
+  } else {
+    localStorage.setItem("theme", "dark");
+  }
+}
+
+// Apply saved theme on load
+document.addEventListener("DOMContentLoaded", () => {
+  if (localStorage.getItem("theme") === "light") {
+    document.body.classList.add("light-theme");
+  }
+});
+
     const nodes = [];
     while (walker.nextNode()) {
       nodes.push(walker.currentNode);
