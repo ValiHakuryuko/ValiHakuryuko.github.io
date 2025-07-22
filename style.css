@@ -18,13 +18,26 @@ body {
 }
 
 /* Sidebar toggle button (always visible for testing) */
+/* Sidebar background stays black */
+.sidebar {
+  background-color: #111 !important;
+  color: white !important;
+  padding: 2rem 1rem;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.3s ease;
+}
+
+/* Sidebar toggle button with blue background */
 #sidebar-toggle {
   display: block !important;
   position: fixed;
   top: 0.75rem;
   left: 0.75rem;
   z-index: 1001;
-  background: #00bfff;
+  background: #00bfff;  /* Bright blue */
   color: #111;
   border: none;
   width: 30px;
@@ -36,18 +49,6 @@ body {
   cursor: pointer;
   user-select: none;
   padding: 0;
-}
-
-/* Sidebar */
-.sidebar {
-  background-color: #00bfff !important; /* Bright blue */
-  color: white !important;
-  padding: 2rem 1rem;
-  width: 250px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: transform 0.3s ease;
 }
 
 /* Mobile responsiveness */
