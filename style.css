@@ -94,8 +94,8 @@ body {
 }
 
 #Contact img {
-  width: 5em;
-  height: 5em;
+  width: 5em !important;
+  height: 5em !important;
   border-radius: 50%;
   object-fit: cover;
   vertical-align: middle;
