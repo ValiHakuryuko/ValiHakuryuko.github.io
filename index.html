@@ -2,53 +2,46 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Vali Hakuryuko - Portfolio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vali - Portfolio</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="script.js" defer></script>
 </head>
-<body class="dark">
-  <div class="container">
-    <aside class="sidebar">
-      <img src="profile.jpg" alt="Profile Picture" class="profile-pic" />
-      <h1>Vali Hakuryuko</h1>
-      <p>Cybersecurity Learner</p>
-      <nav>
-        <a href="#about">About</a>
-        <a href="#projects">Projects</a>
-      </nav>
-      <button id="theme-toggle">Toggle Theme</button>
-    </aside>
-
-    <main class="content">
-      <section id="about">
-        <h2>About Me</h2>
-        <p>Hello! I'm Vali. I’m passionate about cybersecurity, web technologies, and hands-on learning through projects.</p>
-      </section>
-
-      <section id="projects">
-        <h2>Projects</h2>
-        <ul>
-          <li>
-            <strong>Host Local Server with XAMPP + LocalToNet</strong><br />
-            A tutorial and walkthrough on local server hosting and exposing it securely.
-          </li>
-          <li>
-            <strong>Burp Suite Certification Study Guide</strong><br />
-            Notes and resource curation for the BCS Practitioner Certificate.
-          </li>
-          <li>
-            <strong>Hack The Box Labs</strong><br />
-            Write-ups and progress logs for web exploitation, enumeration, and privilege escalation labs.
-          </li>
-        </ul>
-      </section>
-
-      <footer>
-        <p>© 2025 Vali Hakuryuko • <a href="https://github.com/ValiHakuryuko" target="_blank">GitHub</a></p>
-      </footer>
-    </main>
+<body>
+  <div class="theme-toggle">
+    <label class="switch">
+      <input type="checkbox" id="themeSwitch">
+      <span class="slider round"></span>
+    </label>
   </div>
 
-  <script src="script.js"></script>
+  <aside class="sidebar">
+    <img src="profile.jpg" alt="Profile Picture" class="profile-pic">
+    <h2>Vali Hakuryuko</h2>
+    <p>Student • Tech Enthusiast • Cybersecurity Learner</p>
+    <nav>
+      <a href="#about">About</a>
+      <a href="#projects">Projects</a>
+    </nav>
+    <footer>
+      <a href="https://github.com/ValiHakuryuko">GitHub</a>
+    </footer>
+  </aside>
+
+  <main>
+    <section id="about">
+      <h2>About Me</h2>
+      <p>Hello! I'm Vali. I'm passionate about cybersecurity, web technologies, and hands-on learning through projects.</p>
+    </section>
+
+    <section id="projects">
+      <h2>Projects</h2>
+      <ul>
+        <li><strong>Host Local Server with XAMPP + LocalToNet</strong> – A tutorial and walkthrough on local server hosting.</li>
+        <li><strong>Burp Suite Certification Study Guide</strong> – Notes and resources for BCS Practitioner Certificate.</li>
+        <li><strong>Hack The Box Labs</strong> – Progress log on various HTB challenges and modules.</li>
+      </ul>
+    </section>
+  </main>
 </body>
 </html>
