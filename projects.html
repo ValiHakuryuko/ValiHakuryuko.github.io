@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vali's Blog - Projects</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <img src="profile.jpg" alt="Profile Picture" class="profile-pic" />
+      <h1>Vali Hakuryuko</h1>
+      <p>Web Penetration Enthusiast</p>
+      <nav>
+        <a href="index.html#about">About</a>
+        <a href="projects.html"aria-current="page">Projects</a>
+        <a href="blog.html">Blog</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light and dark theme">Toggle Theme</button>
+    </aside>
+
+    <main class="content">
+      <section id="projects" class="card">
+        <h2>Projects</h2>
+        <ul>
+          <li>
+            <strong>Host Local Server with XAMPP + LocalToNet</strong><br />
+            A tutorial and walkthrough on local server hosting and exposing it securely.
+          </li>
+          <li>
+            <strong>Burp Suite Certification Study Guide</strong><br />
+            Notes and resource curation for the BCS Practitioner Certificate.
+          </li>
+          <li>
+            <strong>Hack The Box Labs</strong><br />
+            Write-ups and progress logs for web exploitation, enumeration, and privilege escalation labs.
+          </li>
+        </ul>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
