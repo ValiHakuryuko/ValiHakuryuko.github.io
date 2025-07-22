@@ -2,50 +2,42 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>My Blog</title>
+  <title>Vali Hakuryuko</title>
   <link rel="stylesheet" href="style.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
+  <div class="container">
+    <aside class="sidebar">
+      <img src="profile.jpg" alt="Profile Picture" class="profile-pic">
+      <h1>Vali Hakuryuko</h1>
+      <p>Cybersecurity Learner</p>
+      <nav>
+        <a href="#about">About</a>
+        <a href="#projects">Projects</a>
+      </nav>
+      <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+    </aside>
 
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <img src="profile.jpg" alt="Profile Picture">
-    <h2>Your Name</h2>
-    <nav>
-      <a href="#">Home</a>
-      <a href="#">Blog</a>
-      <a href="#">CTF Writeups</a>
-      <a href="#">Projects</a>
-      <a href="#">Contact</a>
-    </nav>
-  </div>
+    <main class="content">
+      <section id="about" class="card">
+        <h2>About Me</h2>
+        <p>Hello! I'm Vali. I’m passionate about cybersecurity, web technologies, and hands-on learning through projects.</p>
+      </section>
 
-  <!-- Main Content -->
-  <div class="main-content">
-    <h1>Welcome to My Blog</h1>
-    <p>This is where I share my cybersecurity journey, CTF writeups, and tech tutorials. Stay tuned!</p>
-    <h3>About Me</h3>
-    <p>Hello! I’m a cybersecurity student passionate about CTF challenges and all things tech. Explore my projects, guides, and writeups to dive into the world of hacking.</p>
-    <h3>My Skills</h3>
-    <div class="skills">
-      <span class="tag">Python</span>
-      <span class="tag">C++</span>
-      <span class="tag">Java</span>
-      <span class="tag">Linux</span>
-      <span class="tag">HTML</span>
-      <span class="tag">CSS</span>
-      <span class="tag">Git</span>
-    </div>
-  </div>
+      <section id="projects" class="card">
+        <h2>Projects</h2>
+        <ul>
+          <li><strong>Host Local Server with XAMPP + LocalToNet</strong><br>A tutorial and walkthrough on local server hosting and exposing it securely.</li>
+          <li><strong>Burp Suite Certification Study Guide</strong><br>Notes and resource curation for the BCS Practitioner Certificate.</li>
+          <li><strong>Hack The Box Labs</strong><br>Write-ups and progress logs for web exploitation, enumeration, and privilege escalation labs.</li>
+        </ul>
+      </section>
 
-  <!-- Theme Toggle -->
-  <div class="theme-toggle">
-    <label class="theme-switch">
-      <input type="checkbox" id="themeToggle">
-      <span class="slider"></span>
-    </label>
-    <span>Dark Mode</span>
+      <footer>
+        &copy; 2025 Vali Hakuryuko · <a href="https://github.com/ValiHakuryuko" target="_blank">GitHub</a>
+      </footer>
+    </main>
   </div>
 
   <script src="script.js"></script>
