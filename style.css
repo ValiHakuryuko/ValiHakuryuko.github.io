@@ -47,6 +47,7 @@ body {
 .sidebar h1 {
   font-size: 1.4rem;
   margin: 0.5rem 0;
+  color: var(--text-color);
 }
 
 .sidebar p {
