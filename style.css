@@ -18,7 +18,7 @@ body {
 }
 
 /* Sidebar toggle button (always visible for testing) */
-##sidebar-toggle {
+#sidebar-toggle {
   display: block !important;
   position: fixed;
   top: 0.75rem;
@@ -40,7 +40,7 @@ body {
 
 /* Sidebar */
 .sidebar {
-  background-color: #111 !important;
+  background-color: #00bfff !important; /* Bright blue */
   color: white !important;
   padding: 2rem 1rem;
   width: 250px;
