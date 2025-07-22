@@ -94,12 +94,12 @@ body {
 }
 
 #Contact img {
-  width: 2.5em;
-  height: 2.5em;
+  width: 5em;
+  height: 5em;
   border-radius: 50%;
   object-fit: cover;
   vertical-align: middle;
-  margin-right: 0.4em;
+  margin-right: 0.5em;
 }
 
 /* Footer */
