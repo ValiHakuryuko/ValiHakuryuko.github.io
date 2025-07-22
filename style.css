@@ -265,33 +265,22 @@ footer {
 }
 
 /* Light Theme */
-body.light-theme {
-  background-color: #f4f4f4;
-  color: #222;
+body {
+  background-color: #121212;
+  color: #f0f0f0;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-body.light-theme .card {
+.light-theme {
   background-color: #ffffff;
-  color: #222;
+  color: #000000;
 }
 
-body.light-theme footer {
-  color: #222;
+.sidebar {
+  background-color: #000000; /* Always black sidebar */
 }
 
-body.light-theme footer a {
-  color: #00bfff;
+.light-theme .sidebar {
+  background-color: #000000; /* Sidebar remains black in light mode */
 }
 
-/* Keep Sidebar Dark in Light Theme */
-body.light-theme .sidebar {
-  background-color: #111 !important;
-  color: white !important;
-}
-
-body.light-theme .sidebar h1,
-body.light-theme .sidebar p,
-body.light-theme .sidebar nav a,
-body.light-theme .theme-toggle {
-  color: white !important;
-}
