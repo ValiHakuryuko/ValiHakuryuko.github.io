@@ -1,43 +1,30 @@
-// Sidebar toggle for mobile
-const sidebar = document.querySelector('.sidebar');
-const toggleBtn = document.getElementById('sidebar-toggle');
+document.addEventListener('DOMContentLoaded', () => {
+  const sidebar = document.querySelector('.sidebar');
+  const toggleBtn = document.getElementById('sidebar-toggle');
+  const backToTopBtn = document.getElementById('back-to-top');
 
-toggleBtn.addEventListener('click', () => {
-  const isOpen = sidebar.classList.toggle('open');
-  toggleBtn.setAttribute('aria-expanded', isOpen);
+  // Toggle sidebar open/close on button click
+  toggleBtn.addEventListener('click', () => {
+    const isOpen = sidebar.classList.toggle('open');
+    toggleBtn.setAttribute('aria-expanded', isOpen);
+  });
+
+  // Show/hide Back to Top button on scroll
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 300) {
+      backToTopBtn.classList.add('show');
+    } else {
+      backToTopBtn.classList.remove('show');
+    }
+  });
+
+  // Smooth scroll to top on Back to Top button click
+  backToTopBtn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
 });
 
-// Typing animation
-const text = "Hello! I'm Vali. I’m passionate about cybersecurity, web technologies, and hands-on learning through projects.";
-const typedTextElem = document.getElementById('typed-text');
-let index = 0;
-
-function type() {
-  if (index < text.length) {
-    typedTextElem.textContent += text.charAt(index);
-    index++;
-    setTimeout(type, 50);
-  }
-}
-
-type();
-
-// Back to Top Button
-const backToTopBtn = document.getElementById('back-to-top');
-
-window.addEventListener('scroll', () => {
-  if (window.scrollY > 300) {
-    backToTopBtn.classList.add('show');
-  } else {
-    backToTopBtn.classList.remove('show');
-  }
-});
-
-backToTopBtn.addEventListener('click', () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-});
-
-// Your theme toggle function (example)
+// Theme toggle function (make sure you have a button with class 'theme-toggle' in your HTML)
 function toggleTheme() {
   document.body.classList.toggle('light-theme');
 }
