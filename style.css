@@ -153,6 +153,14 @@ button:focus {
   border-color: var(--accent-color, #00f);
 }
 
+mark {
+  background-color: #00bfff;
+  color: black;
+  font-weight: bold;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
 /* Main content area */
 .content {
   flex-grow: 1;
