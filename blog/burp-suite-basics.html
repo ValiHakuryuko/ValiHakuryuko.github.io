@@ -27,8 +27,33 @@
         <h2>Getting Started with Burp Suite</h2>
         <time datetime="2025-07-23">July 23, 2025</time>
 
-        <p>This post covers the basics of <strong>Burp Suite</strong> and an explanation of all tools found in it.</p>
+        <p>This post covers the basics of <strong>Burp Suite Community Edition</strong> and an explanation of all tools found in it.</p>
 
+        <h3>Proxy</h3>
+        <p>The Proxy tab in Burp Suite lets you intercept, view, and modify HTTP(S) traffic between your browser and the web server. It’s essential for analyzing requests/responses during web application testing. Some features are:</p>
+        <ol>
+          <li><strong>Intercept: </strong>Pause and modify live traffic.</li>
+          <li><strong>HTTP History: </strong>View a log of all requests/responses.</li>
+        </ol>
+
+        <h3>Repeater</h3>
+        <p>The Repeater tab lets you manually modify and resend HTTP(S) requests to a server. It’s used for testing inputs, analyzing responses, and repeating requests without affecting live traffic.</p>
+        <p>Sounds kind of similar to Proxy, doesn't it..? Well the difference lies as follows: </p>
+        <ol>
+            <li><strong>How to send requests: </strong>Ctrl+R key or left click and "Send to Repeater".</li>
+            <li><strong>Sending Requests: </strong>Requests can be sent by the user to the html page repeatedly via this tab, making changes to them to check the server response.</li>
+            <li><strong>Edit: </strong>Try changing headers, body, cookie, anything to see how a server hanldes the change.</li>
+            <li><strong>Compare: </strong>Compare responses side-by-side.</li>
+        </ol>
+
+        <h3>Intruder</h3>
+        <p>The Intruder tab is used to automate sending many customized requests to a target, useful for tasks like Brute Forcing, Fuzzing, Enumeration, etc.</p>
+        <p>We have to provide:</p>
+        <ol>
+            <li><strong>Target: </strong>Mostly Proxy or HTTP History. Attack Type.</li>
+            <li><strong>Payloads: </strong>Data to insert/test.</li>
+            <li><strong>Attack Type: </strong>Sniper, Battering ram, Pitchfork, Cluster bomb.</li>
+        </ol>
       </section>
     </main>
   </div>
