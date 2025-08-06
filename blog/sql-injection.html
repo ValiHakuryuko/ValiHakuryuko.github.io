@@ -4,79 +4,102 @@
   <base href="/" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Vali's Blog - Projects</title>
+  <title>SQL Injections</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <section class="card">
-    <article class="blog-post">
-      <h3>SQL Injection</h3>
-      <p>SQL Injection (SQLi) is a critical vulnerability that allows attackers to manipulate the SQL queries used by an application. By injecting malicious input, an attacker can bypass authentication, access unauthorized data, or even modify or delete database contents.</p>
-      <ul>
-        <li>
-          <strong>What It Targets:</strong>
-          SQLi exploits vulnerabilities in how input is embedded in SQL queries, commonly in:
+  <div class="container">
+    <aside class="sidebar">
+      <img src="image/profile.jpg" alt="Profile Picture" class="profile-pic" />
+      <h1>Vali Hakuryuko</h1>
+      <p>Web Penetration Enthusiast</p>
+      <nav>
+        <a href="index.html#about">About</a>
+        <a href="blog.html" aria-current="page">Blog</a>
+        <a href="projects.html">Projects</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light and dark theme">Toggle Theme</button>
+    </aside>
+
+    <main class="content">
+      <section id="blog" class="card">
+        <h2>Working on SQL Injections</h2>
+        <time datetime="2025-07-15">July 15, 2025</time>
+      </section>
+
+      <section class="card">
+        <article class="blog-post">
+          <h3>SQL Injection</h3>
+          <p>SQL Injection (SQLi) is a critical vulnerability that allows attackers to manipulate the SQL queries used by an application. By injecting malicious input, an attacker can bypass authentication, access unauthorized data, or even modify or delete database contents.</p>
           <ul>
-            <li>Login forms</li>
-            <li>Search fields</li>
-            <li>URL parameters</li>
-            <li>Cookies</li>
+            <li>
+              <strong>What It Targets:</strong>
+              SQLi exploits vulnerabilities in how input is embedded in SQL queries, commonly in:
+              <ul>
+                <li>Login forms</li>
+                <li>Search fields</li>
+                <li>URL parameters</li>
+                <li>Cookies</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Common Types:</strong>
+              <ul>
+                <li><strong>Classic SQLi:</strong> Injecting SQL syntax directly (e.g., <code>' OR 1=1 --</code>)</li>
+                <li><strong>Union-Based SQLi:</strong> Using <code>UNION SELECT</code> to combine malicious results with existing query output</li>
+                <li><strong>Error-Based SQLi:</strong> Triggering detailed error messages that reveal schema info</li>
+                <li><strong>Blind SQLi:</strong> Exploiting conditions (true/false or time-based) when no errors are shown</li>
+                <li><strong>Out-of-Band SQLi:</strong> Using external systems (e.g., DNS or HTTP requests) to exfiltrate data</li>
+                <li><strong>Second-Order SQLi:</strong> Malicious input stored in the database and triggered later in a different query</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Attack Examples:</strong>
+              <ul>
+                <li><strong>Login Bypass:</strong> <code>' OR '1'='1</code> in a login form may log in as admin</li>
+                <li><strong>Extract Data:</strong> <code>' UNION SELECT username, password FROM users --</code></li>
+                <li><strong>Time Delay:</strong> <code>' OR IF(1=1, SLEEP(5), 0) --</code> to infer database behavior</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Tools for Exploitation:</strong>
+              <ul>
+                <li><strong>sqlmap:</strong> Automated SQLi detection and exploitation tool</li>
+                <li><strong>Burp Suite:</strong> Intercepts and manipulates HTTP requests</li>
+                <li><strong>Havij:</strong> GUI tool for automating SQLi attacks (Windows)</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Detection Techniques:</strong>
+              <ul>
+                <li>Manually inject payloads in form inputs or URL parameters</li>
+                <li>Use automated scanners (sqlmap, Nikto, Burp Scanner)</li>
+                <li>Check server logs for unusual SQL error messages</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Mitigation & Prevention:</strong>
+              <ul>
+                <li>Use Prepared Statements / Parameterized Queries (e.g., <code>mysqli_prepare()</code>, <code>PDO</code>)</li>
+                <li>Employ ORM tools (e.g., Sequelize, Hibernate, SQLAlchemy)</li>
+                <li>Whitelist expected input types and lengths</li>
+                <li>Disable verbose error reporting in production</li>
+                <li>Use Web Application Firewalls (WAFs) to filter malicious input</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Real-World Impact:</strong>
+              <ul>
+                <li><strong>Yahoo SQLi (2012):</strong> Over 450k emails and passwords leaked</li>
+                <li><strong>Heartland Payment Systems:</strong> Exploited via SQLi, leading to one of the largest data breaches</li>
+              </ul>
+            </li>
           </ul>
-        </li>
-        <li>
-          <strong>Common Types:</strong>
-          <ul>
-            <li><strong>Classic SQLi:</strong> Injecting SQL syntax directly (e.g., <code>' OR 1=1 --</code>)</li>
-            <li><strong>Union-Based SQLi:</strong> Using <code>UNION SELECT</code> to combine malicious results with existing query output</li>
-            <li><strong>Error-Based SQLi:</strong> Triggering detailed error messages that reveal schema info</li>
-            <li><strong>Blind SQLi:</strong> Exploiting conditions (true/false or time-based) when no errors are shown</li>
-            <li><strong>Out-of-Band SQLi:</strong> Using external systems (e.g., DNS or HTTP requests) to exfiltrate data</li>
-            <li><strong>Second-Order SQLi:</strong> Malicious input stored in the database and triggered later in a different query</li>
-          </ul>
-        </li>
-        <li>
-          <strong>Attack Examples:</strong>
-          <ul>
-            <li><strong>Login Bypass:</strong> <code>' OR '1'='1</code> in a login form may log in as admin</li>
-            <li><strong>Extract Data:</strong> <code>' UNION SELECT username, password FROM users --</code></li>
-            <li><strong>Time Delay:</strong> <code>' OR IF(1=1, SLEEP(5), 0) --</code> to infer database behavior</li>
-          </ul>
-        </li>
-        <li>
-          <strong>Tools for Exploitation:</strong>
-          <ul>
-            <li><strong>sqlmap:</strong> Automated SQLi detection and exploitation tool</li>
-            <li><strong>Burp Suite:</strong> Intercepts and manipulates HTTP requests</li>
-            <li><strong>Havij:</strong> GUI tool for automating SQLi attacks (Windows)</li>
-          </ul>
-        </li>
-        <li>
-          <strong>Detection Techniques:</strong>
-          <ul>
-            <li>Manually inject payloads in form inputs or URL parameters</li>
-            <li>Use automated scanners (sqlmap, Nikto, Burp Scanner)</li>
-            <li>Check server logs for unusual SQL error messages</li>
-          </ul>
-        </li>
-        <li>
-          <strong>Mitigation & Prevention:</strong>
-          <ul>
-            <li>Use Prepared Statements / Parameterized Queries (e.g., <code>mysqli_prepare()</code>, <code>PDO</code>)</li>
-            <li>Employ ORM tools (e.g., Sequelize, Hibernate, SQLAlchemy)</li>
-            <li>Whitelist expected input types and lengths</li>
-            <li>Disable verbose error reporting in production</li>
-            <li>Use Web Application Firewalls (WAFs) to filter malicious input</li>
-          </ul>
-        </li>
-        <li>
-          <strong>Real-World Impact:</strong>
-          <ul>
-            <li><strong>Yahoo SQLi (2012):</strong> Over 450k emails and passwords leaked</li>
-            <li><strong>Heartland Payment Systems:</strong> Exploited via SQLi, leading to one of the largest data breaches</li>
-          </ul>
-        </li>
-      </ul>
-    </article>
-  </section>
+        </article>
+      </section>
+    </main>
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>
