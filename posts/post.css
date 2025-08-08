@@ -1,0 +1,38 @@
+/* Minimal post styles; inherits your site's base styles */
+.post-header h1 { margin-bottom: 0.25rem; line-height: 1.2; }
+.post-header .meta { color: #6b7280; font-size: 0.95rem; display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+.post-header .dot::before { content: "•"; margin-right: .5rem; color: #9ca3af; }
+.post .excerpt { color: #4b5563; }
+
+.toc { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1rem; margin: 1rem 0 2rem; }
+.toc ul { margin: .5rem 0 0 1rem; }
+.toc a { text-decoration: none; }
+.toc a:hover { text-decoration: underline; }
+
+/* Callouts */
+.callout { border-left: 4px solid #e5e7eb; background: #f9fafb; padding: .75rem 1rem; border-radius: 8px; margin: 1rem 0; }
+.callout .callout-title { font-weight: 600; margin-bottom: .5rem; }
+.callout.tip { border-left-color: #10b981; }
+.callout.warning { border-left-color: #f59e0b; }
+.callout.note { border-left-color: #3b82f6; }
+
+/* Code blocks with copy button */
+pre { position: relative; overflow: auto; padding: 1rem; border: 1px solid #e5e7eb; border-radius: 12px; background: #0b1020; color: #e5e7eb; }
+pre code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size: .95rem; }
+.copy-btn { position: absolute; top: .5rem; right: .5rem; border: 1px solid #e5e7eb; background: #111827; color: #f9fafb; padding: .25rem .5rem; border-radius: 8px; cursor: pointer; }
+.copy-btn:active { transform: translateY(1px); }
+
+/* Heading anchors */
+.post h2, .post h3 { position: relative; }
+.post h2 a.anchor, .post h3 a.anchor { position: absolute; left: -1.2rem; opacity: 0; text-decoration: none; }
+.post h2:hover a.anchor, .post h3:hover a.anchor { opacity: .8; }
+
+/* Quiz */
+.quiz ol { padding-left: 1.2rem; }
+.quiz .answers { display: grid; gap: .35rem; margin:.5rem 0 1rem; }
+#quiz-check { padding: .5rem .75rem; border-radius: 8px; border: 1px solid #e5e7eb; background: #111827; color: #f9fafb; }
+#quiz-result { margin-top: .5rem; font-weight: 600; }
+
+/* Footer nav */
+.post-footer .post-nav { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.post-footer .post-nav a { text-decoration: none; }
