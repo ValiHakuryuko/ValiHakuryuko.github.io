@@ -1,66 +1,268 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <base href="/" />
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Guide: Hosting with XAMPP & Localtonet</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hosting a Local Website with XAMPP and LocalToNet — Vali Hakuryuko</title>
+  <meta name="description" content="Step-by-step guide to setting up a local web server with XAMPP and exposing it to the internet using LocalToNet." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b0b0d; --surface: #111114; --surface2: #18181c; --border: #222228;
+      --text: #f0ede6; --text2: #8a8794; --text3: #5a5768;
+      --accent: #5dffb2; --accent-dim: #0e2b1f;
+      --mono: 'JetBrains Mono', monospace; --sans: 'Outfit', sans-serif; --display: 'Syne', sans-serif;
+      --radius: 8px; --transition: 0.2s ease;
+    }
+    [data-theme="light"] { --bg: #f5f3ef; --surface: #ffffff; --surface2: #eeece8; --border: #ddd9d0; --text: #18161a; --text2: #6b6878; --text3: #aaa8b5; --accent-dim: #d4fce8; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--sans); font-weight: 400; line-height: 1.6; transition: background var(--transition), color var(--transition); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    nav { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; backdrop-filter: blur(12px); }
+    .nav-logo { font-family: var(--mono); font-size: 0.85rem; color: var(--accent); text-decoration: none; }
+    .nav-logo span { color: var(--text2); }
+    .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+    .nav-links a { font-size: 0.875rem; font-weight: 500; color: var(--text2); transition: color var(--transition); text-decoration: none; }
+    .nav-links a:hover { color: var(--text); }
+    .theme-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); cursor: pointer; font-family: var(--mono); font-size: 0.75rem; padding: 0.35rem 0.75rem; border-radius: var(--radius); transition: all var(--transition); }
+    .theme-btn:hover { color: var(--text); border-color: var(--accent); }
+    .layout { display: grid; grid-template-columns: 1fr min(740px, 100%) 1fr; padding: 0 2rem; }
+    .layout > * { grid-column: 2; }
+    .post-header { padding: 4rem 0 3rem; border-bottom: 1px solid var(--border); margin-bottom: 3rem; }
+    .post-breadcrumb { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); margin-bottom: 1.5rem; }
+    .post-breadcrumb a { color: var(--accent); text-decoration: none; }
+    .post-breadcrumb a:hover { text-decoration: underline; }
+    .post-meta-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .post-date { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); }
+    .post-tag { font-family: var(--mono); font-size: 0.65rem; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent); padding: 0.15rem 0.5rem; border-radius: 100px; }
+    .post-read-time { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); }
+    h1.post-title { font-family: var(--display); font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1.25rem; }
+    .post-subtitle { font-size: 1.1rem; color: var(--text2); font-weight: 300; line-height: 1.65; }
+    .toc { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; padding: 1.5rem; margin-bottom: 3rem; }
+    .toc-title { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+    .toc ol { padding-left: 1.25rem; }
+    .toc li { margin-bottom: 0.4rem; }
+    .toc a { font-size: 0.875rem; color: var(--text2); text-decoration: none; transition: color var(--transition); }
+    .toc a:hover { color: var(--accent); }
+    article { margin-bottom: 4rem; }
+    article h2 { font-family: var(--display); font-size: 1.45rem; font-weight: 700; margin: 3rem 0 1rem; letter-spacing: -0.02em; padding-top: 1rem; border-top: 1px solid var(--border); }
+    article h2:first-child { border-top: none; margin-top: 0; }
+    article h3 { font-family: var(--display); font-size: 1.05rem; font-weight: 600; margin: 1.75rem 0 0.6rem; color: var(--text); }
+    article p { color: var(--text2); font-size: 1rem; line-height: 1.85; margin-bottom: 1.25rem; }
+    article p strong { color: var(--text); font-weight: 600; }
+    article ul, article ol { padding-left: 1.5rem; margin-bottom: 1.25rem; }
+    article li { color: var(--text2); font-size: 1rem; line-height: 1.75; margin-bottom: 0.5rem; }
+    article li strong { color: var(--text); }
+    code { font-family: var(--mono); font-size: 0.875em; background: var(--surface2); border: 1px solid var(--border); padding: 0.15em 0.4em; border-radius: 4px; color: var(--accent); }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; overflow-x: auto; margin: 1.5rem 0; }
+    pre code { background: none; border: none; padding: 0; color: var(--text); font-size: 0.875rem; line-height: 1.65; }
+    .code-label { font-family: var(--mono); font-size: 0.65rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; display: block; }
+    .callout { border-radius: var(--radius); padding: 1.25rem 1.5rem; margin: 2rem 0; border-left: 3px solid; }
+    .callout-title { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; font-weight: 500; }
+    .callout p { margin: 0; font-size: 0.9rem; color: var(--text2); }
+    .callout.info { background: #0e1e2e; border-color: #4a9eff; }
+    .callout.info .callout-title { color: #4a9eff; }
+    .callout.warning { background: #1e1800; border-color: #f5a623; }
+    .callout.warning .callout-title { color: #f5a623; }
+    .callout.success { background: var(--accent-dim); border-color: var(--accent); }
+    .callout.success .callout-title { color: var(--accent); }
+    .req-list { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 2rem; }
+    .req-list-title { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
+    .req-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; color: var(--text2); }
+    .req-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .req-item::before { content: '✓'; color: var(--accent); font-family: var(--mono); font-size: 0.75rem; }
+    .step-number { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--accent); color: #000; border-radius: 50%; font-family: var(--mono); font-size: 0.75rem; font-weight: 700; margin-right: 0.75rem; flex-shrink: 0; }
+    .step-header { display: flex; align-items: center; margin-bottom: 1rem; }
+    .step-header h3 { margin: 0; font-family: var(--display); font-size: 1.1rem; font-weight: 700; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 3rem 0; }
+    .post-footer { padding: 3rem 0; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.25rem; border-radius: var(--radius); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all var(--transition); border: 1px solid var(--border); color: var(--text2); text-decoration: none; }
+    .btn:hover { border-color: var(--text2); color: var(--text); text-decoration: none; }
+    .btn-accent { border-color: var(--accent); color: var(--accent); }
+    .btn-accent:hover { background: var(--accent-dim); }
+    footer { border-top: 1px solid var(--border); padding: 2rem 6vw; display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 0.75rem; color: var(--text3); }
+    .footer-back { cursor: pointer; transition: color var(--transition); }
+    .footer-back:hover { color: var(--accent); }
+    @media (max-width: 768px) {
+      nav { padding: 0 1.5rem; } .nav-links { display: none; }
+      .layout { grid-template-columns: 1fr; padding: 0 1.5rem; }
+      .post-footer { flex-direction: column; align-items: flex-start; }
+      footer { flex-direction: column; gap: 1rem; text-align: center; }
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <aside class="sidebar">
-      <img src="image/profile.jpg" alt="Profile Picture" class="profile-pic" />
-      <h1>Vali Hakuryuko</h1>
-      <p>Web Penetration Enthusiast</p>
-      <nav>
-        <a href="index.html#about">About</a>
-        <a href="blog.html" aria-current="page">Blog</a>
-        <a href="projects.html">Projects</a>
-        <a href="index.html#contact">Contact</a>
-      </nav>
-      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light and dark theme">Toggle Theme</button>
-    </aside>
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>~/</span>vali</a>
+    <ul class="nav-links">
+      <li><a href="../index.html#about">about</a></li>
+      <li><a href="../blog.html">blog</a></li>
+      <li><a href="../projects.html">projects</a></li>
+      <li><a href="../index.html#contact">contact</a></li>
+    </ul>
+    <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
+  </nav>
 
-    <main class="content">
-      <section id="blog" class="card">
-        <h2>Guide: Hosting a Local Website with XAMPP and LocalToNet</h2>
-        <time datetime="2025-07-22">July 22, 2025</time>
+  <div class="layout">
+    <header class="post-header">
+      <div class="post-breadcrumb">
+        <a href="../index.html">~</a> / <a href="../blog.html">blog</a> / hosting-xampp-localnet
+      </div>
+      <div class="post-meta-row">
+        <span class="post-date">2025-07-22</span>
+        <span class="post-tag">tools</span>
+        <span class="post-read-time">~4 min read</span>
+      </div>
+      <h1 class="post-title">Hosting a Local Website with XAMPP and LocalToNet</h1>
+      <p class="post-subtitle">
+        Set up a local web server on your machine using XAMPP and expose it to the public internet using LocalToNet — no port forwarding required.
+      </p>
+    </header>
 
-        <p>This guide helps you set up a local web server using <strong>XAMPP</strong> and make it publicly accessible using <strong>Localtonet</strong>.</p>
+    <div class="toc">
+      <div class="toc-title">// contents</div>
+      <ol>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#requirements">Requirements</a></li>
+        <li><a href="#step1">Step 1 — Install & Configure XAMPP</a></li>
+        <li><a href="#step2">Step 2 — Expose Localhost with LocalToNet</a></li>
+        <li><a href="#result">Final Result</a></li>
+      </ol>
+    </div>
 
-        <h4>Requirements</h4>
-        <ul>
-          <li>A PC with Windows, macOS, or Linux</li>
-          <li><a href="https://www.apachefriends.org/index.html" target="_blank">XAMPP</a> installed</li>
-          <li><a href="https://localtonet.com/" target="_blank">Localtonet</a> account</li>
-        </ul>
+    <article>
 
-        <h4>Step 1: Install & Configure XAMPP</h4>
-        <ol>
-          <li>Download and install XAMPP from <a href="https://www.apachefriends.org/index.html" target="_blank">apachefriends.org</a>.</li>
-          <li>Open the <strong>XAMPP Control Panel</strong>.</li>
-          <li>Start the <code>Apache</code> module.</li>
-          <li>Test it by visiting <code>http://localhost</code> in your browser.</li>
-        </ol>
-        <p>Place your files in <code>C:\xampp\htdocs\</code>. Then access them via <code>http://localhost/index.html</code> or <code>index.php</code>.</p>
+      <h2 id="overview">Overview</h2>
+      <p>
+        Sometimes you need to quickly spin up a web server — to test a PHP app, share a local project with someone, or set up a target for practicing web exploitation. XAMPP gives you Apache + MySQL + PHP in one installer. LocalToNet gives you a public URL tunneling into your localhost, bypassing router NAT without any port forwarding config.
+      </p>
+      <p>
+        This combo is especially useful for <strong>security testing labs</strong> — spin up a vulnerable app locally, expose it temporarily, and tear it down when done.
+      </p>
 
-        <h4>Step 2: Expose Localhost using Localtonet</h4>
-        <ol>
-          <li>Sign up at <a href="https://localtonet.com/" target="_blank">localtonet.com</a></li>
-          <li>Download the Localtonet application</li>
-          <li>Add its path to your system’s environment variables</li>
-          <li>Open terminal and run: <code>localtonet</code></li>
-          <li>Enter the AuthToken (found in the Localtonet dashboard)</li>
-          <li>Once connected, go to "My Tokens" > "HTTP" tab and create a new tunnel</li>
-          <li>Start the tunnel to generate a public URL</li>
-        </ol>
+      <h2 id="requirements">Requirements</h2>
+      <div class="req-list">
+        <div class="req-list-title">// what you need</div>
+        <div class="req-item">A PC running Windows, macOS, or Linux</div>
+        <div class="req-item"><a href="https://www.apachefriends.org/index.html" target="_blank">XAMPP</a> installed (free from apachefriends.org)</div>
+        <div class="req-item">A <a href="https://localtonet.com/" target="_blank">LocalToNet</a> account (free tier available)</div>
+      </div>
 
-        <p>Now anyone with the URL can access your local project from the internet!</p>
-      </section>
-    </main>
+      <h2 id="step1">Step 1 — Install & Configure XAMPP</h2>
+      <div class="step-header">
+        <span class="step-number">1</span>
+        <h3>Download and install XAMPP</h3>
+      </div>
+      <p>
+        Grab the installer from <a href="https://www.apachefriends.org/index.html" target="_blank">apachefriends.org</a> and run it. The defaults are fine — just make sure <strong>Apache</strong> and <strong>MySQL</strong> are checked.
+      </p>
+
+      <div class="step-header">
+        <span class="step-number">2</span>
+        <h3>Start Apache</h3>
+      </div>
+      <p>
+        Open the <strong>XAMPP Control Panel</strong> and click <strong>Start</strong> next to the Apache module. The status should turn green.
+      </p>
+
+      <div class="step-header">
+        <span class="step-number">3</span>
+        <h3>Test your local server</h3>
+      </div>
+      <p>Visit <code>http://localhost</code> in your browser. You should see the XAMPP welcome page — that means Apache is running.</p>
+
+      <div class="step-header">
+        <span class="step-number">4</span>
+        <h3>Place your files</h3>
+      </div>
+      <p>Put your project files in the XAMPP document root:</p>
+      <span class="code-label">windows path</span>
+      <pre><code>C:\xampp\htdocs\your-project\</code></pre>
+      <span class="code-label">linux / mac path</span>
+      <pre><code>/opt/lampp/htdocs/your-project/</code></pre>
+      <p>Access your project at <code>http://localhost/your-project/index.html</code> (or <code>.php</code>).</p>
+
+      <div class="callout info">
+        <div class="callout-title">ℹ️ PHP files</div>
+        <p>If you're running PHP, make sure the file extension is <code>.php</code> — Apache needs to process it through the PHP interpreter, not serve it as static HTML.</p>
+      </div>
+
+      <h2 id="step2">Step 2 — Expose Localhost with LocalToNet</h2>
+      <div class="step-header">
+        <span class="step-number">1</span>
+        <h3>Sign up and download LocalToNet</h3>
+      </div>
+      <p>Create a free account at <a href="https://localtonet.com/" target="_blank">localtonet.com</a>, then download the LocalToNet client application for your OS.</p>
+
+      <div class="step-header">
+        <span class="step-number">2</span>
+        <h3>Add LocalToNet to your PATH</h3>
+      </div>
+      <p>Extract the binary and add its folder to your system's environment variables so you can run it from any terminal.</p>
+      <span class="code-label">windows — add to PATH via PowerShell</span>
+      <pre><code>$env:PATH += ";C:\path\to\localtonet"</code></pre>
+      <span class="code-label">linux / mac — add to PATH</span>
+      <pre><code>export PATH=$PATH:/path/to/localtonet
+# Add the above line to ~/.bashrc or ~/.zshrc to persist it</code></pre>
+
+      <div class="step-header">
+        <span class="step-number">3</span>
+        <h3>Authenticate and connect</h3>
+      </div>
+      <p>Open a terminal and run:</p>
+      <span class="code-label">bash</span>
+      <pre><code>localtonet</code></pre>
+      <p>When prompted, enter your <strong>AuthToken</strong> — find it in your LocalToNet dashboard under your account settings.</p>
+
+      <div class="step-header">
+        <span class="step-number">4</span>
+        <h3>Create an HTTP tunnel</h3>
+      </div>
+      <p>
+        In the LocalToNet dashboard, go to <strong>My Tokens → HTTP</strong> tab → create a new tunnel. Point it at <code>localhost:80</code> (XAMPP's Apache port).
+        Start the tunnel and LocalToNet will generate a public URL like <code>https://abc123.localto.net</code>.
+      </p>
+
+      <div class="callout success">
+        <div class="callout-title">✅ Done!</div>
+        <p>Anyone with that URL can now access your local project from anywhere on the internet — no router config, no static IP needed.</p>
+      </div>
+
+      <h2 id="result">Final Result</h2>
+      <p>
+        You now have a full local web server stack running on your machine, publicly accessible via a tunnel URL. This is useful for sharing work-in-progress projects, running vulnerable web apps for practice, or setting up temporary targets for penetration testing labs.
+      </p>
+
+      <div class="callout warning">
+        <div class="callout-title">⚠️ Security note</div>
+        <p>Don't leave tunnels open when not in use — especially if you're running intentionally vulnerable apps. Anyone with the URL can access your local server. Tear down the tunnel when you're done.</p>
+      </div>
+
+    </article>
+
+    <div class="post-footer">
+      <a href="../blog.html" class="btn">← Back to blog</a>
+      <a href="burp-suite-basics.html" class="btn btn-accent">Getting Started with Burp Suite →</a>
+    </div>
   </div>
 
-  <script src="script.js"></script>
+  <footer>
+    <span>© 2025 Vali Hakuryuko</span>
+    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ back to top</span>
+  </footer>
+
+  <script>
+    const root = document.documentElement;
+    root.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
+    function toggleTheme() {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    }
+  </script>
 </body>
 </html>
