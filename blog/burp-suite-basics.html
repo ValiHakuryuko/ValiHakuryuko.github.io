@@ -1,63 +1,286 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <base href="/" />
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Getting Started with Burp Suite</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Getting Started with Burp Suite — Vali Hakuryuko</title>
+  <meta name="description" content="A beginner-friendly guide to Burp Suite Community Edition — Proxy, Repeater, Intruder, and how to use each tool during web app testing." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b0b0d; --surface: #111114; --surface2: #18181c; --border: #222228;
+      --text: #f0ede6; --text2: #8a8794; --text3: #5a5768;
+      --accent: #5dffb2; --accent-dim: #0e2b1f;
+      --mono: 'JetBrains Mono', monospace; --sans: 'Outfit', sans-serif; --display: 'Syne', sans-serif;
+      --radius: 8px; --transition: 0.2s ease;
+    }
+    [data-theme="light"] { --bg: #f5f3ef; --surface: #ffffff; --surface2: #eeece8; --border: #ddd9d0; --text: #18161a; --text2: #6b6878; --text3: #aaa8b5; --accent-dim: #d4fce8; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--sans); font-weight: 400; line-height: 1.6; transition: background var(--transition), color var(--transition); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    nav { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; backdrop-filter: blur(12px); }
+    .nav-logo { font-family: var(--mono); font-size: 0.85rem; color: var(--accent); text-decoration: none; }
+    .nav-logo span { color: var(--text2); }
+    .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+    .nav-links a { font-size: 0.875rem; font-weight: 500; color: var(--text2); transition: color var(--transition); text-decoration: none; }
+    .nav-links a:hover { color: var(--text); }
+    .theme-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); cursor: pointer; font-family: var(--mono); font-size: 0.75rem; padding: 0.35rem 0.75rem; border-radius: var(--radius); transition: all var(--transition); }
+    .theme-btn:hover { color: var(--text); border-color: var(--accent); }
+    .layout { display: grid; grid-template-columns: 1fr min(740px, 100%) 1fr; padding: 0 2rem; }
+    .layout > * { grid-column: 2; }
+    .post-header { padding: 4rem 0 3rem; border-bottom: 1px solid var(--border); margin-bottom: 3rem; }
+    .post-breadcrumb { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); margin-bottom: 1.5rem; }
+    .post-breadcrumb a { color: var(--accent); text-decoration: none; }
+    .post-breadcrumb a:hover { text-decoration: underline; }
+    .post-meta-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .post-date { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); }
+    .post-tag { font-family: var(--mono); font-size: 0.65rem; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent); padding: 0.15rem 0.5rem; border-radius: 100px; }
+    .post-read-time { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); }
+    h1.post-title { font-family: var(--display); font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1.25rem; }
+    .post-subtitle { font-size: 1.1rem; color: var(--text2); font-weight: 300; line-height: 1.65; }
+    .toc { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; padding: 1.5rem; margin-bottom: 3rem; }
+    .toc-title { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+    .toc ol { padding-left: 1.25rem; }
+    .toc li { margin-bottom: 0.4rem; }
+    .toc a { font-size: 0.875rem; color: var(--text2); text-decoration: none; transition: color var(--transition); }
+    .toc a:hover { color: var(--accent); }
+    article { margin-bottom: 4rem; }
+    article h2 { font-family: var(--display); font-size: 1.45rem; font-weight: 700; margin: 3rem 0 1rem; letter-spacing: -0.02em; padding-top: 1rem; border-top: 1px solid var(--border); }
+    article h2:first-child { border-top: none; margin-top: 0; }
+    article h3 { font-family: var(--display); font-size: 1.05rem; font-weight: 600; margin: 1.75rem 0 0.6rem; color: var(--text); }
+    article p { color: var(--text2); font-size: 1rem; line-height: 1.85; margin-bottom: 1.25rem; }
+    article p strong { color: var(--text); font-weight: 600; }
+    article ul, article ol { padding-left: 1.5rem; margin-bottom: 1.25rem; }
+    article li { color: var(--text2); font-size: 1rem; line-height: 1.75; margin-bottom: 0.5rem; }
+    article li strong { color: var(--text); }
+    code { font-family: var(--mono); font-size: 0.875em; background: var(--surface2); border: 1px solid var(--border); padding: 0.15em 0.4em; border-radius: 4px; color: var(--accent); }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; overflow-x: auto; margin: 1.5rem 0; }
+    pre code { background: none; border: none; padding: 0; color: var(--text); font-size: 0.875rem; line-height: 1.65; }
+    .code-label { font-family: var(--mono); font-size: 0.65rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; display: block; }
+    .callout { border-radius: var(--radius); padding: 1.25rem 1.5rem; margin: 2rem 0; border-left: 3px solid; }
+    .callout-title { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; font-weight: 500; }
+    .callout p { margin: 0; font-size: 0.9rem; color: var(--text2); }
+    .callout.info { background: #0e1e2e; border-color: #4a9eff; }
+    .callout.info .callout-title { color: #4a9eff; }
+    .callout.warning { background: #1e1800; border-color: #f5a623; }
+    .callout.warning .callout-title { color: #f5a623; }
+    .callout.success { background: var(--accent-dim); border-color: var(--accent); }
+    .callout.success .callout-title { color: var(--accent); }
+    .tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0 2rem; }
+    .tool-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; transition: border-color var(--transition); }
+    .tool-card:hover { border-color: var(--accent); }
+    .tool-card-name { font-family: var(--mono); font-size: 0.8rem; color: var(--accent); margin-bottom: 0.4rem; }
+    .tool-card p { font-size: 0.85rem; color: var(--text2); margin: 0; line-height: 1.5; }
+    .attack-types { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin: 1rem 0 1.5rem; }
+    .attack-type { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+    .attack-type-name { font-family: var(--mono); font-size: 0.7rem; color: var(--accent); margin-bottom: 0.3rem; }
+    .attack-type p { font-size: 0.82rem; color: var(--text2); margin: 0; line-height: 1.45; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 3rem 0; }
+    .post-footer { padding: 3rem 0; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.25rem; border-radius: var(--radius); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all var(--transition); border: 1px solid var(--border); color: var(--text2); text-decoration: none; }
+    .btn:hover { border-color: var(--text2); color: var(--text); text-decoration: none; }
+    .btn-accent { border-color: var(--accent); color: var(--accent); }
+    .btn-accent:hover { background: var(--accent-dim); }
+    footer { border-top: 1px solid var(--border); padding: 2rem 6vw; display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 0.75rem; color: var(--text3); }
+    .footer-back { cursor: pointer; transition: color var(--transition); }
+    .footer-back:hover { color: var(--accent); }
+    @media (max-width: 768px) {
+      nav { padding: 0 1.5rem; } .nav-links { display: none; }
+      .layout { grid-template-columns: 1fr; padding: 0 1.5rem; }
+      .tool-grid, .attack-types { grid-template-columns: 1fr; }
+      .post-footer { flex-direction: column; align-items: flex-start; }
+      footer { flex-direction: column; gap: 1rem; text-align: center; }
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <aside class="sidebar">
-      <img src="image/profile.jpg" alt="Profile Picture" class="profile-pic" />
-      <h1>Vali Hakuryuko</h1>
-      <p>Web Penetration Enthusiast</p>
-      <nav>
-        <a href="index.html#about">About</a>
-        <a href="blog.html" aria-current="page">Blog</a>
-        <a href="projects.html">Projects</a>
-        <a href="index.html#contact">Contact</a>
-      </nav>
-      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light and dark theme">Toggle Theme</button>
-    </aside>
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>~/</span>vali</a>
+    <ul class="nav-links">
+      <li><a href="../index.html#about">about</a></li>
+      <li><a href="../blog.html">blog</a></li>
+      <li><a href="../projects.html">projects</a></li>
+      <li><a href="../index.html#contact">contact</a></li>
+    </ul>
+    <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
+  </nav>
 
-    <main class="content">
-      <section id="blog" class="card">
-        <h2>Getting Started with Burp Suite</h2>
-        <time datetime="2025-07-23">July 23, 2025</time>
+  <div class="layout">
+    <header class="post-header">
+      <div class="post-breadcrumb">
+        <a href="../index.html">~</a> / <a href="../blog.html">blog</a> / burp-suite-basics
+      </div>
+      <div class="post-meta-row">
+        <span class="post-date">2025-07-23</span>
+        <span class="post-tag">burp suite</span>
+        <span class="post-read-time">~5 min read</span>
+      </div>
+      <h1 class="post-title">Getting Started with Burp Suite</h1>
+      <p class="post-subtitle">
+        A beginner-friendly breakdown of every major tool in Burp Suite Community Edition — Proxy, Repeater, and Intruder — and exactly when to use each one.
+      </p>
+    </header>
 
-        <p>This post covers the basics of <strong>Burp Suite Community Edition</strong> and an explanation of all tools found in it.</p>
+    <div class="toc">
+      <div class="toc-title">// contents</div>
+      <ol>
+        <li><a href="#what-is-burp">What is Burp Suite?</a></li>
+        <li><a href="#proxy">Proxy</a></li>
+        <li><a href="#repeater">Repeater</a></li>
+        <li><a href="#intruder">Intruder</a></li>
+        <li><a href="#other-tools">Other Tools</a></li>
+        <li><a href="#workflow">Typical Testing Workflow</a></li>
+      </ol>
+    </div>
 
-        <h3>Proxy</h3>
-        <p>The Proxy tab in Burp Suite lets you intercept, view, and modify HTTP(S) traffic between your browser and the web server. It’s essential for analyzing requests/responses during web application testing. Some features are:</p>
-        <ol>
-          <li><strong>Intercept: </strong>Pause and modify live traffic.</li>
-          <li><strong>HTTP History: </strong>View a log of all requests/responses.</li>
-        </ol>
+    <article>
 
-        <h3>Repeater</h3>
-        <p>The Repeater tab lets you manually modify and resend HTTP(S) requests to a server. It’s used for testing inputs, analyzing responses, and repeating requests without affecting live traffic.</p>
-        <p>Sounds kind of similar to Proxy, doesn't it..? Well the difference lies as follows: </p>
-        <ol>
-            <li><strong>How to send requests: </strong>Ctrl+R key or left click and "Send to Repeater".</li>
-            <li><strong>Sending Requests: </strong>Requests can be sent by the user to the html page repeatedly via this tab, making changes to them to check the server response.</li>
-            <li><strong>Edit: </strong>Try changing headers, body, cookie, anything to see how a server hanldes the change.</li>
-            <li><strong>Compare: </strong>Compare responses side-by-side.</li>
-        </ol>
+      <h2 id="what-is-burp">What is Burp Suite?</h2>
+      <p>
+        Burp Suite is an integrated platform for web application security testing made by PortSwigger. It sits between your browser and the target web server, letting you intercept, inspect, and modify every HTTP/S request and response in real time.
+      </p>
+      <p>
+        The <strong>Community Edition</strong> is free and covers everything you need to get started — Proxy, Repeater, and a rate-limited Intruder. The Professional edition adds an active scanner and unlimited Intruder speed, which is what the <strong>BSCP</strong> exam uses.
+      </p>
+      <div class="callout info">
+        <div class="callout-title">ℹ️ Setup</div>
+        <p>To use Burp, configure your browser to send traffic through Burp's proxy (default: <code>127.0.0.1:8080</code>), then install the <strong>Burp CA certificate</strong> in your browser to intercept HTTPS without errors. Use the FoxyProxy extension to toggle it easily.</p>
+      </div>
 
-        <h3>Intruder</h3>
-        <p>The Intruder tab is used to automate sending many customized requests to a target, useful for tasks like Brute Forcing, Fuzzing, Enumeration, etc.</p>
-        <p>We have to provide:</p>
-        <ol>
-            <li><strong>Target: </strong>Mostly Proxy or HTTP History. Attack Type.</li>
-            <li><strong>Payloads: </strong>Data to insert/test.</li>
-            <li><strong>Attack Type: </strong>Sniper, Battering ram, Pitchfork, Cluster bomb.</li>
-        </ol>
-      </section>
-    </main>
+      <h2 id="proxy">Proxy</h2>
+      <p>
+        The Proxy tab is the core of Burp Suite. It intercepts all HTTP/S traffic flowing between your browser and the target server. Every request passes through here before it's sent, giving you the chance to inspect or modify it.
+      </p>
+      <div class="tool-grid">
+        <div class="tool-card">
+          <div class="tool-card-name">Intercept</div>
+          <p>Pause live traffic mid-flight. Toggle it on to hold each request and manually inspect or modify it before forwarding. Toggle off to let traffic flow through automatically.</p>
+        </div>
+        <div class="tool-card">
+          <div class="tool-card-name">HTTP History</div>
+          <p>A running log of every request and response that has passed through the proxy — even when Intercept is off. Your primary browsing audit trail.</p>
+        </div>
+      </div>
+      <p>
+        The typical workflow: browse the target normally with Intercept off, then use HTTP History to find interesting requests. Right-click any request to send it to Repeater or Intruder for deeper testing.
+      </p>
+
+      <h2 id="repeater">Repeater</h2>
+      <p>
+        Repeater lets you take a single HTTP request and send it to the server as many times as you want — with manual modifications each time. It's your workbench for testing individual inputs.
+      </p>
+      <div class="callout info">
+        <div class="callout-title">ℹ️ Proxy vs. Repeater — what's the difference?</div>
+        <p>Proxy intercepts <em>live</em> browser traffic. Repeater works on a <em>copy</em> of a request, completely decoupled from your browser. Changes in Repeater don't affect your actual session unless you want them to.</p>
+      </div>
+      <p>How to send a request to Repeater:</p>
+      <ul>
+        <li>From HTTP History or Intercept: right-click → <strong>Send to Repeater</strong></li>
+        <li>Keyboard shortcut: <code>Ctrl+R</code></li>
+      </ul>
+      <p>Once in Repeater, you can:</p>
+      <ul>
+        <li><strong>Edit</strong> — change headers, body parameters, cookies, anything</li>
+        <li><strong>Send</strong> — fire the modified request and immediately see the response</li>
+        <li><strong>Compare</strong> — use the built-in diff to compare two responses side by side</li>
+        <li><strong>History</strong> — step back through previous sends in the same Repeater tab</li>
+      </ul>
+      <p>
+        Repeater is where you'll spend most of your time during manual testing — probing for SQLi, XSS, IDOR, authentication bypasses, and anything else that requires tweaking one parameter at a time.
+      </p>
+
+      <h2 id="intruder">Intruder</h2>
+      <p>
+        Intruder automates sending large numbers of customized requests to a target. You mark positions in a request where payloads will be inserted, supply a list of payloads, and Intruder fires them all.
+      </p>
+      <p>Common use cases: brute-forcing login credentials, fuzzing parameters for injection, enumerating user IDs, or testing every item in a wordlist.</p>
+      <h3>Attack Types</h3>
+      <div class="attack-types">
+        <div class="attack-type">
+          <div class="attack-type-name">Sniper</div>
+          <p>One payload list, inserted into one position at a time. Best for testing a single parameter against many payloads.</p>
+        </div>
+        <div class="attack-type">
+          <div class="attack-type-name">Battering Ram</div>
+          <p>One payload list, inserted into all positions simultaneously. Every request uses the same payload in all positions.</p>
+        </div>
+        <div class="attack-type">
+          <div class="attack-type-name">Pitchfork</div>
+          <p>Multiple payload lists, one per position. Pairs values together — useful for username+password combinations where they're matched.</p>
+        </div>
+        <div class="attack-type">
+          <div class="attack-type-name">Cluster Bomb</div>
+          <p>Multiple payload lists, tries every combination. Generates huge request volumes — use carefully.</p>
+        </div>
+      </div>
+      <div class="callout warning">
+        <div class="callout-title">⚠️ Community Edition Limitation</div>
+        <p>Intruder is rate-limited in Community Edition — it throttles requests to slow the attack down significantly. For serious brute-forcing, use <strong>ffuf</strong>, <strong>hydra</strong>, or <strong>wfuzz</strong> from the command line instead.</p>
+      </div>
+
+      <h2 id="other-tools">Other Tools Worth Knowing</h2>
+      <div class="tool-grid">
+        <div class="tool-card">
+          <div class="tool-card-name">Decoder</div>
+          <p>Encode/decode strings in URL, Base64, HTML, hex, and more. Useful for quickly transforming values you find in requests.</p>
+        </div>
+        <div class="tool-card">
+          <div class="tool-card-name">Comparer</div>
+          <p>Diff two requests or responses side by side. Great for spotting subtle differences between a successful and failed response.</p>
+        </div>
+        <div class="tool-card">
+          <div class="tool-card-name">Target → Site Map</div>
+          <p>Visualizes the application structure as you browse. Shows all discovered endpoints, paths, and parameters in a tree.</p>
+        </div>
+        <div class="tool-card">
+          <div class="tool-card-name">Target → Scope</div>
+          <p>Define what's in scope for the engagement. Burp can filter history and tools to only show in-scope traffic.</p>
+        </div>
+      </div>
+
+      <h2 id="workflow">Typical Testing Workflow</h2>
+      <p>Here's a rough order of operations when approaching a new web app with Burp:</p>
+      <ol>
+        <li>Set up proxy + browser. Define scope in <strong>Target → Scope</strong>.</li>
+        <li>Browse the entire application manually with Intercept off — let HTTP History record everything.</li>
+        <li>Review HTTP History. Identify interesting endpoints: login, search, file upload, APIs, anything accepting user input.</li>
+        <li>Send interesting requests to <strong>Repeater</strong>. Manually probe each input.</li>
+        <li>For anything requiring iteration (brute-force, fuzzing) — send to <strong>Intruder</strong> or use a CLI tool.</li>
+        <li>Use <strong>Decoder</strong> to analyze any encoded values (tokens, cookies, hidden params).</li>
+      </ol>
+
+      <hr />
+
+      <div class="callout success">
+        <div class="callout-title">✅ Key Takeaways</div>
+        <p><strong>Proxy</strong> = intercept and log all traffic. <strong>Repeater</strong> = manually test and tweak a single request. <strong>Intruder</strong> = automate across many payloads. Start with Proxy, use HTTP History to find targets, then pivot to Repeater for manual testing. That's 90% of your Burp workflow.</p>
+      </div>
+
+    </article>
+
+    <div class="post-footer">
+      <a href="../blog.html" class="btn">← Back to blog</a>
+      <a href="Linux-Privilege-Escalation.html" class="btn btn-accent">Linux Privilege Escalation →</a>
+    </div>
   </div>
 
-  <script src="script.js"></script>
+  <footer>
+    <span>© 2025 Vali Hakuryuko</span>
+    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ back to top</span>
+  </footer>
+
+  <script>
+    const root = document.documentElement;
+    root.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
+    function toggleTheme() {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    }
+  </script>
 </body>
 </html>
