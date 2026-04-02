@@ -1,105 +1,318 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <base href="/" />
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SQL Injections</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Understanding SQL Injection — Vali Hakuryuko</title>
+  <meta name="description" content="A comprehensive overview of SQL injection — types, attack examples, exploitation tools, detection techniques, and mitigation strategies." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b0b0d; --surface: #111114; --surface2: #18181c; --border: #222228;
+      --text: #f0ede6; --text2: #8a8794; --text3: #5a5768;
+      --accent: #5dffb2; --accent-dim: #0e2b1f;
+      --mono: 'JetBrains Mono', monospace; --sans: 'Outfit', sans-serif; --display: 'Syne', sans-serif;
+      --radius: 8px; --transition: 0.2s ease;
+    }
+    [data-theme="light"] { --bg: #f5f3ef; --surface: #ffffff; --surface2: #eeece8; --border: #ddd9d0; --text: #18161a; --text2: #6b6878; --text3: #aaa8b5; --accent-dim: #d4fce8; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--sans); font-weight: 400; line-height: 1.6; transition: background var(--transition), color var(--transition); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    nav { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; backdrop-filter: blur(12px); }
+    .nav-logo { font-family: var(--mono); font-size: 0.85rem; color: var(--accent); text-decoration: none; }
+    .nav-logo span { color: var(--text2); }
+    .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+    .nav-links a { font-size: 0.875rem; font-weight: 500; color: var(--text2); transition: color var(--transition); text-decoration: none; }
+    .nav-links a:hover { color: var(--text); }
+    .theme-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); cursor: pointer; font-family: var(--mono); font-size: 0.75rem; padding: 0.35rem 0.75rem; border-radius: var(--radius); transition: all var(--transition); }
+    .theme-btn:hover { color: var(--text); border-color: var(--accent); }
+    .layout { display: grid; grid-template-columns: 1fr min(740px, 100%) 1fr; padding: 0 2rem; }
+    .layout > * { grid-column: 2; }
+    .post-header { padding: 4rem 0 3rem; border-bottom: 1px solid var(--border); margin-bottom: 3rem; }
+    .post-breadcrumb { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); margin-bottom: 1.5rem; }
+    .post-breadcrumb a { color: var(--accent); text-decoration: none; }
+    .post-breadcrumb a:hover { text-decoration: underline; }
+    .post-meta-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .post-date { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); }
+    .post-tag { font-family: var(--mono); font-size: 0.65rem; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent); padding: 0.15rem 0.5rem; border-radius: 100px; }
+    .post-read-time { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); }
+    h1.post-title { font-family: var(--display); font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1.25rem; }
+    .post-subtitle { font-size: 1.1rem; color: var(--text2); font-weight: 300; line-height: 1.65; }
+    .toc { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; padding: 1.5rem; margin-bottom: 3rem; }
+    .toc-title { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+    .toc ol { padding-left: 1.25rem; }
+    .toc li { margin-bottom: 0.4rem; }
+    .toc a { font-size: 0.875rem; color: var(--text2); text-decoration: none; transition: color var(--transition); }
+    .toc a:hover { color: var(--accent); }
+    article { margin-bottom: 4rem; }
+    article h2 { font-family: var(--display); font-size: 1.45rem; font-weight: 700; margin: 3rem 0 1rem; letter-spacing: -0.02em; padding-top: 1rem; border-top: 1px solid var(--border); }
+    article h2:first-child { border-top: none; margin-top: 0; }
+    article h3 { font-family: var(--display); font-size: 1.05rem; font-weight: 600; margin: 1.75rem 0 0.6rem; color: var(--text); }
+    article p { color: var(--text2); font-size: 1rem; line-height: 1.85; margin-bottom: 1.25rem; }
+    article p strong { color: var(--text); font-weight: 600; }
+    article ul, article ol { padding-left: 1.5rem; margin-bottom: 1.25rem; }
+    article li { color: var(--text2); font-size: 1rem; line-height: 1.75; margin-bottom: 0.5rem; }
+    article li strong { color: var(--text); }
+    code { font-family: var(--mono); font-size: 0.875em; background: var(--surface2); border: 1px solid var(--border); padding: 0.15em 0.4em; border-radius: 4px; color: var(--accent); }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; overflow-x: auto; margin: 1.5rem 0; }
+    pre code { background: none; border: none; padding: 0; color: var(--text); font-size: 0.875rem; line-height: 1.65; }
+    .code-label { font-family: var(--mono); font-size: 0.65rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; display: block; }
+    .callout { border-radius: var(--radius); padding: 1.25rem 1.5rem; margin: 2rem 0; border-left: 3px solid; }
+    .callout-title { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; font-weight: 500; }
+    .callout p { margin: 0; font-size: 0.9rem; color: var(--text2); }
+    .callout.info { background: #0e1e2e; border-color: #4a9eff; }
+    .callout.info .callout-title { color: #4a9eff; }
+    .callout.warning { background: #1e1800; border-color: #f5a623; }
+    .callout.warning .callout-title { color: #f5a623; }
+    .callout.success { background: var(--accent-dim); border-color: var(--accent); }
+    .callout.success .callout-title { color: var(--accent); }
+    .callout.danger { background: #200e0e; border-color: #ff6b6b; }
+    .callout.danger .callout-title { color: #ff6b6b; }
+    .sqli-types { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin: 1.5rem 0 2rem; }
+    .sqli-type { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.15rem; transition: border-color var(--transition); }
+    .sqli-type:hover { border-color: var(--accent); }
+    .sqli-type-name { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); margin-bottom: 0.4rem; }
+    .sqli-type p { font-size: 0.83rem; color: var(--text2); margin: 0; line-height: 1.5; }
+    .breach-card { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid #ff6b6b; border-radius: 0 var(--radius) var(--radius) 0; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+    .breach-name { font-family: var(--mono); font-size: 0.72rem; color: #ff6b6b; margin-bottom: 0.3rem; }
+    .breach-card p { font-size: 0.88rem; color: var(--text2); margin: 0; line-height: 1.55; }
+    .tools-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.85rem; margin: 1.25rem 0; }
+    .tool-pill { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; text-align: center; }
+    .tool-pill-name { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); margin-bottom: 0.3rem; }
+    .tool-pill p { font-size: 0.8rem; color: var(--text2); margin: 0; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 3rem 0; }
+    .post-footer { padding: 3rem 0; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.25rem; border-radius: var(--radius); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all var(--transition); border: 1px solid var(--border); color: var(--text2); text-decoration: none; }
+    .btn:hover { border-color: var(--text2); color: var(--text); text-decoration: none; }
+    .btn-accent { border-color: var(--accent); color: var(--accent); }
+    .btn-accent:hover { background: var(--accent-dim); }
+    footer { border-top: 1px solid var(--border); padding: 2rem 6vw; display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 0.75rem; color: var(--text3); }
+    .footer-back { cursor: pointer; transition: color var(--transition); }
+    .footer-back:hover { color: var(--accent); }
+    @media (max-width: 768px) {
+      nav { padding: 0 1.5rem; } .nav-links { display: none; }
+      .layout { grid-template-columns: 1fr; padding: 0 1.5rem; }
+      .sqli-types, .tools-row { grid-template-columns: 1fr; }
+      .post-footer { flex-direction: column; align-items: flex-start; }
+      footer { flex-direction: column; gap: 1rem; text-align: center; }
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <aside class="sidebar">
-      <img src="image/profile.jpg" alt="Profile Picture" class="profile-pic" />
-      <h1>Vali Hakuryuko</h1>
-      <p>Web Penetration Enthusiast</p>
-      <nav>
-        <a href="index.html#about">About</a>
-        <a href="blog.html" aria-current="page">Blog</a>
-        <a href="projects.html">Projects</a>
-        <a href="index.html#contact">Contact</a>
-      </nav>
-      <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light and dark theme">Toggle Theme</button>
-    </aside>
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>~/</span>vali</a>
+    <ul class="nav-links">
+      <li><a href="../index.html#about">about</a></li>
+      <li><a href="../blog.html">blog</a></li>
+      <li><a href="../projects.html">projects</a></li>
+      <li><a href="../index.html#contact">contact</a></li>
+    </ul>
+    <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
+  </nav>
 
-    <main class="content">
-      <section id="blog" class="card">
-        <h2>Working on SQL Injections</h2>
-        <time datetime="2025-07-15">July 15, 2025</time>
-      </section>
+  <div class="layout">
+    <header class="post-header">
+      <div class="post-breadcrumb">
+        <a href="../index.html">~</a> / <a href="../blog.html">blog</a> / sql-injection
+      </div>
+      <div class="post-meta-row">
+        <span class="post-date">2025-06-15</span>
+        <span class="post-tag">web</span>
+        <span class="post-read-time">~7 min read</span>
+      </div>
+      <h1 class="post-title">Understanding SQL Injection</h1>
+      <p class="post-subtitle">
+        A thorough overview of SQL injection — what it is, every major type, real attack examples, the tools to exploit it, and how to prevent it.
+      </p>
+    </header>
 
-      <section class="card">
-        <article class="blog-post">
-          <h3>SQL Injection</h3>
-          <p>SQL Injection (SQLi) is a critical vulnerability that allows attackers to manipulate the SQL queries used by an application. By injecting malicious input, an attacker can bypass authentication, access unauthorized data, or even modify or delete database contents.</p>
-          <ul>
-            <li>
-              <strong>What It Targets:</strong>
-              SQLi exploits vulnerabilities in how input is embedded in SQL queries, commonly in:
-              <ul>
-                <li>Login forms</li>
-                <li>Search fields</li>
-                <li>URL parameters</li>
-                <li>Cookies</li>
-              </ul>
-            </li>
-            <li>
-              <strong>Common Types:</strong>
-              <ul>
-                <li><strong>Classic SQLi:</strong> Injecting SQL syntax directly (e.g., <code>' OR 1=1 --</code>)</li>
-                <li><strong>Union-Based SQLi:</strong> Using <code>UNION SELECT</code> to combine malicious results with existing query output</li>
-                <li><strong>Error-Based SQLi:</strong> Triggering detailed error messages that reveal schema info</li>
-                <li><strong>Blind SQLi:</strong> Exploiting conditions (true/false or time-based) when no errors are shown</li>
-                <li><strong>Out-of-Band SQLi:</strong> Using external systems (e.g., DNS or HTTP requests) to exfiltrate data</li>
-                <li><strong>Second-Order SQLi:</strong> Malicious input stored in the database and triggered later in a different query</li>
-              </ul>
-            </li>
-            <li>
-              <strong>Attack Examples:</strong>
-              <ul>
-                <li><strong>Login Bypass:</strong> <code>' OR '1'='1</code> in a login form may log in as admin</li>
-                <li><strong>Extract Data:</strong> <code>' UNION SELECT username, password FROM users --</code></li>
-                <li><strong>Time Delay:</strong> <code>' OR IF(1=1, SLEEP(5), 0) --</code> to infer database behavior</li>
-              </ul>
-            </li>
-            <li>
-              <strong>Tools for Exploitation:</strong>
-              <ul>
-                <li><strong>sqlmap:</strong> Automated SQLi detection and exploitation tool</li>
-                <li><strong>Burp Suite:</strong> Intercepts and manipulates HTTP requests</li>
-                <li><strong>Havij:</strong> GUI tool for automating SQLi attacks (Windows)</li>
-              </ul>
-            </li>
-            <li>
-              <strong>Detection Techniques:</strong>
-              <ul>
-                <li>Manually inject payloads in form inputs or URL parameters</li>
-                <li>Use automated scanners (sqlmap, Nikto, Burp Scanner)</li>
-                <li>Check server logs for unusual SQL error messages</li>
-              </ul>
-            </li>
-            <li>
-              <strong>Mitigation & Prevention:</strong>
-              <ul>
-                <li>Use Prepared Statements / Parameterized Queries (e.g., <code>mysqli_prepare()</code>, <code>PDO</code>)</li>
-                <li>Employ ORM tools (e.g., Sequelize, Hibernate, SQLAlchemy)</li>
-                <li>Whitelist expected input types and lengths</li>
-                <li>Disable verbose error reporting in production</li>
-                <li>Use Web Application Firewalls (WAFs) to filter malicious input</li>
-              </ul>
-            </li>
-            <li>
-              <strong>Real-World Impact:</strong>
-              <ul>
-                <li><strong>Yahoo SQLi (2012):</strong> Over 450k emails and passwords leaked</li>
-                <li><strong>Heartland Payment Systems:</strong> Exploited via SQLi, leading to one of the largest data breaches</li>
-              </ul>
-            </li>
-          </ul>
-        </article>
-      </section>
-    </main>
+    <div class="toc">
+      <div class="toc-title">// contents</div>
+      <ol>
+        <li><a href="#what-is-sqli">What is SQL Injection?</a></li>
+        <li><a href="#targets">What It Targets</a></li>
+        <li><a href="#types">Types of SQL Injection</a></li>
+        <li><a href="#examples">Attack Examples</a></li>
+        <li><a href="#tools">Tools for Exploitation</a></li>
+        <li><a href="#detection">Detection Techniques</a></li>
+        <li><a href="#mitigation">Mitigation & Prevention</a></li>
+        <li><a href="#real-world">Real-World Impact</a></li>
+      </ol>
+    </div>
+
+    <article>
+
+      <h2 id="what-is-sqli">What is SQL Injection?</h2>
+      <p>
+        SQL Injection (SQLi) is one of the oldest and most critical web vulnerabilities — it's been in the OWASP Top 10 for decades. It occurs when user-supplied input is embedded directly into a SQL query without proper sanitization, allowing an attacker to alter the query's logic.
+      </p>
+      <p>
+        The consequences range from <strong>authentication bypass</strong> and <strong>data exfiltration</strong> to full <strong>database takeover</strong> and even remote code execution in some configurations.
+      </p>
+      <div class="callout danger">
+        <div class="callout-title">⚠️ Severity</div>
+        <p>A successful SQLi attack can expose every record in a database — user credentials, PII, payment data, internal configs. It's consistently one of the highest-impact vulnerability classes in web pentesting.</p>
+      </div>
+
+      <h2 id="targets">What It Targets</h2>
+      <p>SQLi exploits any place where user input gets embedded in a SQL query. Common injection points include:</p>
+      <ul>
+        <li><strong>Login forms</strong> — username and password fields</li>
+        <li><strong>Search fields</strong> — anything that queries a database for results</li>
+        <li><strong>URL parameters</strong> — e.g., <code>?id=1</code>, <code>?category=shoes</code></li>
+        <li><strong>Cookies</strong> — if cookie values are used in database lookups</li>
+        <li><strong>HTTP headers</strong> — User-Agent, Referer, X-Forwarded-For stored and queried</li>
+      </ul>
+
+      <h2 id="types">Types of SQL Injection</h2>
+      <div class="sqli-types">
+        <div class="sqli-type">
+          <div class="sqli-type-name">Classic / In-Band</div>
+          <p>Results are returned directly in the HTTP response. Inject SQL syntax and read the output on the page. Easiest to exploit.</p>
+        </div>
+        <div class="sqli-type">
+          <div class="sqli-type-name">Union-Based</div>
+          <p>Use <code>UNION SELECT</code> to append results from attacker-controlled queries to the original response. Requires knowing the number and type of columns.</p>
+        </div>
+        <div class="sqli-type">
+          <div class="sqli-type-name">Error-Based</div>
+          <p>Trigger database errors that reveal schema information — table names, column names, data types — in the error message.</p>
+        </div>
+        <div class="sqli-type">
+          <div class="sqli-type-name">Blind — Boolean</div>
+          <p>No output returned, but behaviour changes based on true/false conditions. Infer data one bit at a time from response differences.</p>
+        </div>
+        <div class="sqli-type">
+          <div class="sqli-type-name">Blind — Time-Based</div>
+          <p>Inject <code>SLEEP()</code> or equivalent. If the response is delayed, the condition is true. Slow but works when there's zero output.</p>
+        </div>
+        <div class="sqli-type">
+          <div class="sqli-type-name">Out-of-Band</div>
+          <p>Exfiltrate data via DNS or HTTP callbacks to an external server. Useful when the app gives no visible response at all.</p>
+        </div>
+      </div>
+      <p>
+        There's also <strong>Second-Order SQLi</strong>: malicious input is stored in the database safely, then later retrieved and used unsanitized in another query. Harder to spot in black-box testing.
+      </p>
+
+      <h2 id="examples">Attack Examples</h2>
+      <h3>Login Bypass</h3>
+      <p>
+        If a login query is built like <code>SELECT * FROM users WHERE username='$user' AND password='$pass'</code>, injecting into the username field can completely bypass it.
+      </p>
+      <span class="code-label">payload</span>
+      <pre><code>Username: admin' --
+Password: anything
+
+-- Resulting query:
+SELECT * FROM users WHERE username='admin' --' AND password='anything'
+-- Everything after -- is a comment; password check is skipped</code></pre>
+
+      <h3>Union-Based Data Extraction</h3>
+      <span class="code-label">payload — extract usernames and passwords</span>
+      <pre><code>' UNION SELECT username, password FROM users --
+
+-- First, determine number of columns:
+' ORDER BY 1 --
+' ORDER BY 2 --
+' ORDER BY 3 --   -- error here means 2 columns exist</code></pre>
+
+      <h3>Time-Based Blind</h3>
+      <span class="code-label">payload — MySQL time delay</span>
+      <pre><code>' OR IF(1=1, SLEEP(5), 0) --
+-- If response takes ~5 seconds, injection is working
+
+' OR IF(SUBSTRING(database(),1,1)='a', SLEEP(5), 0) --
+-- Exfiltrate data one character at a time</code></pre>
+
+      <h2 id="tools">Tools for Exploitation</h2>
+      <div class="tools-row">
+        <div class="tool-pill">
+          <div class="tool-pill-name">sqlmap</div>
+          <p>The gold standard. Automated SQLi detection and exploitation — handles all types, extracts data, can escalate to OS shell.</p>
+        </div>
+        <div class="tool-pill">
+          <div class="tool-pill-name">Burp Suite</div>
+          <p>Intercept and manually craft SQLi payloads. Intruder for automation, Repeater for testing individual payloads.</p>
+        </div>
+        <div class="tool-pill">
+          <div class="tool-pill-name">Havij</div>
+          <p>GUI-based SQLi tool for Windows. Useful for quick automated extraction. Less flexible than sqlmap.</p>
+        </div>
+      </div>
+      <span class="code-label">bash — basic sqlmap usage</span>
+      <pre><code># Test a URL parameter:
+sqlmap -u "https://target.com/page?id=1" --dbs
+
+# Dump a specific table:
+sqlmap -u "https://target.com/page?id=1" -D database_name -T users --dump
+
+# Test with Burp request file:
+sqlmap -r request.txt --level=3 --risk=2</code></pre>
+
+      <h2 id="detection">Detection Techniques</h2>
+      <ul>
+        <li><strong>Manual testing</strong> — inject single quotes <code>'</code>, double quotes <code>"</code>, and SQL keywords into every input field. Look for errors, changed behaviour, or delays.</li>
+        <li><strong>Automated scanners</strong> — sqlmap, Nikto, Burp Suite Active Scanner</li>
+        <li><strong>Fuzzing</strong> — use a SQLi wordlist (e.g., from SecLists) with Burp Intruder or ffuf</li>
+        <li><strong>Error monitoring</strong> — watch server logs for unusual SQL error messages in non-production environments</li>
+      </ul>
+
+      <h2 id="mitigation">Mitigation & Prevention</h2>
+      <p>
+        SQLi is almost entirely preventable with proper coding practices. There's no excuse for it appearing in modern applications.
+      </p>
+      <ul>
+        <li><strong>Parameterized Queries / Prepared Statements</strong> — the single most effective fix. User input is passed as a parameter, never interpreted as SQL. Use <code>PDO</code> or <code>mysqli_prepare()</code> in PHP, <code>cursor.execute(query, params)</code> in Python.</li>
+        <li><strong>ORM Tools</strong> — SQLAlchemy, Hibernate, Sequelize, etc. They abstract raw SQL and handle escaping for you.</li>
+        <li><strong>Input Validation</strong> — whitelist expected formats (integers, emails, etc.) and reject anything that doesn't match.</li>
+        <li><strong>Least Privilege</strong> — the database user your app connects with should only have SELECT/INSERT on the tables it needs — not DROP, not SELECT on system tables.</li>
+        <li><strong>Disable Verbose Errors</strong> — in production, never expose raw database errors to the user.</li>
+        <li><strong>WAF</strong> — a Web Application Firewall can filter common payloads, but it's a last line of defense, not a substitute for secure code.</li>
+      </ul>
+
+      <h2 id="real-world">Real-World Impact</h2>
+      <div class="breach-card">
+        <div class="breach-name">Yahoo (2012)</div>
+        <p>Over 450,000 email addresses and plaintext passwords leaked via SQL injection on a subdomain. The credentials were published publicly.</p>
+      </div>
+      <div class="breach-card">
+        <div class="breach-name">Heartland Payment Systems (2008)</div>
+        <p>Over 130 million credit card numbers stolen. Attackers used SQLi to gain a foothold, then deployed malware on the payment processing network. One of the largest data breaches in US history at the time.</p>
+      </div>
+
+      <hr />
+
+      <div class="callout success">
+        <div class="callout-title">✅ Key Takeaways</div>
+        <p>SQL injection is caused by treating user input as trusted SQL code. Fix it with <strong>parameterized queries</strong>. Test for it manually with single quotes and <code>OR 1=1</code>, then automate with sqlmap. For learning, practice on PortSwigger Web Security Academy's SQLi labs — they're excellent.</p>
+      </div>
+
+    </article>
+
+    <div class="post-footer">
+      <a href="../blog.html" class="btn">← Back to blog</a>
+      <a href="burp-suite-basics.html" class="btn btn-accent">Getting Started with Burp Suite →</a>
+    </div>
   </div>
-  <script src="script.js"></script>
+
+  <footer>
+    <span>© 2025 Vali Hakuryuko</span>
+    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ back to top</span>
+  </footer>
+
+  <script>
+    const root = document.documentElement;
+    root.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
+    function toggleTheme() {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    }
+  </script>
 </body>
 </html>
