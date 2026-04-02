@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Blog — Vali Hakuryuko</title>
+  <meta name="description" content="Writeups, techniques, and pentesting notes by Vali Hakuryuko. SQL injection labs, Linux privilege escalation, Burp Suite guides, and security research.">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -280,62 +281,73 @@
 <body>
 
   <nav>
-    <a href="index.html" class="nav-logo"><span>~/</span>vali</a>
+    <a href="index.html" class="nav-logo"><span>~/</span>Vali</a>
     <ul class="nav-links">
-      <li><a href="index.html#about">about</a></li>
-      <li><a href="blog.html" class="active">blog</a></li>
-      <li><a href="projects.html">projects</a></li>
-      <li><a href="index.html#contact">contact</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="blog.html" class="active">Blog</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
     </ul>
     <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
   </nav>
 
   <div class="page-header">
-    <div class="page-breadcrumb"><a href="index.html">~</a> / blog</div>
+    <div class="page-breadcrumb"><a href="index.html">~</a> / Blog</div>
     <h1>Blog</h1>
     <p class="page-desc">Write-ups, techniques, and notes from the trenches of web pentesting and CTF challenges.</p>
   </div>
 
   <div class="filters">
-    <button class="filter-btn active" onclick="filterPosts('all', this)">all posts</button>
-    <button class="filter-btn" onclick="filterPosts('web', this)">web</button>
-    <button class="filter-btn" onclick="filterPosts('linux', this)">linux</button>
-    <button class="filter-btn" onclick="filterPosts('burp suite', this)">burp suite</button>
-    <button class="filter-btn" onclick="filterPosts('tools', this)">tools</button>
+    <button class="filter-btn active" onclick="filterPosts('all', this)">All Posts</button>
+    <button class="filter-btn" onclick="filterPosts('web', this)">Web</button>
+    <button class="filter-btn" onclick="filterPosts('linux', this)">Linux</button>
+    <button class="filter-btn" onclick="filterPosts('burp-suite', this)">Burp Suite</button>
+    <button class="filter-btn" onclick="filterPosts('tools', this)">Tools</button>
+    <button class="filter-btn" onclick="filterPosts('port-swigger', this)">Port Swigger</button>
   </div>
 
   <main>
-    <div class="posts-count" id="posts-count">4 posts</div>
+    <div class="posts-count" id="posts-count">5 posts</div>
 
     <!-- FEATURED / LATEST -->
-    <a href="blog/Linux-Privilege-Escalation.html" class="post-featured fade-in" data-tags="linux">
+    <a href="blog/sqli-labs.html" class="post-featured fade-in" data-tags="web port-swigger">
       <div>
         <div class="post-featured-meta">
-          <span class="post-date">2025-07-30</span>
-          <span class="post-tag">linux</span>
+          <span class="post-date">2026-04-02</span>
+          <span class="post-tag">Web</span>
+          <span class="post-tag">Port Swigger</span>
         </div>
-        <div class="post-title">Understanding Linux Privilege Escalation</div>
-        <p class="post-excerpt">Different exploit paths to get root — SUID binaries, cron jobs, weak file permissions, and misconfigurations. A practical guide for both labs and real targets, covering the enumeration phase all the way through to popping a shell.</p>
+        <div class="post-title">PortSwigger SQLi Labs Write-Up</div>
+        <p class="post-excerpt">Working through the PortSwigger Web Security Academy SQL injection track. Each lab gets a manual walkthrough, a Python exploit script, and a breakdown of exactly what the code is doing and why.</p>
         <span class="post-read-more">read post</span>
       </div>
     </a>
 
     <!-- GRID OF REMAINING POSTS -->
     <div class="posts-grid" id="posts-grid">
-      <a href="blog/burp-suite-basics.html" class="post-card fade-in" data-tags="burp suite" style="transition-delay:0.05s">
+      <a href="blog/Linux-Privilege-Escalation.html" class="post-card fade-in" data-tags="linux" style="transition-delay:0.05s">
+        <div class="post-meta">
+          <span class="post-date">2025-07-30</span>
+          <span class="post-tag">Linux</span>
+        </div>
+        <div class="post-title">Understanding Linux Privilege Escalation</div>
+        <p class="post-excerpt">Different exploit paths to get root — SUID binaries, cron jobs, weak file permissions, and misconfigurations. A practical guide for both labs and real targets, covering the enumeration phase all the way through to popping a shell.</p>
+        <span class="post-read-more">read post</span>
+      </a>
+
+      <a href="blog/burp-suite-basics.html" class="post-card fade-in" data-tags="burp-suite" style="transition-delay:0.07s">
         <div class="post-meta">
           <span class="post-date">2025-07-23</span>
-          <span class="post-tag">burp suite</span>
+          <span class="post-tag">Burp Suite</span>
         </div>
         <div class="post-title">Getting Started with Burp Suite</div>
         <p class="post-excerpt">A beginner-friendly breakdown of every major tool in Burp Suite — Proxy, Repeater, Intruder, Scanner — and when to use each one.</p>
         <span class="post-read-more">read post</span>
       </a>
-
+      
       <a href="blog/hosting-xampp-localnet.html" class="post-card fade-in" data-tags="tools" style="transition-delay:0.1s">
         <div class="post-meta">
           <span class="post-date">2025-07-22</span>
-          <span class="post-tag">tools</span>
+          <span class="post-tag">Tools</span>
         </div>
         <div class="post-title">Hosting a Local Website with XAMPP and LocalToNet</div>
         <p class="post-excerpt">Set up a local web server using XAMPP and expose it to the internet with LocalToNet for testing and demonstrations.</p>
@@ -345,7 +357,7 @@
       <a href="blog/sql-injection.html" class="post-card fade-in" data-tags="web" style="transition-delay:0.15s">
         <div class="post-meta">
           <span class="post-date">2025-06-15</span>
-          <span class="post-tag">web</span>
+          <span class="post-tag">Web</span>
         </div>
         <div class="post-title">Understanding SQL Injection</div>
         <p class="post-excerpt">An overview of SQL injection vulnerabilities — union-based, blind, time-based — and how to methodically test for them during a web assessment.</p>
