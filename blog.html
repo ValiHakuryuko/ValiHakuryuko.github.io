@@ -1,74 +1,395 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <base href="/" />
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Vali's Blog - Posts</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog — Vali Hakuryuko</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b0b0d;
+      --surface: #111114;
+      --surface2: #18181c;
+      --border: #222228;
+      --text: #f0ede6;
+      --text2: #8a8794;
+      --text3: #5a5768;
+      --accent: #5dffb2;
+      --accent-dim: #0e2b1f;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Outfit', sans-serif;
+      --display: 'Syne', sans-serif;
+      --radius: 8px;
+      --transition: 0.2s ease;
+    }
+    [data-theme="light"] {
+      --bg: #f5f3ef;
+      --surface: #ffffff;
+      --surface2: #eeece8;
+      --border: #ddd9d0;
+      --text: #18161a;
+      --text2: #6b6878;
+      --text3: #aaa8b5;
+      --accent-dim: #d4fce8;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-weight: 400;
+      line-height: 1.6;
+      transition: background var(--transition), color var(--transition);
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* NAV */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      backdrop-filter: blur(12px);
+    }
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+    }
+    .nav-logo span { color: var(--text2); }
+    .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+    .nav-links a { font-size: 0.875rem; font-weight: 500; color: var(--text2); transition: color var(--transition); }
+    .nav-links a:hover, .nav-links a.active { color: var(--text); }
+    .theme-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text2);
+      cursor: pointer;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius);
+      transition: all var(--transition);
+    }
+    .theme-btn:hover { color: var(--text); border-color: var(--accent); }
+
+    /* PAGE HEADER */
+    .page-header {
+      padding: 4rem 6vw 3rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-breadcrumb {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text3);
+      margin-bottom: 1rem;
+    }
+    .page-breadcrumb a { color: var(--accent); }
+    .page-breadcrumb a:hover { text-decoration: underline; }
+    h1 {
+      font-family: var(--display);
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.75rem;
+    }
+    .page-desc {
+      color: var(--text2);
+      font-size: 1rem;
+      font-weight: 300;
+      max-width: 500px;
+    }
+
+    /* FILTERS */
+    .filters {
+      padding: 2rem 6vw 0;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text2);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .filter-btn:hover { border-color: var(--text2); color: var(--text); }
+    .filter-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+    /* POSTS LIST */
+    main {
+      padding: 2.5rem 6vw 6rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .posts-count {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--text3);
+      margin-bottom: 1.5rem;
+    }
+
+    /* Featured post (first/latest) */
+    .post-featured {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      margin-bottom: 1.25rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 2rem;
+      align-items: start;
+      transition: border-color var(--transition), transform var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .post-featured::before {
+      content: 'LATEST';
+      position: absolute;
+      top: 0;
+      right: 0;
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      color: #000;
+      background: var(--accent);
+      padding: 0.3rem 0.75rem;
+      border-bottom-left-radius: var(--radius);
+    }
+    .post-featured:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .post-featured-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Regular post cards */
+    .posts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.25rem;
+    }
+    .post-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      transition: border-color var(--transition), transform var(--transition);
+      display: flex;
+      flex-direction: column;
+    }
+    .post-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .post-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .post-date {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--text3);
+    }
+    .post-tag {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent);
+      padding: 0.15rem 0.5rem;
+      border-radius: 100px;
+    }
+    .post-title {
+      font-family: var(--display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 0.75rem;
+      transition: color var(--transition);
+    }
+    .post-featured .post-title { font-size: 1.5rem; }
+    .post-card:hover .post-title,
+    .post-featured:hover .post-title { color: var(--accent); }
+    .post-excerpt {
+      font-size: 0.875rem;
+      color: var(--text2);
+      line-height: 1.65;
+      flex: 1;
+      margin-bottom: 1.25rem;
+    }
+    .post-read-more {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .post-read-more::after { content: '→'; transition: transform var(--transition); }
+    .post-card:hover .post-read-more::after,
+    .post-featured:hover .post-read-more::after { transform: translateX(3px); }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 2rem 6vw;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text3);
+    }
+    .footer-back { cursor: pointer; transition: color var(--transition); }
+    .footer-back:hover { color: var(--accent); }
+
+    /* FADE IN */
+    .fade-in { opacity: 0; transform: translateY(16px); transition: opacity 0.45s ease, transform 0.45s ease; }
+    .fade-in.visible { opacity: 1; transform: none; }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 1.5rem; }
+      .nav-links { display: none; }
+      .page-header, .filters, main { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .post-featured { grid-template-columns: 1fr; }
+      footer { flex-direction: column; gap: 1rem; text-align: center; }
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <aside class="sidebar">
-      <img src="image/profile.jpg" alt="Profile Picture" class="profile-pic" />
-      <h1>Vali Hakuryuko</h1>
-      <p>Web Penetration Enthusiast</p>
-      <nav>
-        <a href="index.html#about">About</a>
-        <a href="blog.html" aria-current="page">Blog</a>
-        <a href="projects.html">Projects</a>
-        <a href="index.html#contact">Contact</a>
-      </nav>
-      <button id="theme-toggle" class="theme-toggle">Toggle Theme</button>
-    </aside>
 
-    <main class="content">
-      <h2>Blog Posts</h2>
-      <input
-        type="text"
-        id="searchBar"
-        placeholder="Search blog posts..."
-        class="search-bar"
-      />
-      <section class="card">
-        <article class="blog-post">
-          <h3>Understanding Linux Privilege Escalation</h3>
-          <time datetime="2025-07-30">July 30, 2025</time>
-          <p>This guide helps in understanding <strong>Linux Privilege Escalation</strong> Using different types of exploits to get <strong>root access</strong> in a terminal.</p>
-          <a href="blog/Linux-Privilege-Escalation.html">Read more</a>
-        </article>
-      </section>
-      
-      <section class="card">
-        <article class="blog-post">
-          <h3>Getting Started with Burp Suite</h3>
-          <time datetime="2025-07-23">July 23, 2025</time>
-          <p>This post covers the basics of Burp Suite and an explanation of all tools found in it.</p>
-          <a href="blog/burp-suite-basics.html">Read more</a>
-        </article>
-      </section>
-      
-      <section class="card">
-        <article class="blog-post">
-          <h3>Hosting a Local Website with XAMPP and LocalToNet</h3>
-          <time datetime="2025-07-22">July 22, 2025</time>
-          <p>This guide helps you set up a local web server using <strong>XAMPP</strong> and make it publicly accessible using <strong>Localtonet</strong>.</p>
-          <a href="blog/hosting-xampp-localnet.html">Read more</a>
-        </article>
-      </section>
+  <nav>
+    <a href="index.html" class="nav-logo"><span>~/</span>vali</a>
+    <ul class="nav-links">
+      <li><a href="index.html#about">about</a></li>
+      <li><a href="blog.html" class="active">blog</a></li>
+      <li><a href="projects.html">projects</a></li>
+      <li><a href="index.html#contact">contact</a></li>
+    </ul>
+    <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
+  </nav>
 
-      <section class="card">
-        <article class="blog-post">
-          <h3>Understanding SQL Injection</h3>
-          <time datetime="2025-06-15">June 15, 2025</time>
-          <p>An overview of SQL injection vulnerabilities and how to test for them.</p>
-          <a href="blog/sql-injection.html">Read more</a>
-        </article>
-      </section>
-
-    </main>
+  <div class="page-header">
+    <div class="page-breadcrumb"><a href="index.html">~</a> / blog</div>
+    <h1>Blog</h1>
+    <p class="page-desc">Write-ups, techniques, and notes from the trenches of web pentesting and CTF challenges.</p>
   </div>
 
-  <script src="script.js"></script>
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterPosts('all', this)">all posts</button>
+    <button class="filter-btn" onclick="filterPosts('web', this)">web</button>
+    <button class="filter-btn" onclick="filterPosts('linux', this)">linux</button>
+    <button class="filter-btn" onclick="filterPosts('burp suite', this)">burp suite</button>
+    <button class="filter-btn" onclick="filterPosts('tools', this)">tools</button>
+  </div>
+
+  <main>
+    <div class="posts-count" id="posts-count">4 posts</div>
+
+    <!-- FEATURED / LATEST -->
+    <a href="blog/Linux-Privilege-Escalation.html" class="post-featured fade-in" data-tags="linux">
+      <div>
+        <div class="post-featured-meta">
+          <span class="post-date">2025-07-30</span>
+          <span class="post-tag">linux</span>
+        </div>
+        <div class="post-title">Understanding Linux Privilege Escalation</div>
+        <p class="post-excerpt">Different exploit paths to get root — SUID binaries, cron jobs, weak file permissions, and misconfigurations. A practical guide for both labs and real targets, covering the enumeration phase all the way through to popping a shell.</p>
+        <span class="post-read-more">read post</span>
+      </div>
+    </a>
+
+    <!-- GRID OF REMAINING POSTS -->
+    <div class="posts-grid" id="posts-grid">
+      <a href="blog/burp-suite-basics.html" class="post-card fade-in" data-tags="burp suite" style="transition-delay:0.05s">
+        <div class="post-meta">
+          <span class="post-date">2025-07-23</span>
+          <span class="post-tag">burp suite</span>
+        </div>
+        <div class="post-title">Getting Started with Burp Suite</div>
+        <p class="post-excerpt">A beginner-friendly breakdown of every major tool in Burp Suite — Proxy, Repeater, Intruder, Scanner — and when to use each one.</p>
+        <span class="post-read-more">read post</span>
+      </a>
+
+      <a href="blog/hosting-xampp-localnet.html" class="post-card fade-in" data-tags="tools" style="transition-delay:0.1s">
+        <div class="post-meta">
+          <span class="post-date">2025-07-22</span>
+          <span class="post-tag">tools</span>
+        </div>
+        <div class="post-title">Hosting a Local Website with XAMPP and LocalToNet</div>
+        <p class="post-excerpt">Set up a local web server using XAMPP and expose it to the internet with LocalToNet for testing and demonstrations.</p>
+        <span class="post-read-more">read post</span>
+      </a>
+
+      <a href="blog/sql-injection.html" class="post-card fade-in" data-tags="web" style="transition-delay:0.15s">
+        <div class="post-meta">
+          <span class="post-date">2025-06-15</span>
+          <span class="post-tag">web</span>
+        </div>
+        <div class="post-title">Understanding SQL Injection</div>
+        <p class="post-excerpt">An overview of SQL injection vulnerabilities — union-based, blind, time-based — and how to methodically test for them during a web assessment.</p>
+        <span class="post-read-more">read post</span>
+      </a>
+    </div>
+  </main>
+
+  <footer>
+    <span>© 2025 Vali Hakuryuko</span>
+    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ back to top</span>
+  </footer>
+
+  <script>
+    const root = document.documentElement;
+    const saved = localStorage.getItem('theme') || 'dark';
+    root.setAttribute('data-theme', saved);
+    function toggleTheme() {
+      const current = root.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    }
+
+    // Intersection observer
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    // Filter
+    function filterPosts(tag, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const allCards = document.querySelectorAll('.post-card, .post-featured');
+      let count = 0;
+      allCards.forEach(card => {
+        const tags = card.getAttribute('data-tags') || '';
+        const show = tag === 'all' || tags.includes(tag);
+        card.style.display = show ? '' : 'none';
+        if (show) count++;
+      });
+      document.getElementById('posts-count').textContent = count + (count === 1 ? ' post' : ' posts');
+    }
+  </script>
 </body>
 </html>
