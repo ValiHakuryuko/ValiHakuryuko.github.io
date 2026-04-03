@@ -158,7 +158,7 @@
       gap: 0.5rem;
       margin-bottom: 2.5rem;
     }
-    .cert-badge {
+    .cert-badge-pill {
       font-family: var(--mono);
       font-size: 0.7rem;
       padding: 0.3rem 0.7rem;
@@ -167,7 +167,7 @@
       border: 1px solid var(--border);
       color: var(--text2);
     }
-    .cert-badge.active {
+    .cert-badge-pill.active {
       border-color: var(--accent);
       color: var(--accent);
     }
@@ -364,6 +364,100 @@
       color: var(--text3);
     }
 
+    /* ── CERTIFICATIONS ── */
+    #certifications {
+      padding-top: 0;
+    }
+    .cert-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 1rem;
+    }
+    .cert-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      transition: border-color var(--transition), transform var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .cert-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .cert-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .cert-card:hover::before { opacity: 1; }
+    .cert-name {
+      font-family: var(--display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .cert-org {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+    }
+    .cert-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent);
+      padding: 0.15rem 0.5rem;
+      border-radius: 100px;
+      margin-top: 0.25rem;
+      width: fit-content;
+    }
+    .cert-status::before {
+      content: "✓";
+      font-size: 0.6rem;
+    }
+    /* In-progress certification styling */
+    .cert-status.cert-progress {
+      color: orange;
+      border: 1px solid orange;
+      background: rgba(255,165,0,0.12);
+    }
+    .cert-status.cert-progress::before {
+      content: "⏳";
+    }
+    .cert-id {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      color: var(--text3);
+      margin-top: auto;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+      word-break: break-all;
+    }
+    .cert-verify {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      margin-top: 0.5rem;
+      transition: gap var(--transition);
+    }
+    .cert-verify:hover { gap: 0.6rem; }
+
     /* ── BLOG POSTS ── */
     .posts-grid {
       display: grid;
@@ -526,6 +620,10 @@
       nav { padding: 0 1.5rem; }
       .nav-links { display: none; }
       footer { flex-direction: column; gap: 1rem; text-align: center; }
+      .cert-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .cert-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -536,6 +634,7 @@
     <span class="nav-logo"><span>~/</span>Vali</span>
     <ul class="nav-links">
       <li><a href="#about">About</a></li>
+      <li><a href="#certifications">Certs</a></li>
       <li><a href="blog.html">Blog</a></li>
       <li><a href="#contact">Contact</a></li>
     </ul>
@@ -553,10 +652,10 @@
         Web penetration tester and security researcher. I document exploits, write-ups, and hard-won lessons from CTFs, labs, and real assessments.
       </p>
       <div class="hero-certs">
-        <span class="cert-badge">CRTA</span>
-        <span class="cert-badge">API Tester</span>
-        <span class="cert-badge active">BSCP ← in progress</span>
-        <span class="cert-badge">OSCP → next</span>
+        <span class="cert-badge-pill">CRTA</span>
+        <span class="cert-badge-pill">API Tester</span>
+        <span class="cert-badge-pill active">BSCP ← in progress</span>
+        <span class="cert-badge-pill">OSCP → next</span>
       </div>
       <div class="hero-actions">
         <a href="blog.html" class="btn btn-primary">Read the blog →</a>
@@ -575,7 +674,7 @@
               <span class="stat-label">posts</span>
             </div>
             <div class="stat-box">
-              <span class="stat-num">3</span>
+              <span class="stat-num">5</span>
               <span class="stat-label">certs</span>
             </div>
             <div class="stat-box">
@@ -640,10 +739,76 @@
     </div>
   </section>
 
+  <!-- CERTIFICATIONS -->
+  <section id="certifications">
+    <div class="section-header">
+      <span class="section-label">// 02</span>
+      <h2>Certifications</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="cert-grid fade-in">
+
+      <!-- CRTA -->
+      <div class="cert-card">
+        <div class="cert-name">CRTA</div>
+        <div class="cert-org">CyberWarFare Labs</div>
+        <div class="cert-status">Certified</div>
+        <div class="cert-id">ID: CRTA-695dda838db40507a50d6dec</div>
+        <a href="image/CRTA-Cert.pdf" target="_blank" class="cert-verify">verify →</a>
+      </div>
+
+      <!-- CAPIE -->
+      <div class="cert-card">
+        <div class="cert-name">Certified API Hacking Expert</div>
+        <div class="cert-org">CAPIE</div>
+        <div class="cert-status">Completed</div>
+        <div class="cert-id">Issued: Dec 2025</div>
+        <a href="image/CAPIE-certificate.pdf" target="_blank" class="cert-verify">verify →</a>
+      </div>
+
+      <!-- PentesterLab Intro -->
+      <div class="cert-card">
+        <div class="cert-name">Introduction Badge</div>
+        <div class="cert-org">PentesterLab</div>
+        <div class="cert-status">Completed</div>
+        <div class="cert-id">PTLN26602</div>
+        <a href="image/PTLN26602.pdf" target="_blank" class="cert-verify">verify →</a>
+      </div>
+
+      <!-- PentesterLab PCAP -->
+      <div class="cert-card">
+        <div class="cert-name">PCAP Badge</div>
+        <div class="cert-org">PentesterLab</div>
+        <div class="cert-status">Completed</div>
+        <div class="cert-id">PTLP5456</div>
+        <a href="image/PTLP5456.pdf" target="_blank" class="cert-verify">verify →</a>
+      </div>
+
+      <!-- PentesterLab UNIX -->
+      <div class="cert-card">
+        <div class="cert-name">Unix Badge</div>
+        <div class="cert-org">PentesterLab</div>
+        <div class="cert-status">Completed</div>
+        <div class="cert-id">PTLU13067</div>
+        <a href="image/PTLU13067.pdf" target="_blank" class="cert-verify">verify →</a>
+      </div>
+
+      <!--BSCP Cert-->
+      <div class="cert-card">
+        <div class="cert-name">Burp Suite Certified Practitioner</div>
+        <div class="cert-org">Port Swigger</div>
+        <div class="cert-status cert-progress">In Progress</div>
+        <div class="cert-id">Expected 2026</div>
+        <a class="cert-verify">Coming Soon</a>
+      </div>
+
+    </div>
+  </section>
+
   <!-- RECENT POSTS -->
   <section id="blog" style="padding-top: 0">
     <div class="section-header">
-      <span class="section-label">// 02</span>
+      <span class="section-label">// 03</span>
       <h2>Recent Posts</h2>
       <div class="section-line"></div>
     </div>
@@ -655,7 +820,7 @@
           <span class="post-tag">Portswigger</span>
         </div>
         <div class="post-title">PortSwigger SQLi Labs Write-Up</div>
-        <p class="post-excerpt">Working through the PortSwigger Web Security Academy SQL injection track.Building a Python exploit script, a breakdown of what the code is doing and why.</p>
+        <p class="post-excerpt">Working through the PortSwigger Web Security Academy SQL injection track. Building a Python exploit script, a breakdown of what the code is doing and why.</p>
         <span class="post-read-more">read post</span>
       </a>
       <!-- SQLi Understanding -->
@@ -687,7 +852,7 @@
   <!-- CONTACT -->
   <section id="contact">
     <div class="section-header">
-      <span class="section-label">// 03</span>
+      <span class="section-label">// 04</span>
       <h2>Contact</h2>
       <div class="section-line"></div>
     </div>
