@@ -383,12 +383,12 @@
         </div>
 
         <div class="screenshot-wrap">
-          <img src="image/JuiceShop/Found%20score%20board%20url%20in%20main%20.%20js.png" alt="Score board URL found in main.js source" />
+          <img src="../image/JuiceShop/Found%20score%20board%20url%20in%20main%20.%20js.png" alt="Score board URL found in main.js source" />
           <div class="screenshot-caption">Searching 'score' in main.js reveals the /score-board route — 4 of 72 matches shown</div>
         </div>
 
         <div class="screenshot-wrap">
-          <img src="image/JuiceShop/score%20board%20after%201%20solve.png" alt="Score board page after first solve" />
+          <img src="../image/JuiceShop/score%20board%20after%201%20solve.png" alt="Score board page after first solve" />
           <div class="screenshot-caption">The Score Board itself after solving the first challenge — 1/173 solved, showing all available categories</div>
         </div>
 
@@ -435,7 +435,7 @@
         </p>
 
         <div class="screenshot-wrap">
-          <img src="image/JuiceShop/%233%20xss.png" alt="DOM XSS alert executing in Juice Shop" />
+          <img src="../image/JuiceShop/%233%20xss.png" alt="DOM XSS alert executing in Juice Shop" />
           <div class="screenshot-caption">The iframe's javascript: URI fires an alert — Juice Shop confirms the DOM XSS challenge as solved</div>
         </div>
 
@@ -491,7 +491,7 @@
         </div>
 
         <div class="screenshot-wrap">
-          <img src="image/JuiceShop/%234%20xss%202.0.png" alt="Bonus payload SoundCloud iframe injected into search" />
+          <img src="../image/JuiceShop/%234%20xss%202.0.png" alt="Bonus payload SoundCloud iframe injected into search" />
           <div class="screenshot-caption">The SoundCloud player renders inside the search results — Juice Shop awards the Bonus Payload challenge</div>
         </div>
 
@@ -529,7 +529,7 @@
         </p>
 
         <div class="screenshot-wrap">
-          <img src="image/JuiceShop/%235%20coupon%20code.png" alt="Chatbot revealing coupon code after repeated requests" />
+          <img src="../image/JuiceShop/%235%20coupon%20code.png" alt="Chatbot revealing coupon code after repeated requests" />
           <div class="screenshot-caption">After three "coupon" messages, the bot relents: <code>k#pDmhz3Tq</code> — a 10% discount code</div>
         </div>
 
@@ -584,7 +584,7 @@
         </p>
 
         <div class="screenshot-wrap">
-          <img src="image/JuiceShop/%236%20jim%20login.png" alt="Login form with jim@juice-sh.op' -- injected" />
+          <img src="../image/JuiceShop/%236%20jim%20login.png" alt="Login form with jim@juice-sh.op' -- injected" />
           <div class="screenshot-caption">Email field contains <code>jim@juice-sh.op' --</code> — the password value is irrelevant</div>
         </div>
 
@@ -622,7 +622,7 @@
         </p>
 
         <div class="screenshot-wrap">
-          <img src="image/JuiceShop/%237%20bender%20login.png" alt="Login form with bender@juice-sh.op' -- injected" />
+          <img src="../image/JuiceShop/%237%20bender%20login.png" alt="Login form with bender@juice-sh.op' -- injected" />
           <div class="screenshot-caption">Same technique: <code>bender@juice-sh.op' --</code> in the email field, password doesn't matter</div>
         </div>
 
@@ -660,12 +660,12 @@
         </p>
 
         <div class="screenshot-wrap">
-          <img src="image/JuiceShop/%232%20provoke%20error%20.png" alt="Burp Suite showing /rest/admin 500 error" />
+          <img src="../image/JuiceShop/%232%20provoke%20error%20.png" alt="Burp Suite showing /rest/admin 500 error" />
           <div class="screenshot-caption">POST to <code>/rest/admin</code> with the avsl@gmail credentials — an "Unexpected path" error leaks the full Express.js stack trace</div>
         </div>
 
         <div class="screenshot-wrap">
-          <img src="image/JuiceShop/%238%20Part1%20error.png" alt="Burp Suite showing SQLite error from search endpoint" />
+          <img src="../image/JuiceShop/%238%20Part1%20error.png" alt="Burp Suite showing SQLite error from search endpoint" />
           <div class="screenshot-caption">Adding a single quote to the search query triggers an SQLITE_ERROR — the full query is exposed in the error response</div>
         </div>
 
@@ -687,7 +687,7 @@
         </p>
 
         <div class="screenshot-wrap">
-          <img src="image/JuiceShop/%238%20Part2%20found%20sqli.png" alt="Burp Suite showing 200 OK after fixing the injection syntax" />
+          <img src="../image/JuiceShop/%238%20Part2%20found%20sqli.png" alt="Burp Suite showing 200 OK after fixing the injection syntax" />
           <div class="screenshot-caption"><code>apple'))--</code> returns 200 OK with empty data — injection is confirmed, query executes cleanly</div>
         </div>
 
@@ -705,7 +705,7 @@
         </div>
 
         <div class="screenshot-wrap">
-          <img src="image/JuiceShop/%238%20Solved.png" alt="Burp Suite UNION SELECT dumping sqlite_master" />
+          <img src="../image/JuiceShop/%238%20Solved.png" alt="Burp Suite UNION SELECT dumping sqlite_master" />
           <div class="screenshot-caption">UNION SELECT from sqlite_master returns the full CREATE TABLE statements — including <code>Addresses</code>, <code>Users</code>, and other tables</div>
         </div>
 
@@ -715,7 +715,7 @@
         </p>
 
         <div class="screenshot-wrap">
-          <img src="image/JuiceShop/admin%20solve%20sqli.png" alt="Login form with 'or 1=1-- payload" />
+          <img src="../image/JuiceShop/admin%20solve%20sqli.png" alt="Login form with 'or 1=1-- payload" />
           <div class="screenshot-caption"><code>'or 1=1--</code> in the email field — the always-true condition returns the first user row, which is admin</div>
         </div>
 
