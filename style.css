@@ -65,8 +65,8 @@ body.lightbox-open {
 .nav-drawer-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(7, 7, 10, 0.55);
-  backdrop-filter: blur(10px);
+  background: rgba(7, 11, 16, 0.6);
+  backdrop-filter: blur(14px);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--transition);
@@ -86,8 +86,10 @@ body.lightbox-open {
   padding: 1rem;
   border: 1px solid var(--border);
   border-radius: 18px;
-  background: var(--surface);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.012)),
+    var(--surface);
+  box-shadow: 0 24px 60px rgba(3, 8, 15, 0.34);
   transform: translateY(-10px) scale(0.98);
   opacity: 0;
   pointer-events: none;
@@ -137,7 +139,7 @@ body.lightbox-open {
 
 .profile-card.is-tilt-ready:hover .profile-card-inner {
   border-color: var(--accent);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 20px 40px rgba(3, 8, 15, 0.24);
 }
 
 .blog-toolbar {
@@ -168,8 +170,8 @@ body.lightbox-open {
   width: 100%;
   padding: 0.95rem 1rem;
   border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.008)), var(--surface);
   color: var(--text);
   font: inherit;
   transition: border-color var(--transition), box-shadow var(--transition), transform var(--transition);
@@ -182,7 +184,7 @@ body.lightbox-open {
 .blog-search input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(93, 255, 178, 0.12);
+  box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.14);
   transform: translateY(-1px);
 }
 
@@ -202,7 +204,7 @@ body.lightbox-open {
   padding: 1.5rem;
   border: 1px dashed var(--border);
   border-radius: 16px;
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .posts-empty-title {
@@ -234,7 +236,7 @@ body.lightbox-open {
   transform-origin: left center;
   transform: scaleX(0);
   background: var(--accent);
-  box-shadow: 0 0 14px rgba(93, 255, 178, 0.45);
+  box-shadow: none;
 }
 
 .toc a {
@@ -249,7 +251,7 @@ body.lightbox-open {
 }
 
 .copy-btn.is-copied {
-  color: var(--accent);
+  color: var(--success);
 }
 
 .image-lightbox {
@@ -258,8 +260,8 @@ body.lightbox-open {
   display: grid;
   place-items: center;
   padding: 2rem;
-  background: rgba(4, 4, 6, 0.84);
-  backdrop-filter: blur(10px);
+  background: rgba(6, 10, 16, 0.86);
+  backdrop-filter: blur(14px);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--transition);
@@ -347,7 +349,12 @@ body.lightbox-open {
   .nav-drawer-backdrop,
   .nav-drawer,
   .nav-menu-btn,
-  .blog-search input {
+  .blog-search input,
+  body.site-page .btn,
+  body.site-page .post-card,
+  .cert-card,
+  .cert-panel-shell,
+  .cert-panel-content {
     transition: none;
   }
 }

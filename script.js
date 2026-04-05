@@ -384,6 +384,48 @@
     card.addEventListener("pointercancel", resetTilt);
   }
 
+  function initCertCards() {
+    const certCards = Array.from(document.querySelectorAll(".cert-card"))
+      .map((card) => {
+        const button = card.querySelector(".cert-card-toggle");
+        const panel = card.querySelector(".cert-panel-shell");
+        const label = card.querySelector(".cert-expand-copy");
+
+        if (!button || !panel) {
+          return null;
+        }
+
+        return { card, button, panel, label };
+      })
+      .filter(Boolean);
+
+    if (!certCards.length) {
+      return;
+    }
+
+    function setCardState(entry, isOpen) {
+      entry.card.classList.toggle("is-open", isOpen);
+      entry.button.setAttribute("aria-expanded", String(isOpen));
+      entry.panel.setAttribute("aria-hidden", String(!isOpen));
+
+      if (entry.label) {
+        entry.label.textContent = isOpen ? "Hide brief" : "Open brief";
+      }
+    }
+
+    certCards.forEach((entry) => setCardState(entry, false));
+
+    certCards.forEach((entry) => {
+      entry.button.addEventListener("click", () => {
+        const shouldOpen = !entry.card.classList.contains("is-open");
+
+        certCards.forEach((otherEntry) => {
+          setCardState(otherEntry, shouldOpen && otherEntry === entry);
+        });
+      });
+    });
+  }
+
   function findFilterButton(tag) {
     return document.querySelector(`.filter-btn[data-filter="${escapeSelector(tag)}"]`);
   }
@@ -693,6 +735,7 @@
     initHeroTag();
     initCounters();
     initProfileTilt();
+    initCertCards();
     initBlogControls();
     initReadingProgress();
     initTocSpy();

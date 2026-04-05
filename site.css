@@ -1,30 +1,44 @@
 :root {
-  --bg: #0b0b0d;
-  --surface: #111114;
-  --surface2: #18181c;
-  --border: #222228;
-  --text: #f0ede6;
-  --text2: #8a8794;
-  --text3: #5a5768;
-  --accent: #5dffb2;
-  --accent-dim: #0e2b1f;
-  --accent2: #ff6b6b;
+  --bg: #0b0f14;
+  --surface: #11161c;
+  --surface2: #151a21;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.1);
+  --text: #e6edf3;
+  --text2: #a7b0ba;
+  --text3: #6f7a86;
+  --accent: #4f8cff;
+  --accent-dim: rgba(79, 140, 255, 0.12);
+  --accent-soft: rgba(79, 140, 255, 0.22);
+  --accent-alt: #7c5cff;
+  --success: #2fbf71;
+  --success-dim: rgba(47, 191, 113, 0.12);
+  --warning: #d3a35f;
+  --warning-dim: rgba(211, 163, 95, 0.12);
+  --nav-bg: rgba(11, 15, 20, 0.86);
+  --button-text: #f8fbff;
   --mono: 'JetBrains Mono', monospace;
   --sans: 'Outfit', sans-serif;
   --display: 'Syne', sans-serif;
-  --radius: 8px;
-  --transition: 0.2s ease;
+  --radius: 10px;
+  --transition: 0.24s ease;
 }
 
 [data-theme="light"] {
-  --bg: #f5f3ef;
+  --bg: #f2f5f8;
   --surface: #ffffff;
-  --surface2: #eeece8;
-  --border: #ddd9d0;
-  --text: #18161a;
-  --text2: #6b6878;
-  --text3: #aaa8b5;
-  --accent-dim: #d4fce8;
+  --surface2: #edf2f7;
+  --border: rgba(15, 23, 42, 0.08);
+  --border-strong: rgba(15, 23, 42, 0.12);
+  --text: #17212b;
+  --text2: #52606d;
+  --text3: #748291;
+  --accent-dim: rgba(79, 140, 255, 0.12);
+  --accent-soft: rgba(79, 140, 255, 0.18);
+  --success-dim: rgba(47, 191, 113, 0.12);
+  --warning-dim: rgba(211, 163, 95, 0.14);
+  --nav-bg: rgba(242, 245, 248, 0.88);
+  --button-text: #ffffff;
 }
 
 *,
@@ -40,6 +54,7 @@ html {
 }
 
 body.site-page {
+  position: relative;
   background: var(--bg);
   color: var(--text);
   font-family: var(--sans);
@@ -47,6 +62,43 @@ body.site-page {
   line-height: 1.6;
   transition: background var(--transition), color var(--transition);
   overflow-x: hidden;
+}
+
+body.site-page::before,
+body.site-page::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+body.site-page::before {
+  background:
+    radial-gradient(circle at 12% 12%, rgba(79, 140, 255, 0.11), transparent 24rem),
+    radial-gradient(circle at 86% 14%, rgba(124, 92, 255, 0.07), transparent 26rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.022), transparent 40%);
+  opacity: 0.9;
+}
+
+body.site-page::after {
+  background-image:
+    linear-gradient(rgba(79, 140, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79, 140, 255, 0.028) 1px, transparent 1px);
+  background-size: 120px 120px;
+  opacity: 0.14;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.42), transparent 82%);
+}
+
+body.site-page nav,
+body.site-page .hero,
+body.site-page .page-header,
+body.site-page .blog-toolbar,
+body.site-page .filters,
+body.site-page main,
+body.site-page section,
+body.site-page footer {
+  position: relative;
+  z-index: 1;
 }
 
 body.site-page a {
@@ -58,21 +110,21 @@ body.site-page nav {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--bg);
+  background: var(--nav-bg);
   border-bottom: 1px solid var(--border);
   padding: 0 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 60px;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(18px);
 }
 
 body.site-page .nav-logo {
   font-family: var(--mono);
   font-size: 0.85rem;
   color: var(--accent);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
 body.site-page .nav-logo span {
@@ -119,6 +171,7 @@ body.site-page .theme-btn {
 body.site-page .theme-btn:hover {
   color: var(--text);
   border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(79, 140, 255, 0.16);
 }
 
 body.site-page .btn {
@@ -132,26 +185,44 @@ body.site-page .btn {
   cursor: pointer;
   transition: all var(--transition);
   border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
 }
 
 body.site-page .btn-primary {
-  background: var(--accent);
-  color: #000;
+  background: linear-gradient(135deg, rgba(79, 140, 255, 0.95), rgba(124, 92, 255, 0.88));
+  color: var(--button-text);
+  border-color: rgba(124, 160, 255, 0.2);
+  box-shadow: 0 18px 34px rgba(15, 31, 53, 0.26);
 }
 
 body.site-page .btn-primary:hover {
-  opacity: 0.85;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 24px 42px rgba(15, 31, 53, 0.32);
+  filter: saturate(1.04);
 }
 
 body.site-page .btn-ghost {
   border-color: var(--border);
   color: var(--text2);
+  background: rgba(255, 255, 255, 0.025);
 }
 
 body.site-page .btn-ghost:hover {
-  border-color: var(--text2);
+  border-color: rgba(79, 140, 255, 0.3);
   color: var(--text);
+  background: rgba(79, 140, 255, 0.08);
+}
+
+body.site-page .nav-links a:focus-visible,
+body.site-page .theme-btn:focus-visible,
+body.site-page .btn:focus-visible,
+body.site-page .profile-link:focus-visible,
+body.site-page .post-card:focus-visible,
+body.site-page .footer-back:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.18);
 }
 
 body.site-page .posts-grid {
@@ -161,42 +232,71 @@ body.site-page .posts-grid {
 }
 
 body.site-page .post-card {
-  background: var(--surface);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.012)),
+    linear-gradient(135deg, rgba(79, 140, 255, 0.05), transparent 48%),
+    var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.75rem;
-  transition: border-color var(--transition), transform var(--transition);
+  border-radius: 20px;
+  padding: 1.85rem;
+  transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition), background var(--transition);
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 18px 34px rgba(3, 8, 15, 0.24);
+}
+
+body.site-page .post-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(79, 140, 255, 0.6), rgba(124, 92, 255, 0.24) 42%, transparent 76%);
+  opacity: 0;
+  transition: opacity var(--transition);
 }
 
 body.site-page .post-card:hover {
-  border-color: var(--accent);
-  transform: translateY(-2px);
+  border-color: rgba(79, 140, 255, 0.28);
+  transform: translateY(-3px);
+  box-shadow: 0 24px 42px rgba(3, 8, 15, 0.3);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.014)),
+    linear-gradient(135deg, rgba(79, 140, 255, 0.08), transparent 52%),
+    var(--surface);
+}
+
+body.site-page .post-card:hover::before,
+body.site-page .post-card:focus-visible::before {
+  opacity: 1;
 }
 
 body.site-page .post-date {
   font-family: var(--mono);
   font-size: 0.7rem;
   color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 body.site-page .post-tag {
   font-family: var(--mono);
   font-size: 0.65rem;
   color: var(--accent);
-  background: var(--accent-dim);
-  border: 1px solid var(--accent);
-  padding: 0.15rem 0.5rem;
+  background: rgba(79, 140, 255, 0.12);
+  border: 1px solid rgba(79, 140, 255, 0.2);
+  padding: 0.18rem 0.6rem;
   border-radius: 100px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 body.site-page .post-title {
   font-family: var(--display);
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  line-height: 1.3;
-  margin-bottom: 0.75rem;
+  line-height: 1.28;
+  margin-bottom: 0.9rem;
   transition: color var(--transition);
 }
 
@@ -205,29 +305,32 @@ body.site-page .post-card:hover .post-title {
 }
 
 body.site-page .post-excerpt {
-  font-size: 0.875rem;
+  font-size: 0.92rem;
   color: var(--text2);
-  line-height: 1.65;
+  line-height: 1.75;
   flex: 1;
   margin-bottom: 1.25rem;
 }
 
 body.site-page .post-read-more {
   font-family: var(--mono);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--accent);
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 body.site-page .post-read-more::after {
-  content: '→';
-  transition: transform var(--transition);
+  content: "\2192";
+  transition: transform var(--transition), opacity var(--transition);
 }
 
 body.site-page .post-card:hover .post-read-more::after {
-  transform: translateX(3px);
+  transform: translateX(4px);
+  opacity: 1;
 }
 
 body.site-page footer {

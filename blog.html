@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Blog — Vali Hakuryuko</title>
+  <title>Blog - Vali Hakuryuko</title>
   <meta name="description" content="Writeups, techniques, and pentesting notes by Vali Hakuryuko. SQL injection labs, Linux privilege escalation, Burp Suite guides, and security research.">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -11,121 +11,200 @@
   <link rel="stylesheet" href="site.css" />
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* PAGE HEADER */
     .page-header {
-      padding: 4rem 6vw 3rem;
-      max-width: 1200px;
+      padding: 5rem 6vw 2.8rem;
+      max-width: 1180px;
       margin: 0 auto;
-      border-bottom: 1px solid var(--border);
+      display: grid;
+      gap: 0.85rem;
+      position: relative;
     }
+
+    .page-header::after {
+      content: "";
+      width: 100%;
+      height: 1px;
+      margin-top: 0.7rem;
+      background: linear-gradient(90deg, rgba(79, 140, 255, 0.24), var(--border) 34%, transparent);
+    }
+
     .page-breadcrumb {
       font-family: var(--mono);
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--text3);
-      margin-bottom: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
     }
-    .page-breadcrumb a { color: var(--accent); }
-    .page-breadcrumb a:hover { text-decoration: underline; }
+
+    .page-breadcrumb a {
+      color: var(--accent);
+    }
+
+    .page-breadcrumb a:hover {
+      text-decoration: underline;
+    }
+
     h1 {
       font-family: var(--display);
-      font-size: clamp(2rem, 4vw, 3rem);
+      font-size: clamp(2.2rem, 4vw, 3.4rem);
       font-weight: 800;
-      letter-spacing: -0.03em;
-      margin-bottom: 0.75rem;
+      letter-spacing: -0.04em;
+      line-height: 0.98;
+      margin: 0;
     }
+
     .page-desc {
       color: var(--text2);
       font-size: 1rem;
-      font-weight: 300;
-      max-width: 500px;
+      line-height: 1.8;
+      max-width: 38rem;
     }
 
-    /* FILTERS */
     .filters {
-      padding: 2rem 6vw 0;
-      max-width: 1200px;
+      padding: 1.5rem 6vw 0;
+      max-width: 1180px;
       margin: 0 auto;
       display: flex;
-      gap: 0.5rem;
+      gap: 0.6rem;
       flex-wrap: wrap;
     }
+
     .filter-btn {
       font-family: var(--mono);
-      font-size: 0.72rem;
-      padding: 0.35rem 0.85rem;
-      border-radius: 100px;
+      font-size: 0.68rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 0.45rem 0.9rem;
+      border-radius: 999px;
       border: 1px solid var(--border);
-      background: transparent;
+      background: rgba(255, 255, 255, 0.02);
       color: var(--text2);
       cursor: pointer;
-      transition: all var(--transition);
+      transition: border-color var(--transition), background var(--transition), color var(--transition), transform var(--transition);
     }
-    .filter-btn:hover { border-color: var(--text2); color: var(--text); }
-    .filter-btn.active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
 
-    /* POSTS LIST */
+    .filter-btn:hover,
+    .filter-btn:focus-visible {
+      border-color: rgba(79, 140, 255, 0.28);
+      color: var(--text);
+      background: rgba(79, 140, 255, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .filter-btn.active {
+      border-color: rgba(79, 140, 255, 0.34);
+      color: var(--accent);
+      background: rgba(79, 140, 255, 0.12);
+    }
+
     main {
-      padding: 2.5rem 6vw 6rem;
-      max-width: 1200px;
+      padding: 2.2rem 6vw 6rem;
+      max-width: 1180px;
       margin: 0 auto;
     }
+
     .posts-count {
       font-family: var(--mono);
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       color: var(--text3);
-      margin-bottom: 1.5rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 1.4rem;
     }
 
-    /* Featured post (first/latest) */
     .post-featured {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 2.5rem;
-      margin-bottom: 1.25rem;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 2rem;
-      align-items: start;
-      transition: border-color var(--transition), transform var(--transition);
       position: relative;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      padding: 2.4rem;
+      margin-bottom: 1.35rem;
+      border-radius: 22px;
+      border: 1px solid var(--border);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.012)),
+        linear-gradient(135deg, rgba(79, 140, 255, 0.08), transparent 42%),
+        var(--surface);
+      transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition), background var(--transition);
       overflow: hidden;
-    }
-    .post-featured::before {
-      content: 'LATEST';
-      position: absolute;
-      top: 0;
-      right: 0;
-      font-family: var(--mono);
-      font-size: 0.6rem;
-      letter-spacing: 0.1em;
-      color: #000;
-      background: var(--accent);
-      padding: 0.3rem 0.75rem;
-      border-bottom-left-radius: var(--radius);
-    }
-    .post-featured:hover { border-color: var(--accent); transform: translateY(-2px); }
-    .post-featured-meta {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 1rem;
+      box-shadow: 0 18px 38px rgba(3, 8, 15, 0.28);
     }
 
-    /* Regular post cards */
+    .post-featured::before {
+      content: "Latest";
+      position: absolute;
+      top: 1.1rem;
+      right: 1.1rem;
+      font-family: var(--mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      border: 1px solid rgba(79, 140, 255, 0.18);
+      background: rgba(79, 140, 255, 0.1);
+      padding: 0.35rem 0.65rem;
+      border-radius: 999px;
+    }
+
+    .post-featured::after {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(79, 140, 255, 0.52), transparent 72%);
+    }
+
+    .post-featured:hover {
+      border-color: rgba(79, 140, 255, 0.3);
+      transform: translateY(-3px);
+      box-shadow: 0 24px 46px rgba(3, 8, 15, 0.34);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.014)),
+        linear-gradient(135deg, rgba(79, 140, 255, 0.12), transparent 44%),
+        var(--surface);
+    }
+
+    .post-featured-meta,
     .post-meta {
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      flex-wrap: wrap;
       margin-bottom: 1rem;
     }
-    .post-featured .post-title { font-size: 1.5rem; }
-    .post-featured:hover .post-title { color: var(--accent); }
-    .post-featured:hover .post-read-more::after { transform: translateX(3px); }
+
+    .post-featured .post-title {
+      font-size: clamp(1.55rem, 2.5vw, 1.95rem);
+      max-width: 20ch;
+    }
+
+    .post-featured .post-excerpt {
+      max-width: 56ch;
+    }
+
+    .post-featured:hover .post-title {
+      color: var(--accent);
+    }
+
+    .post-featured:hover .post-read-more::after {
+      transform: translateX(3px);
+    }
 
     @media (max-width: 768px) {
-      .page-header, .filters, main { padding-left: 1.5rem; padding-right: 1.5rem; }
-      .post-featured { grid-template-columns: 1fr; }
+      .page-header,
+      .filters,
+      main {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+      }
+
+      .page-header {
+        padding-top: 4rem;
+      }
+
+      .post-featured {
+        padding: 1.7rem;
+      }
     }
   </style>
 </head>
@@ -144,7 +223,7 @@
   <div class="page-header">
     <div class="page-breadcrumb"><a href="index.html">~</a> / Blog</div>
     <h1>Blog</h1>
-    <p class="page-desc">Write-ups, techniques, and notes from the trenches of web pentesting and CTF challenges.</p>
+    <p class="page-desc">Technical write-ups, lab notes, and security walkthroughs focused on web testing, tooling, and hands-on offensive practice.</p>
   </div>
 
   <div class="blog-toolbar fade-in">
@@ -167,7 +246,6 @@
   <main>
     <div class="posts-count" id="posts-count">6 posts</div>
 
-    <!-- FEATURED / LATEST -->
     <a href="blog/juice-shop-writeup.html" class="post-featured fade-in" data-tags="web burp-suite">
       <div>
         <div class="post-featured-meta">
@@ -176,33 +254,32 @@
           <span class="post-tag">Burp Suite</span>
         </div>
         <div class="post-title">OWASP Juice Shop Write-Up</div>
-        <p class="post-excerpt">Working through the OWASP Juice Shop in a Docker Container, and solving all challenges on the scoreboard.</p>
+        <p class="post-excerpt">A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target.</p>
         <span class="post-read-more">read post</span>
       </div>
     </a>
 
-    <!-- GRID OF REMAINING POSTS -->    
     <div class="posts-grid" id="posts-grid">
       <a href="blog/sqli-labs.html" class="post-card fade-in" data-tags="web port-swigger" style="transition-delay:0.03s">
-      <div>
-        <div class="post-meta">
-          <span class="post-date">2026-03-21</span>
-          <span class="post-tag">Web</span>
-          <span class="post-tag">Port Swigger</span>
+        <div>
+          <div class="post-meta">
+            <span class="post-date">2026-03-21</span>
+            <span class="post-tag">Web</span>
+            <span class="post-tag">Port Swigger</span>
+          </div>
+          <div class="post-title">PortSwigger SQLi Labs Write-Up</div>
+          <p class="post-excerpt">A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step.</p>
+          <span class="post-read-more">read post</span>
         </div>
-        <div class="post-title">PortSwigger SQLi Labs Write-Up</div>
-        <p class="post-excerpt">Working through the PortSwigger Web Security Academy SQL injection track. Each lab gets a manual walkthrough, a Python exploit script, and a breakdown of exactly what the code is doing and why.</p>
-        <span class="post-read-more">read post</span>
-      </div>
-    </a>
-      
+      </a>
+
       <a href="blog/Linux-Privilege-Escalation.html" class="post-card fade-in" data-tags="linux" style="transition-delay:0.05s">
         <div class="post-meta">
           <span class="post-date">2025-07-30</span>
           <span class="post-tag">Linux</span>
         </div>
         <div class="post-title">Understanding Linux Privilege Escalation</div>
-        <p class="post-excerpt">Different exploit paths to get root — SUID binaries, cron jobs, weak file permissions, and misconfigurations. A practical guide for both labs and real targets, covering the enumeration phase all the way through to popping a shell.</p>
+        <p class="post-excerpt">A focused guide to common Linux privilege escalation paths, including SUID abuse, cron jobs, weak permissions, and systematic enumeration.</p>
         <span class="post-read-more">read post</span>
       </a>
 
@@ -212,17 +289,17 @@
           <span class="post-tag">Burp Suite</span>
         </div>
         <div class="post-title">Getting Started with Burp Suite</div>
-        <p class="post-excerpt">A beginner-friendly breakdown of every major tool in Burp Suite — Proxy, Repeater, Intruder, Scanner — and when to use each one.</p>
+        <p class="post-excerpt">A practical introduction to Burp Suite's core tools, showing how Proxy, Repeater, Intruder, and Scanner fit into a modern web testing workflow.</p>
         <span class="post-read-more">read post</span>
       </a>
-      
+
       <a href="blog/hosting-xampp-localnet.html" class="post-card fade-in" data-tags="tools" style="transition-delay:0.1s">
         <div class="post-meta">
           <span class="post-date">2025-07-22</span>
           <span class="post-tag">Tools</span>
         </div>
         <div class="post-title">Hosting a Local Website with XAMPP and LocalToNet</div>
-        <p class="post-excerpt">Set up a local web server using XAMPP and expose it to the internet with LocalToNet for testing and demonstrations.</p>
+        <p class="post-excerpt">A step-by-step guide to exposing a locally hosted site with XAMPP and LocalToNet for demos, testing, and short-lived external access.</p>
         <span class="post-read-more">read post</span>
       </a>
 
@@ -232,7 +309,7 @@
           <span class="post-tag">Web</span>
         </div>
         <div class="post-title">Understanding SQL Injection</div>
-        <p class="post-excerpt">An overview of SQL injection vulnerabilities — union-based, blind, time-based — and how to methodically test for them during a web assessment.</p>
+        <p class="post-excerpt">A technical overview of SQL injection testing, covering union-based, blind, and time-based techniques with a methodical assessment mindset.</p>
         <span class="post-read-more">read post</span>
       </a>
     </div>
@@ -244,8 +321,8 @@
   </main>
 
   <footer>
-    <span>© 2025 Vali Hakuryuko</span>
-    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ back to top</span>
+    <span>(c) 2025 Vali Hakuryuko</span>
+    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">^ back to top</span>
   </footer>
 
   <script src="script.js"></script>

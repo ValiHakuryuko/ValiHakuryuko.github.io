@@ -95,37 +95,42 @@
     <div class="about-grid fade-in">
       <div class="about-text">
         <p>
-          I'm a <strong>university student</strong> on the path to becoming a professional pentester. Currently deep in a focused study sprint - working toward the <strong>Burp Suite Certified Practitioner (BSCP)</strong> and building the skills needed for OSCP.
+          I'm a <strong>university student</strong> focused on building a career in <strong>offensive security</strong> and <strong>penetration testing</strong>.
         </p>
         <p>
-          This blog is where I document what I learn: CTF write-ups, technique breakdowns, lab walkthroughs, and anything else worth writing down. If you're learning too, pull up a chair.
+          I'm currently in an intensive learning phase, working toward the <strong>Burp Suite Certified Practitioner (BSCP)</strong> while developing the practical skills required for <strong>OSCP-level work</strong>.
         </p>
         <p>
-          When I'm not breaking web apps, I'm writing Python scripts, grinding TryHackMe rooms, and making my way through Hack The Box challenges.
+          This blog serves as a record of that journey - documenting <strong>CTF write-ups</strong>, <strong>lab walkthroughs</strong>, and technical breakdowns of real-world attack techniques and tools.
+        </p>
+        <p>
+          Outside of that, I spend most of my time writing <strong>Python</strong> for automation, working through <strong>TryHackMe</strong> labs, and solving challenges on <strong>Hack The Box</strong> to strengthen my hands-on capabilities.
         </p>
       </div>
-      <div class="about-stack">
-        <div class="stack-item">
-          <span class="stack-item-icon">WEB</span>
-          <div class="stack-item-name">Burp Suite</div>
-          <div class="stack-item-desc">Web proxy & scanner</div>
+      <aside class="about-aside" aria-label="Current focus and tools">
+        <div class="about-aside-intro">
+          <span class="about-kicker">Current direction</span>
+          <p>Hands-on application security practice, documented through labs, write-ups, and repeatable testing workflows.</p>
         </div>
-        <div class="stack-item">
-          <span class="stack-item-icon">PY</span>
-          <div class="stack-item-name">Python</div>
-          <div class="stack-item-desc">Scripting & automation</div>
-        </div>
-        <div class="stack-item">
-          <span class="stack-item-icon">LINUX</span>
-          <div class="stack-item-name">Linux</div>
-          <div class="stack-item-desc">Primary environment</div>
-        </div>
-        <div class="stack-item">
-          <span class="stack-item-icon">LABS</span>
-          <div class="stack-item-name">HTB / THM</div>
-          <div class="stack-item-desc">Lab platforms</div>
-        </div>
-      </div>
+        <dl class="about-facts">
+          <div class="about-fact">
+            <dt>Focus</dt>
+            <dd>Web Security / Pentesting</dd>
+          </div>
+          <div class="about-fact">
+            <dt>Tools</dt>
+            <dd>Burp Suite / Python / Linux</dd>
+          </div>
+          <div class="about-fact">
+            <dt>Labs</dt>
+            <dd>Hack The Box / TryHackMe</dd>
+          </div>
+          <div class="about-fact">
+            <dt>Current Goal</dt>
+            <dd>BSCP -&gt; OSCP</dd>
+          </div>
+        </dl>
+      </aside>
     </div>
   </section>
 
@@ -139,58 +144,322 @@
     <div class="cert-grid fade-in">
 
       <!-- CRTA -->
-      <div class="cert-card">
-        <div class="cert-name">CRTA</div>
-        <div class="cert-org">CyberWarFare Labs</div>
-        <div class="cert-status">Certified</div>
-        <div class="cert-id">ID: CRTA-695dda838db40507a50d6dec</div>
-        <a href="image/CRTA-Cert.pdf" target="_blank" class="cert-verify">verify -></a>
-      </div>
+      <article class="cert-card cert-card-certified" data-cert-state="certified">
+        <button
+          type="button"
+          class="cert-card-toggle"
+          id="cert-toggle-crta"
+          aria-expanded="false"
+          aria-controls="cert-panel-crta"
+        >
+          <div class="cert-card-top">
+            <div class="cert-card-heading">
+              <div class="cert-name">CRTA</div>
+              <div class="cert-org">CyberWarFare Labs</div>
+            </div>
+            <span class="cert-chevron" aria-hidden="true"></span>
+          </div>
+          <div class="cert-status-row">
+            <div class="cert-status">Certified</div>
+            <span class="cert-expand-label">
+              <span class="cert-expand-copy">Open brief</span>
+            </span>
+          </div>
+          <p class="cert-summary">
+            Practical red team training built around attacker workflows in realistic lab environments.
+          </p>
+          <div class="cert-id">ID: CRTA-695dda838db40507a50d6dec</div>
+        </button>
+        <div class="cert-panel-shell" id="cert-panel-crta" role="region" aria-labelledby="cert-toggle-crta" aria-hidden="true">
+          <div class="cert-panel-inner">
+            <div class="cert-panel-content">
+              <div class="cert-panel-grid">
+                <div class="cert-panel-block">
+                  <span class="cert-panel-label">What this is</span>
+                  <p>A hands-on certification focused on real-world red team and adversary-style techniques in guided lab environments.</p>
+                </div>
+                <div class="cert-panel-block">
+                  <span class="cert-panel-label">Why it matters</span>
+                  <p>It shows practical exposure to offensive workflows like enumeration, exploitation paths, and thinking through an attacker's next move.</p>
+                </div>
+              </div>
+              <div class="cert-skills" aria-label="Skills covered">
+                <span class="cert-skill">Red Team Labs</span>
+                <span class="cert-skill">Enumeration</span>
+                <span class="cert-skill">Attacker Mindset</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cert-card-footer">
+          <a href="image/CRTA-Cert.pdf" target="_blank" class="cert-verify">verify -></a>
+        </div>
+      </article>
 
       <!-- CAPIE -->
-      <div class="cert-card">
-        <div class="cert-name">Certified API Hacking Expert</div>
-        <div class="cert-org">CAPIE</div>
-        <div class="cert-status">Completed</div>
-        <div class="cert-id">Issued: Dec 2025</div>
-        <a href="image/CAPIE-certificate.pdf" target="_blank" class="cert-verify">verify -></a>
-      </div>
+      <article class="cert-card cert-card-completed" data-cert-state="completed">
+        <button
+          type="button"
+          class="cert-card-toggle"
+          id="cert-toggle-capie"
+          aria-expanded="false"
+          aria-controls="cert-panel-capie"
+        >
+          <div class="cert-card-top">
+            <div class="cert-card-heading">
+              <div class="cert-name">Certified API Hacking Expert</div>
+              <div class="cert-org">CAPIE</div>
+            </div>
+            <span class="cert-chevron" aria-hidden="true"></span>
+          </div>
+          <div class="cert-status-row">
+            <div class="cert-status">Completed</div>
+            <span class="cert-expand-label">
+              <span class="cert-expand-copy">Open brief</span>
+            </span>
+          </div>
+          <p class="cert-summary">
+            Focused API security training centered on how modern application backends can fail in practice.
+          </p>
+          <div class="cert-id">Issued: Dec 2025</div>
+        </button>
+        <div class="cert-panel-shell" id="cert-panel-capie" role="region" aria-labelledby="cert-toggle-capie" aria-hidden="true">
+          <div class="cert-panel-inner">
+            <div class="cert-panel-content">
+              <div class="cert-panel-grid">
+                <div class="cert-panel-block">
+                  <span class="cert-panel-label">What this is</span>
+                  <p>A certification focused on testing and securing APIs, including authentication flaws, authorization issues, and common API attack paths.</p>
+                </div>
+                <div class="cert-panel-block">
+                  <span class="cert-panel-label">Why it matters</span>
+                  <p>APIs sit behind many modern products, so this highlights practical knowledge in one of the most important areas of web security today.</p>
+                </div>
+              </div>
+              <div class="cert-skills" aria-label="Skills covered">
+                <span class="cert-skill">API Testing</span>
+                <span class="cert-skill">Auth Flaws</span>
+                <span class="cert-skill">Web Security</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cert-card-footer">
+          <a href="image/CAPIE-certificate.pdf" target="_blank" class="cert-verify">verify -></a>
+        </div>
+      </article>
 
       <!-- PentesterLab Intro -->
-      <div class="cert-card">
-        <div class="cert-name">Introduction Badge</div>
-        <div class="cert-org">PentesterLab</div>
-        <div class="cert-status">Completed</div>
-        <div class="cert-id">PTLN26602</div>
-        <a href="image/PTLN26602.pdf" target="_blank" class="cert-verify">verify -></a>
-      </div>
+      <article class="cert-card cert-card-completed" data-cert-state="completed">
+        <button
+          type="button"
+          class="cert-card-toggle"
+          id="cert-toggle-intro"
+          aria-expanded="false"
+          aria-controls="cert-panel-intro"
+        >
+          <div class="cert-card-top">
+            <div class="cert-card-heading">
+              <div class="cert-name">Introduction Badge</div>
+              <div class="cert-org">PentesterLab</div>
+            </div>
+            <span class="cert-chevron" aria-hidden="true"></span>
+          </div>
+          <div class="cert-status-row">
+            <div class="cert-status">Completed</div>
+            <span class="cert-expand-label">
+              <span class="cert-expand-copy">Open brief</span>
+            </span>
+          </div>
+          <p class="cert-summary">
+            Foundational hands-on badge showing structured early progress in penetration testing labs.
+          </p>
+          <div class="cert-id">PTLN26602</div>
+        </button>
+        <div class="cert-panel-shell" id="cert-panel-intro" role="region" aria-labelledby="cert-toggle-intro" aria-hidden="true">
+          <div class="cert-panel-inner">
+            <div class="cert-panel-content">
+              <div class="cert-panel-grid">
+                <div class="cert-panel-block">
+                  <span class="cert-panel-label">What this is</span>
+                  <p>An entry-level badge demonstrating foundational exposure to penetration testing concepts, workflows, and lab-based learning.</p>
+                </div>
+                <div class="cert-panel-block">
+                  <span class="cert-panel-label">Why it matters</span>
+                  <p>It shows an early hands-on commitment to cybersecurity and a habit of learning through practical exercises rather than theory alone.</p>
+                </div>
+              </div>
+              <div class="cert-skills" aria-label="Skills covered">
+                <span class="cert-skill">Security Basics</span>
+                <span class="cert-skill">Hands-on Labs</span>
+                <span class="cert-skill">Testing Workflow</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cert-card-footer">
+          <a href="image/PTLN26602.pdf" target="_blank" class="cert-verify">verify -></a>
+        </div>
+      </article>
 
       <!-- PentesterLab PCAP -->
-      <div class="cert-card">
-        <div class="cert-name">PCAP Badge</div>
-        <div class="cert-org">PentesterLab</div>
-        <div class="cert-status">Completed</div>
-        <div class="cert-id">PTLP5456</div>
-        <a href="image/PTLP5456.pdf" target="_blank" class="cert-verify">verify -></a>
-      </div>
+      <article class="cert-card cert-card-completed" data-cert-state="completed">
+        <button
+          type="button"
+          class="cert-card-toggle"
+          id="cert-toggle-pcap"
+          aria-expanded="false"
+          aria-controls="cert-panel-pcap"
+        >
+          <div class="cert-card-top">
+            <div class="cert-card-heading">
+              <div class="cert-name">PCAP Badge</div>
+              <div class="cert-org">PentesterLab</div>
+            </div>
+            <span class="cert-chevron" aria-hidden="true"></span>
+          </div>
+          <div class="cert-status-row">
+            <div class="cert-status">Completed</div>
+            <span class="cert-expand-label">
+              <span class="cert-expand-copy">Open brief</span>
+            </span>
+          </div>
+          <p class="cert-summary">
+            Practical platform progress badge built around applied security fundamentals and lab execution.
+          </p>
+          <div class="cert-id">PTLP5456</div>
+        </button>
+        <div class="cert-panel-shell" id="cert-panel-pcap" role="region" aria-labelledby="cert-toggle-pcap" aria-hidden="true">
+          <div class="cert-panel-inner">
+            <div class="cert-panel-content">
+              <div class="cert-panel-grid">
+                <div class="cert-panel-block">
+                  <span class="cert-panel-label">What this is</span>
+                  <p>A practical badge tied to continued lab progression and hands-on work across core application security concepts.</p>
+                </div>
+                <div class="cert-panel-block">
+                  <span class="cert-panel-label">Why it matters</span>
+                  <p>It reflects consistent practice in applying technical concepts in a lab setting, which is more useful than simply memorizing material.</p>
+                </div>
+              </div>
+              <div class="cert-skills" aria-label="Skills covered">
+                <span class="cert-skill">AppSec Basics</span>
+                <span class="cert-skill">Lab Progression</span>
+                <span class="cert-skill">Practical Learning</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cert-card-footer">
+          <a href="image/PTLP5456.pdf" target="_blank" class="cert-verify">verify -></a>
+        </div>
+      </article>
 
       <!-- PentesterLab UNIX -->
-      <div class="cert-card">
-        <div class="cert-name">Unix Badge</div>
-        <div class="cert-org">PentesterLab</div>
-        <div class="cert-status">Completed</div>
-        <div class="cert-id">PTLU13067</div>
-        <a href="image/PTLU13067.pdf" target="_blank" class="cert-verify">verify -></a>
-      </div>
+      <article class="cert-card cert-card-completed" data-cert-state="completed">
+        <button
+          type="button"
+          class="cert-card-toggle"
+          id="cert-toggle-unix"
+          aria-expanded="false"
+          aria-controls="cert-panel-unix"
+        >
+          <div class="cert-card-top">
+            <div class="cert-card-heading">
+              <div class="cert-name">Unix Badge</div>
+              <div class="cert-org">PentesterLab</div>
+            </div>
+            <span class="cert-chevron" aria-hidden="true"></span>
+          </div>
+          <div class="cert-status-row">
+            <div class="cert-status">Completed</div>
+            <span class="cert-expand-label">
+              <span class="cert-expand-copy">Open brief</span>
+            </span>
+          </div>
+          <p class="cert-summary">
+            Foundational Unix and Linux badge centered on command-line confidence and system navigation.
+          </p>
+          <div class="cert-id">PTLU13067</div>
+        </button>
+        <div class="cert-panel-shell" id="cert-panel-unix" role="region" aria-labelledby="cert-toggle-unix" aria-hidden="true">
+          <div class="cert-panel-inner">
+            <div class="cert-panel-content">
+              <div class="cert-panel-grid">
+                <div class="cert-panel-block">
+                  <span class="cert-panel-label">What this is</span>
+                  <p>A foundational badge demonstrating comfort with Unix and Linux command-line usage, system navigation, and everyday terminal workflows.</p>
+                </div>
+                <div class="cert-panel-block">
+                  <span class="cert-panel-label">Why it matters</span>
+                  <p>Linux fluency is essential in security work, automation, labs, and many real testing environments, so this supports day-to-day technical execution.</p>
+                </div>
+              </div>
+              <div class="cert-skills" aria-label="Skills covered">
+                <span class="cert-skill">Linux Fundamentals</span>
+                <span class="cert-skill">Command Line</span>
+                <span class="cert-skill">Lab Workflow</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cert-card-footer">
+          <a href="image/PTLU13067.pdf" target="_blank" class="cert-verify">verify -></a>
+        </div>
+      </article>
 
-      <!--BSCP Cert-->
-      <div class="cert-card">
-        <div class="cert-name">Burp Suite Certified Practitioner</div>
-        <div class="cert-org">Port Swigger</div>
-        <div class="cert-status cert-progress">In Progress</div>
-        <div class="cert-id">Expected 2026</div>
-        <a class="cert-verify">Coming Soon</a>
-      </div>
+      <!-- BSCP Cert -->
+      <article class="cert-card cert-card-progress" data-cert-state="progress">
+        <button
+          type="button"
+          class="cert-card-toggle"
+          id="cert-toggle-bscp"
+          aria-expanded="false"
+          aria-controls="cert-panel-bscp"
+        >
+          <div class="cert-card-top">
+            <div class="cert-card-heading">
+              <div class="cert-name">Burp Suite Certified Practitioner</div>
+              <div class="cert-org">Port Swigger</div>
+            </div>
+            <span class="cert-chevron" aria-hidden="true"></span>
+          </div>
+          <div class="cert-status-row">
+            <div class="cert-status cert-progress">In Progress</div>
+            <span class="cert-expand-label">
+              <span class="cert-expand-copy">Open brief</span>
+            </span>
+          </div>
+          <p class="cert-summary">
+            Practical web application testing certification built around using Burp Suite on realistic scenarios.
+          </p>
+          <div class="cert-id">Expected 2026</div>
+        </button>
+        <div class="cert-panel-shell" id="cert-panel-bscp" role="region" aria-labelledby="cert-toggle-bscp" aria-hidden="true">
+          <div class="cert-panel-inner">
+            <div class="cert-panel-content">
+              <div class="cert-panel-grid">
+                <div class="cert-panel-block">
+                  <span class="cert-panel-label">What this is</span>
+                  <p>A respected practical certification centered on using Burp Suite to test modern web applications for real security issues.</p>
+                </div>
+                <div class="cert-panel-block">
+                  <span class="cert-panel-label">Why it matters</span>
+                  <p>It signals applied web testing ability with one of the most recognized tools in application security and reflects an active focus on hands-on growth.</p>
+                </div>
+              </div>
+              <div class="cert-skills" aria-label="Skills covered">
+                <span class="cert-skill">Burp Suite</span>
+                <span class="cert-skill">Web Testing</span>
+                <span class="cert-skill">AppSec Workflow</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="cert-card-footer">
+          <span class="cert-verify cert-verify-muted">assessment in progress</span>
+        </div>
+      </article>
 
     </div>
   </section>
@@ -207,30 +476,30 @@
       <a href="blog/sqli-labs.html" class="post-card">
         <div class="post-card-meta">
           <span class="post-date">2026-04-02</span>
-          <span class="post-tag">Portswigger</span>
+          <span class="post-tag">Port Swigger</span>
         </div>
         <div class="post-title">PortSwigger SQLi Labs Write-Up</div>
-        <p class="post-excerpt">Working through the PortSwigger Web Security Academy SQL injection track. Building a Python exploit script, a breakdown of what the code is doing and why.</p>
+        <p class="post-excerpt">A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step.</p>
         <span class="post-read-more">read post</span>
       </a>
       <!-- SQLi Understanding -->
       <a href="blog/sql-injection.html" class="post-card">
         <div class="post-card-meta">
           <span class="post-date">2025-06-15</span>
-          <span class="post-tag">web</span>
+          <span class="post-tag">Web</span>
         </div>
         <div class="post-title">Understanding SQL Injection</div>
-        <p class="post-excerpt">An overview of SQL injection vulnerabilities - union-based, blind, time-based - and how to methodically test for them.</p>
+        <p class="post-excerpt">A technical overview of SQL injection testing, covering union-based, blind, and time-based techniques with a methodical assessment mindset.</p>
         <span class="post-read-more">read post</span>
       </a>
       <!-- Burp Suite Basics Post-->
       <a href="blog/burp-suite-basics.html" class="post-card">
         <div class="post-card-meta">
           <span class="post-date">2025-07-23</span>
-          <span class="post-tag">burp suite</span>
+          <span class="post-tag">Burp Suite</span>
         </div>
         <div class="post-title">Getting Started with Burp Suite</div>
-        <p class="post-excerpt">A beginner-friendly breakdown of every major tool in Burp Suite - Proxy, Repeater, Intruder, Scanner - and when to use each.</p>
+        <p class="post-excerpt">A practical introduction to Burp Suite's core tools, showing how Proxy, Repeater, Intruder, and Scanner fit into a modern web testing workflow.</p>
         <span class="post-read-more">read post</span>
       </a>
     </div>
