@@ -1,3 +1,5 @@
+---
+---
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -209,6 +211,19 @@
   </style>
 </head>
 <body class="site-page archive-page">
+  {% assign articles = site.pages | where: "article", true | sort: "date" | reverse %}
+  {% assign article_count = articles | size %}
+  {% assign latest_post = articles | first %}
+  {% capture archive_tag_pairs %}
+    {% for post in articles %}
+      {% assign archive_tags = post.tags | default: post.listing_tags %}
+      {% for tag in archive_tags %}
+        {% assign tag_label = tag.label | default: tag %}
+        {{ tag_label | slugify }}::{{ tag_label }}|||
+      {% endfor %}
+    {% endfor %}
+  {% endcapture %}
+  {% assign archive_tag_pairs = archive_tag_pairs | split: "|||" | uniq | sort %}
 
   <nav>
     <a href="index.html" class="nav-logo"><span>~/</span>Vali</a>
@@ -235,83 +250,29 @@
   </div>
 
   <div class="filters">
-    <button class="filter-btn active" data-filter="all" onclick="filterPosts('all', this)">All Posts</button>
-    <button class="filter-btn" data-filter="web" onclick="filterPosts('web', this)">Web</button>
-    <button class="filter-btn" data-filter="linux" onclick="filterPosts('linux', this)">Linux</button>
-    <button class="filter-btn" data-filter="burp-suite" onclick="filterPosts('burp-suite', this)">Burp Suite</button>
-    <button class="filter-btn" data-filter="tools" onclick="filterPosts('tools', this)">Tools</button>
-    <button class="filter-btn" data-filter="port-swigger" onclick="filterPosts('port-swigger', this)">Port Swigger</button>
+    <button type="button" class="filter-btn active" data-filter="all" onclick="filterPosts('all', this)">All Posts</button>
+    {% for pair in archive_tag_pairs %}
+      {% assign cleaned_pair = pair | strip %}
+      {% if cleaned_pair != "" %}
+        {% assign pair_parts = cleaned_pair | split: "::" %}
+        {% assign tag_slug = pair_parts[0] | strip %}
+        {% assign tag_name = pair_parts[1] | strip %}
+        <button type="button" class="filter-btn" data-filter="{{ tag_slug }}" onclick="filterPosts('{{ tag_slug }}', this)">{{ tag_name }}</button>
+      {% endif %}
+    {% endfor %}
   </div>
 
   <main>
-    <div class="posts-count" id="posts-count">6 posts</div>
+    <div class="posts-count" id="posts-count">{{ article_count }} posts</div>
 
-    <a href="blog/juice-shop-writeup.html" class="post-featured fade-in" data-tags="web burp-suite">
-      <div>
-        <div class="post-featured-meta">
-          <span class="post-date">2026-04-03</span>
-          <span class="post-tag">Web</span>
-          <span class="post-tag">Burp Suite</span>
-        </div>
-        <div class="post-title">OWASP Juice Shop Write-Up</div>
-        <p class="post-excerpt">A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target.</p>
-        <span class="post-read-more">read post</span>
-      </div>
-    </a>
+    {% if latest_post %}
+    {% include post-card.html post=latest_post variant="featured" tag_limit=2 %}
+    {% endif %}
 
     <div class="posts-grid" id="posts-grid">
-      <a href="blog/sqli-labs.html" class="post-card fade-in" data-tags="web port-swigger" style="transition-delay:0.03s">
-        <div>
-          <div class="post-meta">
-            <span class="post-date">2026-03-21</span>
-            <span class="post-tag">Web</span>
-            <span class="post-tag">Port Swigger</span>
-          </div>
-          <div class="post-title">PortSwigger SQLi Labs Write-Up</div>
-          <p class="post-excerpt">A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step.</p>
-          <span class="post-read-more">read post</span>
-        </div>
-      </a>
-
-      <a href="blog/Linux-Privilege-Escalation.html" class="post-card fade-in" data-tags="linux" style="transition-delay:0.05s">
-        <div class="post-meta">
-          <span class="post-date">2025-07-30</span>
-          <span class="post-tag">Linux</span>
-        </div>
-        <div class="post-title">Understanding Linux Privilege Escalation</div>
-        <p class="post-excerpt">A focused guide to common Linux privilege escalation paths, including SUID abuse, cron jobs, weak permissions, and systematic enumeration.</p>
-        <span class="post-read-more">read post</span>
-      </a>
-
-      <a href="blog/burp-suite-basics.html" class="post-card fade-in" data-tags="burp-suite" style="transition-delay:0.07s">
-        <div class="post-meta">
-          <span class="post-date">2025-07-23</span>
-          <span class="post-tag">Burp Suite</span>
-        </div>
-        <div class="post-title">Getting Started with Burp Suite</div>
-        <p class="post-excerpt">A practical introduction to Burp Suite's core tools, showing how Proxy, Repeater, Intruder, and Scanner fit into a modern web testing workflow.</p>
-        <span class="post-read-more">read post</span>
-      </a>
-
-      <a href="blog/hosting-xampp-localnet.html" class="post-card fade-in" data-tags="tools" style="transition-delay:0.1s">
-        <div class="post-meta">
-          <span class="post-date">2025-07-22</span>
-          <span class="post-tag">Tools</span>
-        </div>
-        <div class="post-title">Hosting a Local Website with XAMPP and LocalToNet</div>
-        <p class="post-excerpt">A step-by-step guide to exposing a locally hosted site with XAMPP and LocalToNet for demos, testing, and short-lived external access.</p>
-        <span class="post-read-more">read post</span>
-      </a>
-
-      <a href="blog/sql-injection.html" class="post-card fade-in" data-tags="web" style="transition-delay:0.15s">
-        <div class="post-meta">
-          <span class="post-date">2025-06-15</span>
-          <span class="post-tag">Web</span>
-        </div>
-        <div class="post-title">Understanding SQL Injection</div>
-        <p class="post-excerpt">A technical overview of SQL injection testing, covering union-based, blind, and time-based techniques with a methodical assessment mindset.</p>
-        <span class="post-read-more">read post</span>
-      </a>
+      {% for post in articles offset: 1 %}
+      {% include post-card.html post=post fade=true tag_limit=2 %}
+      {% endfor %}
     </div>
 
     <div class="posts-empty" id="posts-empty" hidden>

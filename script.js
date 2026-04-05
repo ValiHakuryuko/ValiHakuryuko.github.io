@@ -462,8 +462,17 @@
       return;
     }
 
-    const hasRequestedButton = findFilterButton(tag);
-    const resolvedTag = hasRequestedButton ? tag : "all";
+    const requestedTag = (tag || "all").toLowerCase();
+    const hasMatchingTag =
+      requestedTag === "all" ||
+      cards.some((card) => {
+        const tags = (card.dataset.tags || "")
+          .toLowerCase()
+          .split(/\s+/)
+          .filter(Boolean);
+        return tags.includes(requestedTag);
+      });
+    const resolvedTag = hasMatchingTag ? requestedTag : "all";
     const resolvedButton = button || findFilterButton(resolvedTag) || findFilterButton("all");
     const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
 
@@ -477,7 +486,10 @@
 
     let visibleCount = 0;
     cards.forEach((card) => {
-      const tags = (card.dataset.tags || "").toLowerCase();
+      const tags = (card.dataset.tags || "")
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(Boolean);
       const text = card.textContent.toLowerCase();
       const matchesTag = resolvedTag === "all" || tags.includes(resolvedTag);
       const matchesQuery = !query || text.includes(query);

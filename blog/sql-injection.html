@@ -1,16 +1,28 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Understanding SQL Injection — Vali Hakuryuko</title>
-  <meta name="description" content="A comprehensive overview of SQL injection — types, attack examples, exploitation tools, detection techniques, and mitigation strategies." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../style.css" />
-  <link rel="stylesheet" href="../post.css" />
-  <style>
+---
+layout: post
+article: true
+slug: sql-injection
+title: "Understanding SQL Injection"
+description: "A technical overview of SQL injection testing, covering union-based, blind, and time-based techniques with a methodical assessment mindset."
+excerpt: "A technical overview of SQL injection testing, covering union-based, blind, and time-based techniques with a methodical assessment mindset."
+post_subtitle: "A technical overview of SQL injection testing, covering union-based, blind, and time-based techniques with a methodical assessment mindset."
+summary: "What SQL injection looks like in practice, how testers confirm it, and why different variants require different response analysis."
+target_lab: "General web application assessments"
+tools_used:
+  - "Burp Suite"
+  - "SQLMap"
+  - "Manual payloads"
+takeaways:
+  - "Map the injection point and query behavior before automating anything."
+  - "Different SQLi variants reveal themselves through different response patterns."
+  - "Manual testing still matters because tooling depends on accurate assumptions."
+date: 2025-06-15
+read_time: "~7 min read"
+permalink: /blog/sql-injection.html
+tags:
+  - "Web"
+---
+<style>
     article h2 { font-family: var(--display); font-size: 1.45rem; font-weight: 700; margin: 3rem 0 1rem; letter-spacing: -0.02em; padding-top: 1rem; border-top: 1px solid var(--border); }
     article h2:first-child { border-top: none; margin-top: 0; }
     article h3 { font-family: var(--display); font-size: 1.05rem; font-weight: 600; margin: 1.75rem 0 0.6rem; color: var(--text); }
@@ -50,35 +62,8 @@
       .sqli-types, .tools-row { grid-template-columns: 1fr; }
     }
   </style>
-</head>
-<body class="post-page">
-  <nav>
-    <a href="../index.html" class="nav-logo"><span>~/</span>Vali</a>
-    <ul class="nav-links">
-      <li><a href="../index.html#about">About</a></li>
-      <li><a href="../blog.html">Blog</a></li>
-      <li><a href="../index.html#contact">Contact</a></li>
-    </ul>
-    <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
-  </nav>
 
-  <div class="layout">
-    <header class="post-header">
-      <div class="post-breadcrumb">
-        <a href="../index.html">~</a> / <a href="../blog.html">blog</a> / sql-injection
-      </div>
-      <div class="post-meta-row">
-        <span class="post-date">2025-06-15</span>
-        <span class="post-tag">web</span>
-        <span class="post-read-time">~7 min read</span>
-      </div>
-      <h1 class="post-title">Understanding SQL Injection</h1>
-      <p class="post-subtitle">
-        A thorough overview of SQL injection — what it is, every major type, real attack examples, the tools to exploit it, and how to prevent it.
-      </p>
-    </header>
-
-    <div class="toc">
+<div class="toc">
       <div class="toc-title">// contents</div>
       <ol>
         <li><a href="#what-is-sqli">What is SQL Injection?</a></li>
@@ -96,24 +81,24 @@
 
       <h2 id="what-is-sqli">What is SQL Injection?</h2>
       <p>
-        SQL Injection (SQLi) is one of the oldest and most critical web vulnerabilities — it's been in the OWASP Top 10 for decades. It occurs when user-supplied input is embedded directly into a SQL query without proper sanitization, allowing an attacker to alter the query's logic.
+        SQL Injection (SQLi) is one of the oldest and most critical web vulnerabilities â€” it's been in the OWASP Top 10 for decades. It occurs when user-supplied input is embedded directly into a SQL query without proper sanitization, allowing an attacker to alter the query's logic.
       </p>
       <p>
         The consequences range from <strong>authentication bypass</strong> and <strong>data exfiltration</strong> to full <strong>database takeover</strong> and even remote code execution in some configurations.
       </p>
       <div class="callout danger">
-        <div class="callout-title">⚠️ Severity</div>
-        <p>A successful SQLi attack can expose every record in a database — user credentials, PII, payment data, internal configs. It's consistently one of the highest-impact vulnerability classes in web pentesting.</p>
+        <div class="callout-title">âš ï¸ Severity</div>
+        <p>A successful SQLi attack can expose every record in a database â€” user credentials, PII, payment data, internal configs. It's consistently one of the highest-impact vulnerability classes in web pentesting.</p>
       </div>
 
       <h2 id="targets">What It Targets</h2>
       <p>SQLi exploits any place where user input gets embedded in a SQL query. Common injection points include:</p>
       <ul>
-        <li><strong>Login forms</strong> — username and password fields</li>
-        <li><strong>Search fields</strong> — anything that queries a database for results</li>
-        <li><strong>URL parameters</strong> — e.g., <code>?id=1</code>, <code>?category=shoes</code></li>
-        <li><strong>Cookies</strong> — if cookie values are used in database lookups</li>
-        <li><strong>HTTP headers</strong> — User-Agent, Referer, X-Forwarded-For stored and queried</li>
+        <li><strong>Login forms</strong> â€” username and password fields</li>
+        <li><strong>Search fields</strong> â€” anything that queries a database for results</li>
+        <li><strong>URL parameters</strong> â€” e.g., <code>?id=1</code>, <code>?category=shoes</code></li>
+        <li><strong>Cookies</strong> â€” if cookie values are used in database lookups</li>
+        <li><strong>HTTP headers</strong> â€” User-Agent, Referer, X-Forwarded-For stored and queried</li>
       </ul>
 
       <h2 id="types">Types of SQL Injection</h2>
@@ -128,14 +113,14 @@
         </div>
         <div class="sqli-type">
           <div class="sqli-type-name">Error-Based</div>
-          <p>Trigger database errors that reveal schema information — table names, column names, data types — in the error message.</p>
+          <p>Trigger database errors that reveal schema information â€” table names, column names, data types â€” in the error message.</p>
         </div>
         <div class="sqli-type">
-          <div class="sqli-type-name">Blind — Boolean</div>
+          <div class="sqli-type-name">Blind â€” Boolean</div>
           <p>No output returned, but behaviour changes based on true/false conditions. Infer data one bit at a time from response differences.</p>
         </div>
         <div class="sqli-type">
-          <div class="sqli-type-name">Blind — Time-Based</div>
+          <div class="sqli-type-name">Blind â€” Time-Based</div>
           <p>Inject <code>SLEEP()</code> or equivalent. If the response is delayed, the condition is true. Slow but works when there's zero output.</p>
         </div>
         <div class="sqli-type">
@@ -161,7 +146,7 @@ SELECT * FROM users WHERE username='admin' --' AND password='anything'
 -- Everything after -- is a comment; password check is skipped</code></pre>
 
       <h3>Union-Based Data Extraction</h3>
-      <span class="code-label">payload — extract usernames and passwords</span>
+      <span class="code-label">payload â€” extract usernames and passwords</span>
       <pre><code>' UNION SELECT username, password FROM users --
 
 -- First, determine number of columns:
@@ -170,7 +155,7 @@ SELECT * FROM users WHERE username='admin' --' AND password='anything'
 ' ORDER BY 3 --   -- error here means 2 columns exist</code></pre>
 
       <h3>Time-Based Blind</h3>
-      <span class="code-label">payload — MySQL time delay</span>
+      <span class="code-label">payload â€” MySQL time delay</span>
       <pre><code>' OR IF(1=1, SLEEP(5), 0) --
 -- If response takes ~5 seconds, injection is working
 
@@ -181,7 +166,7 @@ SELECT * FROM users WHERE username='admin' --' AND password='anything'
       <div class="tools-row">
         <div class="tool-pill">
           <div class="tool-pill-name">sqlmap</div>
-          <p>The gold standard. Automated SQLi detection and exploitation — handles all types, extracts data, can escalate to OS shell.</p>
+          <p>The gold standard. Automated SQLi detection and exploitation â€” handles all types, extracts data, can escalate to OS shell.</p>
         </div>
         <div class="tool-pill">
           <div class="tool-pill-name">Burp Suite</div>
@@ -192,7 +177,7 @@ SELECT * FROM users WHERE username='admin' --' AND password='anything'
           <p>GUI-based SQLi tool for Windows. Useful for quick automated extraction. Less flexible than sqlmap.</p>
         </div>
       </div>
-      <span class="code-label">bash — basic sqlmap usage</span>
+      <span class="code-label">bash â€” basic sqlmap usage</span>
       <pre><code># Test a URL parameter:
 sqlmap -u "https://target.com/page?id=1" --dbs
 
@@ -204,10 +189,10 @@ sqlmap -r request.txt --level=3 --risk=2</code></pre>
 
       <h2 id="detection">Detection Techniques</h2>
       <ul>
-        <li><strong>Manual testing</strong> — inject single quotes <code>'</code>, double quotes <code>"</code>, and SQL keywords into every input field. Look for errors, changed behaviour, or delays.</li>
-        <li><strong>Automated scanners</strong> — sqlmap, Nikto, Burp Suite Active Scanner</li>
-        <li><strong>Fuzzing</strong> — use a SQLi wordlist (e.g., from SecLists) with Burp Intruder or ffuf</li>
-        <li><strong>Error monitoring</strong> — watch server logs for unusual SQL error messages in non-production environments</li>
+        <li><strong>Manual testing</strong> â€” inject single quotes <code>'</code>, double quotes <code>"</code>, and SQL keywords into every input field. Look for errors, changed behaviour, or delays.</li>
+        <li><strong>Automated scanners</strong> â€” sqlmap, Nikto, Burp Suite Active Scanner</li>
+        <li><strong>Fuzzing</strong> â€” use a SQLi wordlist (e.g., from SecLists) with Burp Intruder or ffuf</li>
+        <li><strong>Error monitoring</strong> â€” watch server logs for unusual SQL error messages in non-production environments</li>
       </ul>
 
       <h2 id="mitigation">Mitigation & Prevention</h2>
@@ -215,12 +200,12 @@ sqlmap -r request.txt --level=3 --risk=2</code></pre>
         SQLi is almost entirely preventable with proper coding practices. There's no excuse for it appearing in modern applications.
       </p>
       <ul>
-        <li><strong>Parameterized Queries / Prepared Statements</strong> — the single most effective fix. User input is passed as a parameter, never interpreted as SQL. Use <code>PDO</code> or <code>mysqli_prepare()</code> in PHP, <code>cursor.execute(query, params)</code> in Python.</li>
-        <li><strong>ORM Tools</strong> — SQLAlchemy, Hibernate, Sequelize, etc. They abstract raw SQL and handle escaping for you.</li>
-        <li><strong>Input Validation</strong> — whitelist expected formats (integers, emails, etc.) and reject anything that doesn't match.</li>
-        <li><strong>Least Privilege</strong> — the database user your app connects with should only have SELECT/INSERT on the tables it needs — not DROP, not SELECT on system tables.</li>
-        <li><strong>Disable Verbose Errors</strong> — in production, never expose raw database errors to the user.</li>
-        <li><strong>WAF</strong> — a Web Application Firewall can filter common payloads, but it's a last line of defense, not a substitute for secure code.</li>
+        <li><strong>Parameterized Queries / Prepared Statements</strong> â€” the single most effective fix. User input is passed as a parameter, never interpreted as SQL. Use <code>PDO</code> or <code>mysqli_prepare()</code> in PHP, <code>cursor.execute(query, params)</code> in Python.</li>
+        <li><strong>ORM Tools</strong> â€” SQLAlchemy, Hibernate, Sequelize, etc. They abstract raw SQL and handle escaping for you.</li>
+        <li><strong>Input Validation</strong> â€” whitelist expected formats (integers, emails, etc.) and reject anything that doesn't match.</li>
+        <li><strong>Least Privilege</strong> â€” the database user your app connects with should only have SELECT/INSERT on the tables it needs â€” not DROP, not SELECT on system tables.</li>
+        <li><strong>Disable Verbose Errors</strong> â€” in production, never expose raw database errors to the user.</li>
+        <li><strong>WAF</strong> â€” a Web Application Firewall can filter common payloads, but it's a last line of defense, not a substitute for secure code.</li>
       </ul>
 
       <h2 id="real-world">Real-World Impact</h2>
@@ -236,23 +221,8 @@ sqlmap -r request.txt --level=3 --risk=2</code></pre>
       <hr />
 
       <div class="callout success">
-        <div class="callout-title">✅ Key Takeaways</div>
-        <p>SQL injection is caused by treating user input as trusted SQL code. Fix it with <strong>parameterized queries</strong>. Test for it manually with single quotes and <code>OR 1=1</code>, then automate with sqlmap. For learning, practice on PortSwigger Web Security Academy's SQLi labs — they're excellent.</p>
+        <div class="callout-title">âœ… Key Takeaways</div>
+        <p>SQL injection is caused by treating user input as trusted SQL code. Fix it with <strong>parameterized queries</strong>. Test for it manually with single quotes and <code>OR 1=1</code>, then automate with sqlmap. For learning, practice on PortSwigger Web Security Academy's SQLi labs â€” they're excellent.</p>
       </div>
 
     </article>
-
-    <div class="post-footer">
-      <a href="../blog.html" class="btn">← Back to blog</a>
-      <a href="burp-suite-basics.html" class="btn btn-accent">Getting Started with Burp Suite →</a>
-    </div>
-  </div>
-
-  <footer>
-    <span>© 2025 Vali Hakuryuko</span>
-    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ back to top</span>
-  </footer>
-
-  <script src="../script.js"></script>
-</body>
-</html>

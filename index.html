@@ -1,3 +1,5 @@
+---
+---
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -18,6 +20,8 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body class="site-page landing-page">
+  {% assign articles = site.pages | where: "article", true | sort: "date" | reverse %}
+  {% assign article_count = articles | size %}
 
   <!-- NAV -->
   <nav>
@@ -60,7 +64,7 @@
           <div class="profile-title">$ whoami -> pentester</div>
           <div class="profile-stats">
             <div class="stat-box">
-              <span class="stat-num" data-count="6" data-suffix="+">6+</span>
+              <span class="stat-num" data-count="{{ article_count }}" data-suffix="+">{{ article_count }}+</span>
               <span class="stat-label">posts</span>
             </div>
             <div class="stat-box">
@@ -472,36 +476,9 @@
       <div class="section-line"></div>
     </div>
     <div class="posts-grid fade-in">
-      <!-- SQLi Labs Demo-->
-      <a href="blog/sqli-labs.html" class="post-card">
-        <div class="post-card-meta">
-          <span class="post-date">2026-04-02</span>
-          <span class="post-tag">Port Swigger</span>
-        </div>
-        <div class="post-title">PortSwigger SQLi Labs Write-Up</div>
-        <p class="post-excerpt">A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step.</p>
-        <span class="post-read-more">read post</span>
-      </a>
-      <!-- SQLi Understanding -->
-      <a href="blog/sql-injection.html" class="post-card">
-        <div class="post-card-meta">
-          <span class="post-date">2025-06-15</span>
-          <span class="post-tag">Web</span>
-        </div>
-        <div class="post-title">Understanding SQL Injection</div>
-        <p class="post-excerpt">A technical overview of SQL injection testing, covering union-based, blind, and time-based techniques with a methodical assessment mindset.</p>
-        <span class="post-read-more">read post</span>
-      </a>
-      <!-- Burp Suite Basics Post-->
-      <a href="blog/burp-suite-basics.html" class="post-card">
-        <div class="post-card-meta">
-          <span class="post-date">2025-07-23</span>
-          <span class="post-tag">Burp Suite</span>
-        </div>
-        <div class="post-title">Getting Started with Burp Suite</div>
-        <p class="post-excerpt">A practical introduction to Burp Suite's core tools, showing how Proxy, Repeater, Intruder, and Scanner fit into a modern web testing workflow.</p>
-        <span class="post-read-more">read post</span>
-      </a>
+      {% for post in articles limit: 3 %}
+      {% include post-card.html post=post variant="home" meta_class="post-card-meta" tag_limit=1 %}
+      {% endfor %}
     </div>
     <div class="view-all fade-in">
       <a href="blog.html" class="btn btn-ghost">View all posts -></a>

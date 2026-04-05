@@ -1,16 +1,28 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hosting a Local Website with XAMPP and LocalToNet — Vali Hakuryuko</title>
-  <meta name="description" content="Step-by-step guide to setting up a local web server with XAMPP and exposing it to the internet using LocalToNet." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../style.css" />
-  <link rel="stylesheet" href="../post.css" />
-  <style>
+---
+layout: post
+article: true
+slug: hosting-xampp-localnet
+title: "Hosting a Local Website with XAMPP and LocalToNet"
+description: "A step-by-step guide to exposing a locally hosted site with XAMPP and LocalToNet for demos, testing, and short-lived external access."
+excerpt: "A step-by-step guide to exposing a locally hosted site with XAMPP and LocalToNet for demos, testing, and short-lived external access."
+post_subtitle: "A step-by-step guide to exposing a locally hosted site with XAMPP and LocalToNet for demos, testing, and short-lived external access."
+summary: "How to stand up a local Apache and PHP stack quickly, then make it reachable from the internet without router changes."
+target_lab: "Local web server setup for demos and short-lived testing"
+tools_used:
+  - "XAMPP"
+  - "Apache"
+  - "LocalToNet"
+takeaways:
+  - "Use XAMPP to get a local web stack running with minimal setup overhead."
+  - "Use LocalToNet to share a temporary public URL without touching port forwarding."
+  - "Treat exposed local services as short-lived test environments, not permanent deployments."
+date: 2025-07-22
+read_time: "~4 min read"
+permalink: /blog/hosting-xampp-localnet.html
+tags:
+  - "Tools"
+---
+<style>
     article h2 { font-family: var(--display); font-size: 1.45rem; font-weight: 700; margin: 3rem 0 1rem; letter-spacing: -0.02em; padding-top: 1rem; border-top: 1px solid var(--border); }
     article h2:first-child { border-top: none; margin-top: 0; }
     article h3 { font-family: var(--display); font-size: 1.05rem; font-weight: 600; margin: 1.75rem 0 0.6rem; color: var(--text); }
@@ -36,46 +48,19 @@
     .req-list-title { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
     .req-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; color: var(--text2); }
     .req-item:last-child { border-bottom: none; padding-bottom: 0; }
-    .req-item::before { content: '✓'; color: var(--accent); font-family: var(--mono); font-size: 0.75rem; }
+    .req-item::before { content: 'âœ“'; color: var(--accent); font-family: var(--mono); font-size: 0.75rem; }
     .step-number { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--accent); color: #000; border-radius: 50%; font-family: var(--mono); font-size: 0.75rem; font-weight: 700; margin-right: 0.75rem; flex-shrink: 0; }
     .step-header { display: flex; align-items: center; margin-bottom: 1rem; }
     .step-header h3 { margin: 0; font-family: var(--display); font-size: 1.1rem; font-weight: 700; }
   </style>
-</head>
-<body class="post-page">
-  <nav>
-    <a href="../index.html" class="nav-logo"><span>~/</span>Vali</a>
-    <ul class="nav-links">
-      <li><a href="../index.html#about">About</a></li>
-      <li><a href="../blog.html">Blog</a></li>
-      <li><a href="../index.html#contact">Contact</a></li>
-    </ul>
-    <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
-  </nav>
 
-  <div class="layout">
-    <header class="post-header">
-      <div class="post-breadcrumb">
-        <a href="../index.html">~</a> / <a href="../blog.html">blog</a> / hosting-xampp-localnet
-      </div>
-      <div class="post-meta-row">
-        <span class="post-date">2025-07-22</span>
-        <span class="post-tag">tools</span>
-        <span class="post-read-time">~4 min read</span>
-      </div>
-      <h1 class="post-title">Hosting a Local Website with XAMPP and LocalToNet</h1>
-      <p class="post-subtitle">
-        Set up a local web server on your machine using XAMPP and expose it to the public internet using LocalToNet — no port forwarding required.
-      </p>
-    </header>
-
-    <div class="toc">
+<div class="toc">
       <div class="toc-title">// contents</div>
       <ol>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#requirements">Requirements</a></li>
-        <li><a href="#step1">Step 1 — Install & Configure XAMPP</a></li>
-        <li><a href="#step2">Step 2 — Expose Localhost with LocalToNet</a></li>
+        <li><a href="#step1">Step 1 â€” Install & Configure XAMPP</a></li>
+        <li><a href="#step2">Step 2 â€” Expose Localhost with LocalToNet</a></li>
         <li><a href="#result">Final Result</a></li>
       </ol>
     </div>
@@ -84,10 +69,10 @@
 
       <h2 id="overview">Overview</h2>
       <p>
-        Sometimes you need to quickly spin up a web server — to test a PHP app, share a local project with someone, or set up a target for practicing web exploitation. XAMPP gives you Apache + MySQL + PHP in one installer. LocalToNet gives you a public URL tunneling into your localhost, bypassing router NAT without any port forwarding config.
+        Sometimes you need to quickly spin up a web server â€” to test a PHP app, share a local project with someone, or set up a target for practicing web exploitation. XAMPP gives you Apache + MySQL + PHP in one installer. LocalToNet gives you a public URL tunneling into your localhost, bypassing router NAT without any port forwarding config.
       </p>
       <p>
-        This combo is especially useful for <strong>security testing labs</strong> — spin up a vulnerable app locally, expose it temporarily, and tear it down when done.
+        This combo is especially useful for <strong>security testing labs</strong> â€” spin up a vulnerable app locally, expose it temporarily, and tear it down when done.
       </p>
 
       <h2 id="requirements">Requirements</h2>
@@ -98,13 +83,13 @@
         <div class="req-item">A <a href="https://localtonet.com/" target="_blank">LocalToNet</a> account (free tier available)</div>
       </div>
 
-      <h2 id="step1">Step 1 — Install & Configure XAMPP</h2>
+      <h2 id="step1">Step 1 â€” Install & Configure XAMPP</h2>
       <div class="step-header">
         <span class="step-number">1</span>
         <h3>Download and install XAMPP</h3>
       </div>
       <p>
-        Grab the installer from <a href="https://www.apachefriends.org/index.html" target="_blank">apachefriends.org</a> and run it. The defaults are fine — just make sure <strong>Apache</strong> and <strong>MySQL</strong> are checked.
+        Grab the installer from <a href="https://www.apachefriends.org/index.html" target="_blank">apachefriends.org</a> and run it. The defaults are fine â€” just make sure <strong>Apache</strong> and <strong>MySQL</strong> are checked.
       </p>
 
       <div class="step-header">
@@ -119,7 +104,7 @@
         <span class="step-number">3</span>
         <h3>Test your local server</h3>
       </div>
-      <p>Visit <code>http://localhost</code> in your browser. You should see the XAMPP welcome page — that means Apache is running.</p>
+      <p>Visit <code>http://localhost</code> in your browser. You should see the XAMPP welcome page â€” that means Apache is running.</p>
 
       <div class="step-header">
         <span class="step-number">4</span>
@@ -133,11 +118,11 @@
       <p>Access your project at <code>http://localhost/your-project/index.html</code> (or <code>.php</code>).</p>
 
       <div class="callout info">
-        <div class="callout-title">ℹ️ PHP files</div>
-        <p>If you're running PHP, make sure the file extension is <code>.php</code> — Apache needs to process it through the PHP interpreter, not serve it as static HTML.</p>
+        <div class="callout-title">â„¹ï¸ PHP files</div>
+        <p>If you're running PHP, make sure the file extension is <code>.php</code> â€” Apache needs to process it through the PHP interpreter, not serve it as static HTML.</p>
       </div>
 
-      <h2 id="step2">Step 2 — Expose Localhost with LocalToNet</h2>
+      <h2 id="step2">Step 2 â€” Expose Localhost with LocalToNet</h2>
       <div class="step-header">
         <span class="step-number">1</span>
         <h3>Sign up and download LocalToNet</h3>
@@ -149,9 +134,9 @@
         <h3>Add LocalToNet to your PATH</h3>
       </div>
       <p>Extract the binary and add its folder to your system's environment variables so you can run it from any terminal.</p>
-      <span class="code-label">windows — add to PATH via PowerShell</span>
+      <span class="code-label">windows â€” add to PATH via PowerShell</span>
       <pre><code>$env:PATH += ";C:\path\to\localtonet"</code></pre>
-      <span class="code-label">linux / mac — add to PATH</span>
+      <span class="code-label">linux / mac â€” add to PATH</span>
       <pre><code>export PATH=$PATH:/path/to/localtonet
 # Add the above line to ~/.bashrc or ~/.zshrc to persist it</code></pre>
 
@@ -162,20 +147,20 @@
       <p>Open a terminal and run:</p>
       <span class="code-label">bash</span>
       <pre><code>localtonet</code></pre>
-      <p>When prompted, enter your <strong>AuthToken</strong> — find it in your LocalToNet dashboard under your account settings.</p>
+      <p>When prompted, enter your <strong>AuthToken</strong> â€” find it in your LocalToNet dashboard under your account settings.</p>
 
       <div class="step-header">
         <span class="step-number">4</span>
         <h3>Create an HTTP tunnel</h3>
       </div>
       <p>
-        In the LocalToNet dashboard, go to <strong>My Tokens → HTTP</strong> tab → create a new tunnel. Point it at <code>localhost:80</code> (XAMPP's Apache port).
+        In the LocalToNet dashboard, go to <strong>My Tokens â†’ HTTP</strong> tab â†’ create a new tunnel. Point it at <code>localhost:80</code> (XAMPP's Apache port).
         Start the tunnel and LocalToNet will generate a public URL like <code>https://abc123.localto.net</code>.
       </p>
 
       <div class="callout success">
-        <div class="callout-title">✅ Done!</div>
-        <p>Anyone with that URL can now access your local project from anywhere on the internet — no router config, no static IP needed.</p>
+        <div class="callout-title">âœ… Done!</div>
+        <p>Anyone with that URL can now access your local project from anywhere on the internet â€” no router config, no static IP needed.</p>
       </div>
 
       <h2 id="result">Final Result</h2>
@@ -184,23 +169,8 @@
       </p>
 
       <div class="callout warning">
-        <div class="callout-title">⚠️ Security note</div>
-        <p>Don't leave tunnels open when not in use — especially if you're running intentionally vulnerable apps. Anyone with the URL can access your local server. Tear down the tunnel when you're done.</p>
+        <div class="callout-title">âš ï¸ Security note</div>
+        <p>Don't leave tunnels open when not in use â€” especially if you're running intentionally vulnerable apps. Anyone with the URL can access your local server. Tear down the tunnel when you're done.</p>
       </div>
 
     </article>
-
-    <div class="post-footer">
-      <a href="../blog.html" class="btn">← Back to blog</a>
-      <a href="burp-suite-basics.html" class="btn btn-accent">Getting Started with Burp Suite →</a>
-    </div>
-  </div>
-
-  <footer>
-    <span>© 2025 Vali Hakuryuko</span>
-    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ back to top</span>
-  </footer>
-
-  <script src="../script.js"></script>
-</body>
-</html>

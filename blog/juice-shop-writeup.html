@@ -1,16 +1,42 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OWASP Juice Shop — CTF Write-Up — Vali Hakuryuko</title>
-  <meta name="description" content="Write-up for OWASP Juice Shop challenges: Score Board discovery, DOM XSS, Bonus Payload, coupon code extraction, SQLi login bypass, and more." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../style.css" />
-  <link rel="stylesheet" href="../post.css" />
-  <style>
+---
+layout: post
+article: true
+slug: juice-shop-writeup
+title: "OWASP Juice Shop CTF Write-Up"
+display_title: "OWASP Juice Shop<br>CTF Write-Up"
+card_title: "OWASP Juice Shop Write-Up"
+description: "A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target."
+excerpt: "A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target."
+post_subtitle: "A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target."
+summary: "A challenge-driven walkthrough of Juice Shop findings, from discovery and DOM XSS to coupon leaks and SQL injection login bypasses."
+target_lab: "OWASP Juice Shop in Docker"
+tools_used:
+  - "Burp Suite"
+  - "Browser DevTools"
+  - "DOM payloads"
+  - "SQLite-focused SQLi"
+takeaways:
+  - "Treat Juice Shop like a real application and let discovery guide the path."
+  - "Client-side flaws, business logic issues, and SQLi all appear in one realistic target."
+  - "Documenting the reasoning behind each solved challenge is as useful as the payload itself."
+date: 2026-04-03
+read_time: "~20 min read"
+permalink: /blog/juice-shop-writeup.html
+tags:
+  - label: "Web"
+  - label: "XSS"
+    tone: red
+  - label: "SQLi"
+    tone: orange
+  - label: "OWASP"
+    tone: blue
+  - label: "CTF"
+    tone: purple
+listing_tags:
+  - "Web"
+  - "Burp Suite"
+---
+<style>
     :root {
       --post-width: 800px;
       --post-subtitle-size: 1.05rem;
@@ -119,7 +145,7 @@
     /* SCREENSHOT */
     .screenshot-wrap { margin: 1.75rem 0; }
     .screenshot-caption { font-family: var(--mono); font-size: 0.68rem; color: var(--text3); margin-top: 0.6rem; display: flex; align-items: center; gap: 0.5rem; }
-    .screenshot-caption::before { content: '▲'; font-size: 0.55rem; color: var(--text3); }
+    .screenshot-caption::before { content: 'â–²'; font-size: 0.55rem; color: var(--text3); }
     .screenshot-wrap img { width: 100%; border-radius: var(--radius); border: 1px solid var(--border); display: block; cursor: zoom-in; transition: opacity 0.15s ease; }
     .screenshot-wrap img:hover { opacity: 0.92; }
 
@@ -166,41 +192,8 @@
       .screenshot-grid { grid-template-columns: 1fr; }
     }
   </style>
-</head>
-<body class="post-page">
 
-  <nav>
-    <a href="../index.html" class="nav-logo"><span>~/</span>Vali</a>
-    <ul class="nav-links">
-      <li><a href="../index.html#about">About</a></li>
-      <li><a href="../blog.html">Blog</a></li>
-      <li><a href="../index.html#contact">Contact</a></li>
-    </ul>
-    <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
-  </nav>
-
-  <div class="layout">
-
-    <header class="post-header">
-      <div class="post-breadcrumb">
-        <a href="../index.html">~</a> / <a href="../blog.html">blog</a> / juice-shop-writeup
-      </div>
-      <div class="post-meta-row">
-        <span class="post-date">2026-04-02</span>
-        <span class="post-tag">Web</span>
-        <span class="post-tag red">Xss</span>
-        <span class="post-tag orange">Sqli</span>
-        <span class="post-tag blue">Owasp</span>
-        <span class="post-tag purple">Ctf</span>
-        <span class="post-read-time">~20 min read</span>
-      </div>
-      <h1 class="post-title">OWASP Juice Shop<br>CTF Write-Up</h1>
-      <p class="post-subtitle">
-        OWASP Juice Shop is a deliberately vulnerable Node.js web application built for security training. Unlike a lab environment with a single isolated vulnerability, Juice Shop presents a realistic-feeling full-stack app where you discover and exploit vulnerabilities in the order you find them — no hints, no guard rails. These are my notes on the first set of challenges I solved.
-      </p>
-    </header>
-
-    <!-- SCORE OVERVIEW -->
+<!-- SCORE OVERVIEW -->
     <div class="score-bar">
       <div class="score-stat">
         <span class="score-label">// challenges solved</span>
@@ -228,47 +221,47 @@
       <div class="toc-title">// contents</div>
       <ol>
         <li><a href="#what-is-juice-shop">What Is OWASP Juice Shop?</a></li>
-        <li><a href="#challenge1">Challenge 1 — Finding the Score Board</a></li>
-        <li><a href="#challenge2">Challenge 2 — DOM XSS</a></li>
-        <li><a href="#challenge3">Challenge 3 — Bonus Payload (XSS 2.0)</a></li>
-        <li><a href="#challenge4">Challenge 4 — Chatbot Coupon Extraction</a></li>
-        <li><a href="#challenge5">Challenge 5 — Login as Jim (SQLi Auth Bypass)</a></li>
-        <li><a href="#challenge6">Challenge 6 — Login as Bender (SQLi Auth Bypass)</a></li>
-        <li><a href="#challenge7">Challenge 7 — Admin Login via SQLi</a></li>
+        <li><a href="#challenge1">Challenge 1 â€” Finding the Score Board</a></li>
+        <li><a href="#challenge2">Challenge 2 â€” DOM XSS</a></li>
+        <li><a href="#challenge3">Challenge 3 â€” Bonus Payload (XSS 2.0)</a></li>
+        <li><a href="#challenge4">Challenge 4 â€” Chatbot Coupon Extraction</a></li>
+        <li><a href="#challenge5">Challenge 5 â€” Login as Jim (SQLi Auth Bypass)</a></li>
+        <li><a href="#challenge6">Challenge 6 â€” Login as Bender (SQLi Auth Bypass)</a></li>
+        <li><a href="#challenge7">Challenge 7 â€” Admin Login via SQLi</a></li>
         <li><a href="#recap">Recap</a></li>
       </ol>
     </div>
 
     <article>
 
-      <!-- ═══ INTRO ═══ -->
+      <!-- â•â•â• INTRO â•â•â• -->
       <div id="what-is-juice-shop" class="challenge-section" style="margin-bottom:3rem;">
         <h3 style="font-family:var(--display);font-size:1.2rem;font-weight:700;margin-bottom:0.75rem;">What Is OWASP Juice Shop?</h3>
         <p>
-          OWASP Juice Shop is an intentionally insecure web application maintained by the Open Web Application Security Project. It simulates a real e-commerce storefront — with products, a shopping cart, user accounts, and a support chatbot — but the entire codebase is riddled with real, exploitable vulnerabilities covering the OWASP Top 10 and beyond.
+          OWASP Juice Shop is an intentionally insecure web application maintained by the Open Web Application Security Project. It simulates a real e-commerce storefront â€” with products, a shopping cart, user accounts, and a support chatbot â€” but the entire codebase is riddled with real, exploitable vulnerabilities covering the OWASP Top 10 and beyond.
         </p>
         <p>
-          What makes it unique compared to something like PortSwigger's labs is that <strong>you have to find the vulnerabilities yourself</strong>. The Score Board (which is itself a hidden challenge) lists all 173 challenges, but the app gives no indication of where attack surfaces are. You explore, poke at endpoints, read JavaScript source, observe error messages — the same reconnaissance process you'd run against a real target.
+          What makes it unique compared to something like PortSwigger's labs is that <strong>you have to find the vulnerabilities yourself</strong>. The Score Board (which is itself a hidden challenge) lists all 173 challenges, but the app gives no indication of where attack surfaces are. You explore, poke at endpoints, read JavaScript source, observe error messages â€” the same reconnaissance process you'd run against a real target.
         </p>
         <p>
           I'm running Juice Shop locally on <code>127.0.0.1:3000</code> with Burp Suite proxying all traffic on port 8080. All requests in the screenshots go through Burp so I can inspect, modify, and replay them freely.
         </p>
 
         <div class="callout info">
-          <div class="callout-title">ℹ️ Setup</div>
-          <p>Juice Shop is easiest to run via Docker: <code>docker run -p 3000:3000 bkimminich/juice-shop</code>. Then point your browser to <code>http://localhost:3000</code> and configure Burp Suite as a proxy. The app resets on container restart, so your progress clears — keep notes.</p>
+          <div class="callout-title">â„¹ï¸ Setup</div>
+          <p>Juice Shop is easiest to run via Docker: <code>docker run -p 3000:3000 bkimminich/juice-shop</code>. Then point your browser to <code>http://localhost:3000</code> and configure Burp Suite as a proxy. The app resets on container restart, so your progress clears â€” keep notes.</p>
         </div>
       </div>
 
       <hr class="lab-divider" />
 
-      <!-- ═══ CHALLENGE 1: SCORE BOARD ═══ -->
+      <!-- â•â•â• CHALLENGE 1: SCORE BOARD â•â•â• -->
       <div class="challenge-section" id="challenge1">
         <div class="challenge-header">
           <div class="challenge-num">01</div>
           <div>
             <div class="challenge-title-row">
-              <span class="diff-tag diff-1star">★☆☆☆☆ — 1 Star</span>
+              <span class="diff-tag diff-1star">â˜…â˜†â˜†â˜†â˜† â€” 1 Star</span>
             </div>
             <h2 class="challenge-title">Finding the Hidden Score Board</h2>
             <div class="challenge-category">Category: <span>Security through Obscurity</span></div>
@@ -278,10 +271,10 @@
 
         <h3>Approach</h3>
         <p>
-          The Juice Shop UI has no link to the Score Board — it's deliberately omitted from the navigation. But the app is a single-page Angular application, which means all the route definitions live in the compiled JavaScript bundle that gets sent to the browser on first load. If the route <code>/score-board</code> exists in the app, it has to be declared somewhere in that bundle.
+          The Juice Shop UI has no link to the Score Board â€” it's deliberately omitted from the navigation. But the app is a single-page Angular application, which means all the route definitions live in the compiled JavaScript bundle that gets sent to the browser on first load. If the route <code>/score-board</code> exists in the app, it has to be declared somewhere in that bundle.
         </p>
         <p>
-          The approach is to view the source of <code>main.js</code> — the primary compiled JS bundle — and search for keywords like "score". Since the JavaScript is minified, it's a wall of text, but the browser's built-in search (<code>Ctrl+F</code>) works fine on the raw source.
+          The approach is to view the source of <code>main.js</code> â€” the primary compiled JS bundle â€” and search for keywords like "score". Since the JavaScript is minified, it's a wall of text, but the browser's built-in search (<code>Ctrl+F</code>) works fine on the raw source.
         </p>
 
         <div class="steps">
@@ -310,32 +303,32 @@
 
         <div class="screenshot-wrap">
           <img src="../image/JuiceShop/Foundscoreboardurlinmainjs.png" alt="Score board URL found in main.js source" />
-          <div class="screenshot-caption">Searching 'score' in main.js reveals the /score-board route — 4 of 72 matches shown</div>
+          <div class="screenshot-caption">Searching 'score' in main.js reveals the /score-board route â€” 4 of 72 matches shown</div>
         </div>
 
         <div class="screenshot-wrap">
           <img src="../image/JuiceShop/scoreboardafter1solve.png" alt="Score board page after first solve" />
-          <div class="screenshot-caption">The Score Board itself after solving the first challenge — 1/173 solved, showing all available categories</div>
+          <div class="screenshot-caption">The Score Board itself after solving the first challenge â€” 1/173 solved, showing all available categories</div>
         </div>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this teaches</div>
-            <div class="takeaway-text">Client-side routing in SPAs is not a security boundary. Any route registered in an Angular, React, or Vue router is visible in the compiled bundle, regardless of whether the UI exposes a link to it. This is a classic example of security through obscurity failing — hiding a link is not the same as protecting the resource. Always enforce authorization server-side.</div>
+            <div class="takeaway-text">Client-side routing in SPAs is not a security boundary. Any route registered in an Angular, React, or Vue router is visible in the compiled bundle, regardless of whether the UI exposes a link to it. This is a classic example of security through obscurity failing â€” hiding a link is not the same as protecting the resource. Always enforce authorization server-side.</div>
           </div>
         </div>
       </div>
 
       <hr class="lab-divider" />
 
-      <!-- ═══ CHALLENGE 2: DOM XSS ═══ -->
+      <!-- â•â•â• CHALLENGE 2: DOM XSS â•â•â• -->
       <div class="challenge-section" id="challenge2">
         <div class="challenge-header">
           <div class="challenge-num orange">02</div>
           <div>
             <div class="challenge-title-row">
-              <span class="diff-tag diff-1star">★☆☆☆☆ — 1 Star</span>
+              <span class="diff-tag diff-1star">â˜…â˜†â˜†â˜†â˜† â€” 1 Star</span>
             </div>
             <h2 class="challenge-title">DOM XSS via Search Field</h2>
             <div class="challenge-category">Category: <span>XSS</span></div>
@@ -345,14 +338,14 @@
 
         <h3>What is DOM XSS?</h3>
         <p>
-          Cross-Site Scripting (XSS) occurs when an attacker can inject and execute JavaScript in the context of another user's browser session. <strong>DOM XSS</strong> specifically refers to cases where the vulnerability exists entirely in client-side JavaScript — the payload never touches the server. The page reads attacker-controlled data from the URL or storage and writes it to the DOM without sanitization.
+          Cross-Site Scripting (XSS) occurs when an attacker can inject and execute JavaScript in the context of another user's browser session. <strong>DOM XSS</strong> specifically refers to cases where the vulnerability exists entirely in client-side JavaScript â€” the payload never touches the server. The page reads attacker-controlled data from the URL or storage and writes it to the DOM without sanitization.
         </p>
         <p>
-          In Juice Shop, the search field passes the query parameter directly into a DOM element's <code>innerHTML</code> (or similar sink) without escaping. This means any HTML injected into the search query gets interpreted and rendered as actual markup — including <code>&lt;script&gt;</code> tags, event handlers, and <code>&lt;iframe&gt;</code> elements with javascript URIs.
+          In Juice Shop, the search field passes the query parameter directly into a DOM element's <code>innerHTML</code> (or similar sink) without escaping. This means any HTML injected into the search query gets interpreted and rendered as actual markup â€” including <code>&lt;script&gt;</code> tags, event handlers, and <code>&lt;iframe&gt;</code> elements with javascript URIs.
         </p>
 
         <div class="vuln-query">
-          <span class="label">search URL — payload in q= parameter</span>
+          <span class="label">search URL â€” payload in q= parameter</span>
           <span class="normal">http://127.0.0.1:3000/#/search?q=</span><span class="injected">&lt;iframe src%3D"javascript:alert(`xss`)"&gt;</span>
         </div>
 
@@ -362,16 +355,16 @@
 
         <div class="screenshot-wrap">
           <img src="../image/JuiceShop/3xss.png" alt="DOM XSS alert executing in Juice Shop" />
-          <div class="screenshot-caption">The iframe's javascript: URI fires an alert — Juice Shop confirms the DOM XSS challenge as solved</div>
+          <div class="screenshot-caption">The iframe's javascript: URI fires an alert â€” Juice Shop confirms the DOM XSS challenge as solved</div>
         </div>
 
         <div class="callout warning">
-          <div class="callout-title">⚠️ javascript: URIs</div>
-          <p>The <code>javascript:</code> URI scheme is a legacy feature that evaluates JavaScript when used as a navigation target or iframe src. Modern browsers have increasingly restricted it, but it still works in many contexts. The real-world attack would be crafting a link that a victim clicks — the <code>alert()</code> here is just the proof of concept; a real payload would steal session cookies or perform actions as the victim.</p>
+          <div class="callout-title">âš ï¸ javascript: URIs</div>
+          <p>The <code>javascript:</code> URI scheme is a legacy feature that evaluates JavaScript when used as a navigation target or iframe src. Modern browsers have increasingly restricted it, but it still works in many contexts. The real-world attack would be crafting a link that a victim clicks â€” the <code>alert()</code> here is just the proof of concept; a real payload would steal session cookies or perform actions as the victim.</p>
         </div>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this teaches</div>
             <div class="takeaway-text">Never write user-supplied data into the DOM via <code>innerHTML</code>, <code>document.write()</code>, or similar sinks. Use <code>textContent</code> for plain text (which is always safe), and if you must render HTML, sanitize with a library like DOMPurify. Angular has built-in sanitization but it can be bypassed when <code>bypassSecurityTrustHtml()</code> or similar trust-override APIs are used.</div>
@@ -381,23 +374,23 @@
 
       <hr class="lab-divider" />
 
-      <!-- ═══ CHALLENGE 3: BONUS PAYLOAD ═══ -->
+      <!-- â•â•â• CHALLENGE 3: BONUS PAYLOAD â•â•â• -->
       <div class="challenge-section" id="challenge3">
         <div class="challenge-header">
           <div class="challenge-num orange">03</div>
           <div>
             <div class="challenge-title-row">
-              <span class="diff-tag diff-1star">★☆☆☆☆ — 1 Star</span>
+              <span class="diff-tag diff-1star">â˜…â˜†â˜†â˜†â˜† â€” 1 Star</span>
             </div>
-            <h2 class="challenge-title">Bonus Payload — SoundCloud iframe XSS</h2>
+            <h2 class="challenge-title">Bonus Payload â€” SoundCloud iframe XSS</h2>
             <div class="challenge-category">Category: <span>XSS</span></div>
-            <div class="challenge-goal">Goal: <span>Use the specific bonus payload — a SoundCloud embed iframe — in the same DOM XSS vector</span></div>
+            <div class="challenge-goal">Goal: <span>Use the specific bonus payload â€” a SoundCloud embed iframe â€” in the same DOM XSS vector</span></div>
           </div>
         </div>
 
         <h3>Same vector, different payload</h3>
         <p>
-          This challenge reuses the exact same DOM XSS vulnerability from Challenge 2 but requires you to inject a specific, more complex payload: a fully-formed SoundCloud player embed iframe. The point is to demonstrate that the injection isn't limited to simple <code>alert()</code> calls — you can inject arbitrary, functional HTML and have it render and execute in the victim's browser.
+          This challenge reuses the exact same DOM XSS vulnerability from Challenge 2 but requires you to inject a specific, more complex payload: a fully-formed SoundCloud player embed iframe. The point is to demonstrate that the injection isn't limited to simple <code>alert()</code> calls â€” you can inject arbitrary, functional HTML and have it render and execute in the victim's browser.
         </p>
         <p>
           The payload is a real SoundCloud embed iframe that would actually load and play music if the browser allows it. In a real attack, this could be used to deface a page, phish users by injecting fake login forms, or load malicious external resources.
@@ -418,27 +411,27 @@
 
         <div class="screenshot-wrap">
           <img src="../image/JuiceShop/xss2.png" alt="Bonus payload SoundCloud iframe injected into search" />
-          <div class="screenshot-caption">The SoundCloud player renders inside the search results — Juice Shop awards the Bonus Payload challenge</div>
+          <div class="screenshot-caption">The SoundCloud player renders inside the search results â€” Juice Shop awards the Bonus Payload challenge</div>
         </div>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this teaches</div>
-            <div class="takeaway-text">XSS payloads aren't limited to <code>alert()</code> demos. Any HTML, including external embeds, forms, scripts, and media, can be injected. This challenge drives home that DOM XSS is a real content injection vulnerability — not just a JavaScript execution quirk. A CSP (Content Security Policy) header restricting frame-src and script-src would mitigate this class of injection even if the XSS sink itself remained.</div>
+            <div class="takeaway-text">XSS payloads aren't limited to <code>alert()</code> demos. Any HTML, including external embeds, forms, scripts, and media, can be injected. This challenge drives home that DOM XSS is a real content injection vulnerability â€” not just a JavaScript execution quirk. A CSP (Content Security Policy) header restricting frame-src and script-src would mitigate this class of injection even if the XSS sink itself remained.</div>
           </div>
         </div>
       </div>
 
       <hr class="lab-divider" />
 
-      <!-- ═══ CHALLENGE 4: CHATBOT COUPON ═══ -->
+      <!-- â•â•â• CHALLENGE 4: CHATBOT COUPON â•â•â• -->
       <div class="challenge-section" id="challenge4">
         <div class="challenge-header">
           <div class="challenge-num blue">04</div>
           <div>
             <div class="challenge-title-row">
-              <span class="diff-tag diff-1star">★☆☆☆☆ — 1 Star</span>
+              <span class="diff-tag diff-1star">â˜…â˜†â˜†â˜†â˜† â€” 1 Star</span>
             </div>
             <h2 class="challenge-title">Extracting a Coupon Code from the Chatbot</h2>
             <div class="challenge-category">Category: <span>Broken Anti Automation / Miscellaneous</span></div>
@@ -448,7 +441,7 @@
 
         <h3>Social engineering a bot</h3>
         <p>
-          Juice Shop has a support chatbot at <code>/#/chatbot</code>. Like many chatbots, it's built to be helpful — and that helpfulness can be exploited. The bot has hardcoded responses for certain keywords, and with enough prompting, it will reveal a discount coupon code.
+          Juice Shop has a support chatbot at <code>/#/chatbot</code>. Like many chatbots, it's built to be helpful â€” and that helpfulness can be exploited. The bot has hardcoded responses for certain keywords, and with enough prompting, it will reveal a discount coupon code.
         </p>
         <p>
           The method is simple: persistently ask for a "coupon" in the chat window. The bot resists a couple of times, deflecting with excuses about the CFO and suggesting a Deluxe membership instead. But after asking three times in a row, it capitulates and hands over the code.
@@ -456,32 +449,32 @@
 
         <div class="screenshot-wrap">
           <img src="../image/JuiceShop/5couponcode.png" alt="Chatbot revealing coupon code after repeated requests" />
-          <div class="screenshot-caption">After three "coupon" messages, the bot relents: <code>k#pDmhz3Tq</code> — a 10% discount code</div>
+          <div class="screenshot-caption">After three "coupon" messages, the bot relents: <code>k#pDmhz3Tq</code> â€” a 10% discount code</div>
         </div>
 
         <div class="callout info">
-          <div class="callout-title">ℹ️ The extracted code</div>
-          <p>The chatbot reveals the coupon code <strong>k#pDmhz3Tq</strong> — a 10% discount. In a real system, coupon codes should never be stored in plaintext within chatbot response logic, and chatbots should have rate limiting to prevent repeated probing. "Nagging" attacks like this are a simple form of social engineering that exploits the bot's scripted helpfulness.</p>
+          <div class="callout-title">â„¹ï¸ The extracted code</div>
+          <p>The chatbot reveals the coupon code <strong>k#pDmhz3Tq</strong> â€” a 10% discount. In a real system, coupon codes should never be stored in plaintext within chatbot response logic, and chatbots should have rate limiting to prevent repeated probing. "Nagging" attacks like this are a simple form of social engineering that exploits the bot's scripted helpfulness.</p>
         </div>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this teaches</div>
-            <div class="takeaway-text">Automated chatbots that handle sensitive data need rate limiting, anomaly detection, and careful response scripting. Any information a bot is willing to provide after N retries can be extracted by a script in seconds. This is relevant for real production chatbots — customer service bots that reveal order details, account info, or promotions are a common attack surface.</div>
+            <div class="takeaway-text">Automated chatbots that handle sensitive data need rate limiting, anomaly detection, and careful response scripting. Any information a bot is willing to provide after N retries can be extracted by a script in seconds. This is relevant for real production chatbots â€” customer service bots that reveal order details, account info, or promotions are a common attack surface.</div>
           </div>
         </div>
       </div>
 
       <hr class="lab-divider" />
 
-      <!-- ═══ CHALLENGE 5: LOGIN JIM ═══ -->
+      <!-- â•â•â• CHALLENGE 5: LOGIN JIM â•â•â• -->
       <div class="challenge-section" id="challenge5">
         <div class="challenge-header">
           <div class="challenge-num red">05</div>
           <div>
             <div class="challenge-title-row">
-              <span class="diff-tag diff-3star">★★★☆☆ — 3 Stars</span>
+              <span class="diff-tag diff-3star">â˜…â˜…â˜…â˜†â˜† â€” 3 Stars</span>
             </div>
             <h2 class="challenge-title">Login as Jim via SQL Injection</h2>
             <div class="challenge-category">Category: <span>Injection</span></div>
@@ -491,47 +484,47 @@
 
         <h3>The vulnerability</h3>
         <p>
-          The login endpoint builds its authentication query by directly concatenating the user-supplied email into a SQL string — the same class of vulnerability as the PortSwigger login bypass labs. The key difference here is you need to know (or guess) a valid username/email first.
+          The login endpoint builds its authentication query by directly concatenating the user-supplied email into a SQL string â€” the same class of vulnerability as the PortSwigger login bypass labs. The key difference here is you need to know (or guess) a valid username/email first.
         </p>
         <p>
-          The Juice Shop product listing page reveals that one of the products has a review by <strong>"jim@juice-sh.op"</strong> — enough to know Jim is a registered user. From there, the SQLi auth bypass is identical to Lab 2 in the PortSwigger series: inject into the email field to comment out the password check entirely.
+          The Juice Shop product listing page reveals that one of the products has a review by <strong>"jim@juice-sh.op"</strong> â€” enough to know Jim is a registered user. From there, the SQLi auth bypass is identical to Lab 2 in the PortSwigger series: inject into the email field to comment out the password check entirely.
         </p>
 
         <div class="vuln-query">
           <span class="label">original login query</span>
           <span class="normal">SELECT * FROM Users WHERE email = '</span><span class="normal">jim@juice-sh.op</span><span class="normal">' AND password = '...'</span>
           <br/><br/>
-          <span class="label">after injection — email field: <code>jim@juice-sh.op' --</code></span>
+          <span class="label">after injection â€” email field: <code>jim@juice-sh.op' --</code></span>
           <span class="normal">SELECT * FROM Users WHERE email = '</span><span class="injected">jim@juice-sh.op'</span><span class="comment"> --</span><span class="normal">' AND password = '123'</span>
         </div>
 
         <p>
-          The single quote closes the email string value. The double dash <code>--</code> comments out the remainder of the query, including the <code>AND password = '...'</code> check. The database finds the row for Jim and returns it — authentication succeeds without ever validating the password.
+          The single quote closes the email string value. The double dash <code>--</code> comments out the remainder of the query, including the <code>AND password = '...'</code> check. The database finds the row for Jim and returns it â€” authentication succeeds without ever validating the password.
         </p>
 
         <div class="screenshot-wrap">
           <img src="../image/JuiceShop/6jimlogin.png" alt="Login form with jim@juice-sh.op' -- injected" />
-          <div class="screenshot-caption">Email field contains <code>jim@juice-sh.op' --</code> — the password value is irrelevant</div>
+          <div class="screenshot-caption">Email field contains <code>jim@juice-sh.op' --</code> â€” the password value is irrelevant</div>
         </div>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this teaches</div>
-            <div class="takeaway-text">Username enumeration from publicly visible user-generated content (reviews, comments, forum posts) is a real recon technique. Once you have a valid email, SQLi auth bypass is trivial if the backend isn't using parameterized queries. The fix is always the same: use prepared statements / parameterized queries — never concatenate user input into SQL strings.</div>
+            <div class="takeaway-text">Username enumeration from publicly visible user-generated content (reviews, comments, forum posts) is a real recon technique. Once you have a valid email, SQLi auth bypass is trivial if the backend isn't using parameterized queries. The fix is always the same: use prepared statements / parameterized queries â€” never concatenate user input into SQL strings.</div>
           </div>
         </div>
       </div>
 
       <hr class="lab-divider" />
 
-      <!-- ═══ CHALLENGE 6: LOGIN BENDER ═══ -->
+      <!-- â•â•â• CHALLENGE 6: LOGIN BENDER â•â•â• -->
       <div class="challenge-section" id="challenge6">
         <div class="challenge-header">
           <div class="challenge-num red">06</div>
           <div>
             <div class="challenge-title-row">
-              <span class="diff-tag diff-3star">★★★☆☆ — 3 Stars</span>
+              <span class="diff-tag diff-3star">â˜…â˜…â˜…â˜†â˜† â€” 3 Stars</span>
             </div>
             <h2 class="challenge-title">Login as Bender via SQL Injection</h2>
             <div class="challenge-category">Category: <span>Injection</span></div>
@@ -541,10 +534,10 @@
 
         <h3>Identical technique, different target</h3>
         <p>
-          This challenge is structurally identical to Challenge 5 — SQLi auth bypass via comment injection into the email field. The only difference is the target user: Bender, whose email <strong>"bender@juice-sh.op"</strong> can also be found in product reviews within the application.
+          This challenge is structurally identical to Challenge 5 â€” SQLi auth bypass via comment injection into the email field. The only difference is the target user: Bender, whose email <strong>"bender@juice-sh.op"</strong> can also be found in product reviews within the application.
         </p>
         <p>
-          Both Jim and Bender are pop culture references (Star Trek and Futurama respectively) that Juice Shop uses to add personality to its fake user database. Their emails are intentionally discoverable through normal app browsing — teaching you to treat any disclosed user identifier as a potential entry point.
+          Both Jim and Bender are pop culture references (Star Trek and Futurama respectively) that Juice Shop uses to add personality to its fake user database. Their emails are intentionally discoverable through normal app browsing â€” teaching you to treat any disclosed user identifier as a potential entry point.
         </p>
 
         <div class="screenshot-wrap">
@@ -553,23 +546,23 @@
         </div>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this teaches</div>
-            <div class="takeaway-text">When a single class of vulnerability (SQLi auth bypass) is applicable to every user account in the system, the impact is total account compromise — not just one user. This is why fixing the root cause (parameterized queries) matters more than trying to protect individual accounts. Any user whose email is visible anywhere in the app becomes a target.</div>
+            <div class="takeaway-text">When a single class of vulnerability (SQLi auth bypass) is applicable to every user account in the system, the impact is total account compromise â€” not just one user. This is why fixing the root cause (parameterized queries) matters more than trying to protect individual accounts. Any user whose email is visible anywhere in the app becomes a target.</div>
           </div>
         </div>
       </div>
 
       <hr class="lab-divider" />
 
-      <!-- ═══ CHALLENGE 7: ADMIN SQLI ═══ -->
+      <!-- â•â•â• CHALLENGE 7: ADMIN SQLI â•â•â• -->
       <div class="challenge-section" id="challenge7">
         <div class="challenge-header">
           <div class="challenge-num red">07</div>
           <div>
             <div class="challenge-title-row">
-              <span class="diff-tag diff-3star">★★★☆☆ — 3 Stars</span>
+              <span class="diff-tag diff-3star">â˜…â˜…â˜…â˜†â˜† â€” 3 Stars</span>
             </div>
             <h2 class="challenge-title">Admin Login &amp; Search SQLi via Burp Suite</h2>
             <div class="challenge-category">Category: <span>Injection</span></div>
@@ -577,22 +570,22 @@
           </div>
         </div>
 
-        <h3>Part 1 — Provoking errors in Burp</h3>
+        <h3>Part 1 â€” Provoking errors in Burp</h3>
         <p>
-          Before attempting the login bypass, I explored other injection surfaces using Burp Suite's Repeater. The product search endpoint at <code>/rest/products/search?q=</code> is a good candidate — it takes user input and almost certainly queries the database for matching products.
+          Before attempting the login bypass, I explored other injection surfaces using Burp Suite's Repeater. The product search endpoint at <code>/rest/products/search?q=</code> is a good candidate â€” it takes user input and almost certainly queries the database for matching products.
         </p>
         <p>
-          Appending a single quote to the search term (<code>apple'</code>) immediately reveals a verbose error response — the server returns a 500 with a full SQLite error including the raw SQL query. This is a critical information disclosure: you can see exactly how the query is constructed, which tells you the injection syntax you need.
+          Appending a single quote to the search term (<code>apple'</code>) immediately reveals a verbose error response â€” the server returns a 500 with a full SQLite error including the raw SQL query. This is a critical information disclosure: you can see exactly how the query is constructed, which tells you the injection syntax you need.
         </p>
 
         <div class="screenshot-wrap">
           <img src="../image/JuiceShop/2provokeerror.png" alt="Burp Suite showing /rest/admin 500 error" />
-          <div class="screenshot-caption">POST to <code>/rest/admin</code> with the avsl@gmail credentials — an "Unexpected path" error leaks the full Express.js stack trace</div>
+          <div class="screenshot-caption">POST to <code>/rest/admin</code> with the avsl@gmail credentials â€” an "Unexpected path" error leaks the full Express.js stack trace</div>
         </div>
 
         <div class="screenshot-wrap">
           <img src="../image/JuiceShop/8Part1error.png" alt="Burp Suite showing SQLite error from search endpoint" />
-          <div class="screenshot-caption">Adding a single quote to the search query triggers an SQLITE_ERROR — the full query is exposed in the error response</div>
+          <div class="screenshot-caption">Adding a single quote to the search query triggers an SQLITE_ERROR â€” the full query is exposed in the error response</div>
         </div>
 
         <p>
@@ -604,21 +597,21 @@
         </div>
 
         <p>
-          You can now see there are two nested parentheses wrapping the WHERE condition. To escape the string and comment out the rest, you need to close both — the correct payload is <code>apple'))</code> followed by <code>--</code>.
+          You can now see there are two nested parentheses wrapping the WHERE condition. To escape the string and comment out the rest, you need to close both â€” the correct payload is <code>apple'))</code> followed by <code>--</code>.
         </p>
 
-        <h3>Part 2 — Confirming and exploiting the search SQLi</h3>
+        <h3>Part 2 â€” Confirming and exploiting the search SQLi</h3>
         <p>
-          Using the information from the error, the payload <code>apple'))--</code> closes the name LIKE clause, closes both parentheses, then comments out the remainder. The server returns a 200 with <code>"data":[]</code> — no products found (expected, since "apple))" doesn't match anything), but more importantly, no error. The injection is working.
+          Using the information from the error, the payload <code>apple'))--</code> closes the name LIKE clause, closes both parentheses, then comments out the remainder. The server returns a 200 with <code>"data":[]</code> â€” no products found (expected, since "apple))" doesn't match anything), but more importantly, no error. The injection is working.
         </p>
 
         <div class="screenshot-wrap">
           <img src="../image/JuiceShop/8Part2foundsqli.png" alt="Burp Suite showing 200 OK after fixing the injection syntax" />
-          <div class="screenshot-caption"><code>apple'))--</code> returns 200 OK with empty data — injection is confirmed, query executes cleanly</div>
+          <div class="screenshot-caption"><code>apple'))--</code> returns 200 OK with empty data â€” injection is confirmed, query executes cleanly</div>
         </div>
 
         <p>
-          From here, a UNION SELECT can be used to dump database schema information. The query below pulls from <code>sqlite_master</code> — SQLite's internal table that stores the CREATE TABLE statements for every table in the database. With 9 columns in the original query, we UNION a matching 9-column select:
+          From here, a UNION SELECT can be used to dump database schema information. The query below pulls from <code>sqlite_master</code> â€” SQLite's internal table that stores the CREATE TABLE statements for every table in the database. With 9 columns in the original query, we UNION a matching 9-column select:
         </p>
 
         <div class="code-block">
@@ -632,43 +625,43 @@
 
         <div class="screenshot-wrap">
           <img src="../image/JuiceShop/8Solved.png" alt="Burp Suite UNION SELECT dumping sqlite_master" />
-          <div class="screenshot-caption">UNION SELECT from sqlite_master returns the full CREATE TABLE statements — including <code>Addresses</code>, <code>Users</code>, and other tables</div>
+          <div class="screenshot-caption">UNION SELECT from sqlite_master returns the full CREATE TABLE statements â€” including <code>Addresses</code>, <code>Users</code>, and other tables</div>
         </div>
 
-        <h3>Part 3 — Admin login bypass</h3>
+        <h3>Part 3 â€” Admin login bypass</h3>
         <p>
-          With the database structure confirmed, the final step is the admin login. Since we know the app uses SQLi-vulnerable login (demonstrated in Challenges 5 and 6), the classic <code>' or 1=1--</code> payload in the email field logs in as the first user in the database — which in Juice Shop is always the admin account.
+          With the database structure confirmed, the final step is the admin login. Since we know the app uses SQLi-vulnerable login (demonstrated in Challenges 5 and 6), the classic <code>' or 1=1--</code> payload in the email field logs in as the first user in the database â€” which in Juice Shop is always the admin account.
         </p>
 
         <div class="screenshot-wrap">
           <img src="../image/JuiceShop/adminsolvesqli.png" alt="Login form with 'or 1=1-- payload" />
-          <div class="screenshot-caption"><code>'or 1=1--</code> in the email field — the always-true condition returns the first user row, which is admin</div>
+          <div class="screenshot-caption"><code>'or 1=1--</code> in the email field â€” the always-true condition returns the first user row, which is admin</div>
         </div>
 
         <div class="callout danger">
-          <div class="callout-title">⚠️ Verbose error disclosure</div>
-          <p>The most dangerous thing in this challenge isn't the SQLi itself — it's the verbose error response that hands you the full query structure. Without that, you'd be blind-guessing the parenthesis depth. In production, database errors should never be returned to the client. A generic "Something went wrong" response forces an attacker to probe blind, which is significantly slower and noisier.</p>
+          <div class="callout-title">âš ï¸ Verbose error disclosure</div>
+          <p>The most dangerous thing in this challenge isn't the SQLi itself â€” it's the verbose error response that hands you the full query structure. Without that, you'd be blind-guessing the parenthesis depth. In production, database errors should never be returned to the client. A generic "Something went wrong" response forces an attacker to probe blind, which is significantly slower and noisier.</p>
         </div>
 
         <div class="callout info">
-          <div class="callout-title">ℹ️ sqlite_master</div>
-          <p>SQLite stores its schema in a special table called <code>sqlite_master</code> (or <code>sqlite_schema</code> in newer versions). The <code>sql</code> column contains the full CREATE TABLE statement for each object. This is the SQLite equivalent of querying <code>information_schema.tables</code> in MySQL/PostgreSQL, or <code>all_tables</code> in Oracle — it gives you a complete blueprint of the database structure in a single query.</p>
+          <div class="callout-title">â„¹ï¸ sqlite_master</div>
+          <p>SQLite stores its schema in a special table called <code>sqlite_master</code> (or <code>sqlite_schema</code> in newer versions). The <code>sql</code> column contains the full CREATE TABLE statement for each object. This is the SQLite equivalent of querying <code>information_schema.tables</code> in MySQL/PostgreSQL, or <code>all_tables</code> in Oracle â€” it gives you a complete blueprint of the database structure in a single query.</p>
         </div>
 
-        <h3>Script breakdown — key payload decisions</h3>
+        <h3>Script breakdown â€” key payload decisions</h3>
         <table class="breakdown">
           <tr><th>payload element</th><th>why it's needed</th></tr>
           <tr>
             <td>apple'))</td>
-            <td>The original query wraps the search term in double parentheses: <code>((name LIKE '%q%' OR ...)</code>. A single closing paren leaves the outer one unclosed — syntax error. Two closing parens <code>))</code> closes both, leaving a valid query stub before our comment.</td>
+            <td>The original query wraps the search term in double parentheses: <code>((name LIKE '%q%' OR ...)</code>. A single closing paren leaves the outer one unclosed â€” syntax error. Two closing parens <code>))</code> closes both, leaving a valid query stub before our comment.</td>
           </tr>
           <tr>
             <td>UNION SELECT sql,2,3,...,9</td>
-            <td>The original SELECT returns 9 columns (id, name, description, price, deluxePrice, image, createdAt, updatedAt, deletedAt). The UNION must match exactly. Filling positions 2–9 with integer literals satisfies the column count without needing to know the actual column types of sqlite_master.</td>
+            <td>The original SELECT returns 9 columns (id, name, description, price, deluxePrice, image, createdAt, updatedAt, deletedAt). The UNION must match exactly. Filling positions 2â€“9 with integer literals satisfies the column count without needing to know the actual column types of sqlite_master.</td>
           </tr>
           <tr>
             <td>FROM sqlite_master</td>
-            <td>SQLite-specific metadata table. Returns one row per database object (tables, indexes, views). The <code>sql</code> column in position 1 contains the CREATE statement — which we see in the <code>name</code> field of the JSON response.</td>
+            <td>SQLite-specific metadata table. Returns one row per database object (tables, indexes, views). The <code>sql</code> column in position 1 contains the CREATE statement â€” which we see in the <code>name</code> field of the JSON response.</td>
           </tr>
           <tr>
             <td>'or 1=1--</td>
@@ -677,20 +670,20 @@
         </table>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this teaches</div>
-            <div class="takeaway-text">This challenge bundles three separate lessons: (1) verbose error messages are a critical info disclosure — they reveal query structure that an attacker can use to craft working payloads; (2) SQLite's <code>sqlite_master</code> is as exploitable as <code>information_schema</code> in MySQL/PostgreSQL — always consider the database type when enumerating; (3) the <code>' or 1=1--</code> login bypass is so fundamental that it should be tested on every login form during a pentest, every time.</div>
+            <div class="takeaway-text">This challenge bundles three separate lessons: (1) verbose error messages are a critical info disclosure â€” they reveal query structure that an attacker can use to craft working payloads; (2) SQLite's <code>sqlite_master</code> is as exploitable as <code>information_schema</code> in MySQL/PostgreSQL â€” always consider the database type when enumerating; (3) the <code>' or 1=1--</code> login bypass is so fundamental that it should be tested on every login form during a pentest, every time.</div>
           </div>
         </div>
       </div>
 
-      <!-- ═══ RECAP ═══ -->
+      <!-- â•â•â• RECAP â•â•â• -->
       <hr />
 
       <div id="recap">
-        <h3 style="font-family:var(--display);font-size:1.4rem;font-weight:700;margin-bottom:1.25rem;">Recap — What I've Learned So Far</h3>
-        <p>Seven challenges in and the pattern is clear: Juice Shop rewards methodical reconnaissance and the same fundamental techniques seen in controlled lab environments — but applied in a more realistic, self-directed context.</p>
+        <h3 style="font-family:var(--display);font-size:1.4rem;font-weight:700;margin-bottom:1.25rem;">Recap â€” What I've Learned So Far</h3>
+        <p>Seven challenges in and the pattern is clear: Juice Shop rewards methodical reconnaissance and the same fundamental techniques seen in controlled lab environments â€” but applied in a more realistic, self-directed context.</p>
         <div class="recap-grid">
           <div class="recap-card">
             <div class="recap-card-title">Source code recon</div>
@@ -710,7 +703,7 @@
           </div>
           <div class="recap-card">
             <div class="recap-card-title">Verbose error exploitation</div>
-            <p>Raw SQL errors in HTTP responses hand you the query structure. Turn off verbose errors in production — always. A generic error message makes blind injection significantly harder.</p>
+            <p>Raw SQL errors in HTTP responses hand you the query structure. Turn off verbose errors in production â€” always. A generic error message makes blind injection significantly harder.</p>
           </div>
           <div class="recap-card">
             <div class="recap-card-title">SQLite schema enumeration</div>
@@ -719,25 +712,9 @@
         </div>
 
         <div class="callout success">
-          <div class="callout-title">✅ Up next</div>
-          <p>The next set of challenges will go deeper into broken access control, IDOR vulnerabilities, JWT manipulation, and the more complex injection scenarios in Juice Shop's Practitioner and Expert tiers. The Score Board is now visible — the map is open, everything is fair game.</p>
+          <div class="callout-title">âœ… Up next</div>
+          <p>The next set of challenges will go deeper into broken access control, IDOR vulnerabilities, JWT manipulation, and the more complex injection scenarios in Juice Shop's Practitioner and Expert tiers. The Score Board is now visible â€” the map is open, everything is fair game.</p>
         </div>
       </div>
 
     </article>
-
-    <div class="post-footer">
-      <a href="../blog.html" class="btn">← Back to blog</a>
-      <a href="sqli-labs-1-14.html" class="btn btn-accent">SQLi Labs Write-Up →</a>
-    </div>
-
-  </div>
-
-  <footer>
-    <span>© 2025 Vali Hakuryuko</span>
-    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ back to top</span>
-  </footer>
-
-  <script src="../script.js"></script>
-</body>
-</html>

@@ -1,16 +1,35 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PortSwigger SQLi Labs Write-Up — Vali Hakuryuko</title>
-  <meta name="description" content="Write-ups and Python exploit scripts for the first 14 PortSwigger SQL injection labs — covering WHERE clause bypass, login bypass, UNION attacks, database fingerprinting, blind boolean/error/time-based SQLi." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="../style.css" />
-  <link rel="stylesheet" href="../post.css" />
-  <style>
+---
+layout: post
+article: true
+slug: sqli-labs
+title: "PortSwigger SQLi Labs 1-14 Write-Up & Exploit Scripts"
+display_title: "PortSwigger SQLi Labs 1-14<br>Write-Up &amp; Exploit Scripts"
+card_title: "PortSwigger SQLi Labs Write-Up"
+description: "A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step."
+excerpt: "A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step."
+post_subtitle: "A structured walkthrough of the first 14 PortSwigger SQL injection labs, combining manual exploitation, Python scripting, and explanations of why each payload works."
+summary: "A lab-by-lab breakdown of the first 14 PortSwigger SQL injection exercises, including payload logic, manual validation, and Python automation."
+target_lab: "PortSwigger Web Security Academy SQL injection track"
+tools_used:
+  - "Burp Suite"
+  - "Repeater"
+  - "Python"
+  - "Manual SQLi payloads"
+takeaways:
+  - "Validate each injection manually before automating extraction."
+  - "Match the payload style to the database behavior and response clues you observe."
+  - "Use scripts to scale confirmed techniques, not to replace understanding."
+date: 2026-04-02
+read_time: "~45 min read"
+permalink: /blog/sqli-labs.html
+tags:
+  - "Web"
+  - "Port Swigger"
+listing_tags:
+  - "Web"
+  - "Port Swigger"
+---
+<style>
     :root {
       --post-width: 780px;
       --post-subtitle-size: 1.05rem;
@@ -168,40 +187,10 @@
       .conclusion-grid { grid-template-columns: 1fr; }
     }
   </style>
-</head>
-<body class="post-page">
 
-  <nav>
-    <a href="../index.html" class="nav-logo"><span>~/</span>Vali</a>
-    <ul class="nav-links">
-      <li><a href="../index.html#about">About</a></li>
-      <li><a href="../blog.html">Blog</a></li>
-      <li><a href="../index.html#contact">Contact</a></li>
-    </ul>
-    <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
-  </nav>
-
-  <div class="layout">
-
-    <header class="post-header">
-      <div class="post-breadcrumb">
-        <a href="../index.html">~</a> / <a href="../blog.html">blog</a> / sqli-labs
-      </div>
-      <div class="post-meta-row">
-        <span class="post-date">2025-08-01</span>
-        <span class="post-tag">Web</span>
-        <span class="post-tag">Portswigger</span>
-        <span class="post-read-time">~45 min read</span>
-      </div>
-      <h1 class="post-title">PortSwigger SQLi Labs 1–14<br>Write-Up & Exploit Scripts</h1>
-      <p class="post-subtitle">
-        Working through the PortSwigger Web Security Academy SQL injection track. Each lab gets a manual walkthrough, a Python exploit script, and a breakdown of exactly what the code is doing and why. This post covers Labs 1–14: from basic filter bypass all the way through time-based blind SQLi password extraction.
-      </p>
-    </header>
-
-    <!-- SERIES PROGRESS -->
+<!-- SERIES PROGRESS -->
     <div class="series-bar">
-      <div class="series-bar-title">// SQLi series progress — 14 of 14 labs</div>
+      <div class="series-bar-title">// SQLi series progress â€” 14 of 14 labs</div>
       <div class="series-pills">
         <span class="series-pill done">Lab 01</span>
         <span class="series-pill done">Lab 02</span>
@@ -224,27 +213,27 @@
     <div class="toc">
       <div class="toc-title">// contents</div>
       <ol>
-        <li><a href="#lab1">Lab 1 — WHERE Clause Filter Bypass</a></li>
-        <li><a href="#lab2">Lab 2 — Login Bypass via SQLi</a></li>
-        <li><a href="#lab3">Lab 3 — UNION: Column Count Enumeration</a></li>
-        <li><a href="#lab4">Lab 4 — UNION: Finding a String Column</a></li>
-        <li><a href="#lab5">Lab 5 — UNION: Retrieving Data from Other Tables</a></li>
-        <li><a href="#lab6">Lab 6 — UNION: Retrieving Multiple Values in One Column</a></li>
-        <li><a href="#lab7">Lab 7 — Querying the Database Type (Oracle)</a></li>
-        <li><a href="#lab8">Lab 8 — Querying the Database Type (MySQL/MSSQL)</a></li>
-        <li><a href="#lab9">Lab 9 — Listing Database Contents (Non-Oracle)</a></li>
-        <li><a href="#lab10">Lab 10 — Listing Database Contents (Oracle)</a></li>
-        <li><a href="#lab11">Lab 11 — Blind SQLi with Conditional Responses</a></li>
-        <li><a href="#lab12">Lab 12 — Blind SQLi with Conditional Errors</a></li>
-        <li><a href="#lab13">Lab 13 — Blind SQLi: Triggering Time Delays</a></li>
-        <li><a href="#lab14">Lab 14 — Blind SQLi: Time-Based Password Extraction</a></li>
+        <li><a href="#lab1">Lab 1 â€” WHERE Clause Filter Bypass</a></li>
+        <li><a href="#lab2">Lab 2 â€” Login Bypass via SQLi</a></li>
+        <li><a href="#lab3">Lab 3 â€” UNION: Column Count Enumeration</a></li>
+        <li><a href="#lab4">Lab 4 â€” UNION: Finding a String Column</a></li>
+        <li><a href="#lab5">Lab 5 â€” UNION: Retrieving Data from Other Tables</a></li>
+        <li><a href="#lab6">Lab 6 â€” UNION: Retrieving Multiple Values in One Column</a></li>
+        <li><a href="#lab7">Lab 7 â€” Querying the Database Type (Oracle)</a></li>
+        <li><a href="#lab8">Lab 8 â€” Querying the Database Type (MySQL/MSSQL)</a></li>
+        <li><a href="#lab9">Lab 9 â€” Listing Database Contents (Non-Oracle)</a></li>
+        <li><a href="#lab10">Lab 10 â€” Listing Database Contents (Oracle)</a></li>
+        <li><a href="#lab11">Lab 11 â€” Blind SQLi with Conditional Responses</a></li>
+        <li><a href="#lab12">Lab 12 â€” Blind SQLi with Conditional Errors</a></li>
+        <li><a href="#lab13">Lab 13 â€” Blind SQLi: Triggering Time Delays</a></li>
+        <li><a href="#lab14">Lab 14 â€” Blind SQLi: Time-Based Password Extraction</a></li>
         <li><a href="#recap">Series Recap</a></li>
       </ol>
     </div>
 
     <article>
 
-      <!-- ═══════════════════ LAB 1 ═══════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LAB 1 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       <div class="lab-section" id="lab1">
         <div class="lab-header">
           <div class="lab-num">01</div>
@@ -252,14 +241,14 @@
             <div class="lab-title-row">
               <span class="lab-difficulty diff-apprentice">Apprentice</span>
             </div>
-            <h2 class="lab-title">SQL Injection in WHERE Clause — Filter Bypass</h2>
+            <h2 class="lab-title">SQL Injection in WHERE Clause â€” Filter Bypass</h2>
             <div class="lab-goal">Goal: <span>Make the application display products from all categories, including unreleased ones</span></div>
           </div>
         </div>
 
         <h3>What's happening</h3>
         <p>
-          SQL injection is possible whenever user-supplied input is concatenated directly into a SQL query string rather than passed as a parameterized argument. When an application builds a query like <code>"SELECT ... WHERE category = '" + userInput + "'"</code>, any SQL syntax inside <code>userInput</code> becomes part of the actual query — not just a string value. This is the root cause of every lab in this series.
+          SQL injection is possible whenever user-supplied input is concatenated directly into a SQL query string rather than passed as a parameterized argument. When an application builds a query like <code>"SELECT ... WHERE category = '" + userInput + "'"</code>, any SQL syntax inside <code>userInput</code> becomes part of the actual query â€” not just a string value. This is the root cause of every lab in this series.
         </p>
         <p>
           The product filter page builds its SQL query by directly concatenating the user-supplied <code>category</code> parameter into the query string. There's no sanitization at all. The original query looks something like this:
@@ -272,7 +261,7 @@
           The <code>released = 1</code> condition is what hides unreleased products. If we can break out of the string and comment out the rest of the WHERE clause, both conditions disappear.
         </p>
         <div class="vuln-query">
-          <span class="label">after injection — payload: <code>Gifts'+OR+1=1--</code></span>
+          <span class="label">after injection â€” payload: <code>Gifts'+OR+1=1--</code></span>
           <span class="normal">SELECT * FROM products WHERE category = '</span><span class="injected">Gifts' OR 1=1</span><span class="comment">--</span><span class="normal">' AND released = 1</span>
         </div>
         <p>
@@ -336,20 +325,20 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           </tr>
           <tr>
             <td>verify=False</td>
-            <td>Disables TLS certificate verification — required for the self-signed lab cert. Never use this against real production targets.</td>
+            <td>Disables TLS certificate verification â€” required for the self-signed lab cert. Never use this against real production targets.</td>
           </tr>
           <tr>
             <td>"Fur Babies" in r.text</td>
-            <td>The success condition. "Fur Babies" is an unreleased product — if it shows up in the response, our filter bypass worked and unreleased products are now visible. This string changes per-lab; always inspect the response first to pick a reliable marker.</td>
+            <td>The success condition. "Fur Babies" is an unreleased product â€” if it shows up in the response, our filter bypass worked and unreleased products are now visible. This string changes per-lab; always inspect the response first to pick a reliable marker.</td>
           </tr>
           <tr>
             <td>sys.argv[1], sys.argv[2]</td>
-            <td>URL and payload passed as command-line arguments. Keeps the script flexible — you can try different payloads without modifying the code.</td>
+            <td>URL and payload passed as command-line arguments. Keeps the script flexible â€” you can try different payloads without modifying the code.</td>
           </tr>
         </table>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this lab teaches</div>
             <div class="takeaway-text">When user input is concatenated directly into a SQL query with no parameterization, a single quote can break out of the intended string context. From there, you control the query logic. The <code>--</code> comment terminator is your tool for removing unwanted conditions that follow your injection point.</div>
@@ -359,7 +348,7 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
 
       <hr class="lab-divider" />
 
-      <!-- ═══════════════════ LAB 2 ═══════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LAB 2 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       <div class="lab-section" id="lab2">
         <div class="lab-header">
           <div class="lab-num">02</div>
@@ -367,7 +356,7 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
             <div class="lab-title-row">
               <span class="lab-difficulty diff-apprentice">Apprentice</span>
             </div>
-            <h2 class="lab-title">SQL Injection — Login Bypass</h2>
+            <h2 class="lab-title">SQL Injection â€” Login Bypass</h2>
             <div class="lab-goal">Goal: <span>Log in as <code>administrator</code> without knowing the password</span></div>
           </div>
         </div>
@@ -384,7 +373,7 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           Both conditions must be true to authenticate. By injecting into the username field, we can comment out the password check entirely:
         </p>
         <div class="vuln-query">
-          <span class="label">after injection — username: <code>administrator'--</code></span>
+          <span class="label">after injection â€” username: <code>administrator'--</code></span>
           <span class="normal">SELECT * FROM users WHERE username = '</span><span class="injected">administrator'</span><span class="comment">--</span><span class="normal">' AND password = 'randomtext'</span>
         </div>
         <p>
@@ -392,8 +381,8 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
         </p>
 
         <div class="callout info">
-          <div class="callout-title">ℹ️ CSRF Token</div>
-          <p>This lab's login form includes a CSRF token — a hidden field that must match a server-side value or the form submission is rejected. CSRF tokens protect against cross-site request forgery: an attacker on another domain can't forge a valid form submission because they can't read the token from the page. But they do nothing against SQL injection — you just need to be a legitimate browser visiting the page and collecting the token. The script does exactly this: fetch the login page with a session, extract the token, then fire the injected POST with the same session.</p>
+          <div class="callout-title">â„¹ï¸ CSRF Token</div>
+          <p>This lab's login form includes a CSRF token â€” a hidden field that must match a server-side value or the form submission is rejected. CSRF tokens protect against cross-site request forgery: an attacker on another domain can't forge a valid form submission because they can't read the token from the page. But they do nothing against SQL injection â€” you just need to be a legitimate browser visiting the page and collecting the token. The script does exactly this: fetch the login page with a session, extract the token, then fire the injected POST with the same session.</p>
         </div>
 
         <h3>The script</h3>
@@ -457,38 +446,38 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           <tr><th>line / concept</th><th>what it does and why</th></tr>
           <tr>
             <td>requests.Session()</td>
-            <td>Creates a persistent session object that carries cookies across requests. This is critical — the CSRF token from the GET request is tied to a session cookie. If you use a plain <code>requests.get</code> followed by a separate <code>requests.post</code>, you get two different sessions and the CSRF check fails.</td>
+            <td>Creates a persistent session object that carries cookies across requests. This is critical â€” the CSRF token from the GET request is tied to a session cookie. If you use a plain <code>requests.get</code> followed by a separate <code>requests.post</code>, you get two different sessions and the CSRF check fails.</td>
           </tr>
           <tr>
             <td>get_csrf_token()</td>
-            <td>GETs the login page and uses BeautifulSoup to parse the HTML and extract the value of the first <code>&lt;input&gt;</code> element — that's where the CSRF token lives as a hidden field.</td>
+            <td>GETs the login page and uses BeautifulSoup to parse the HTML and extract the value of the first <code>&lt;input&gt;</code> element â€” that's where the CSRF token lives as a hidden field.</td>
           </tr>
           <tr>
             <td>soup.find("input")['value']</td>
-            <td>A slightly fragile selector — it grabs the first input in the page which happens to be the CSRF field. A more robust version would use <code>soup.find("input", {"name": "csrf"})</code> to target it by name explicitly.</td>
+            <td>A slightly fragile selector â€” it grabs the first input in the page which happens to be the CSRF field. A more robust version would use <code>soup.find("input", {"name": "csrf"})</code> to target it by name explicitly.</td>
           </tr>
           <tr>
             <td>password: "randomtext"</td>
-            <td>Doesn't matter what value this is — the injection in the username field comments out the password check entirely before the server ever evaluates it.</td>
+            <td>Doesn't matter what value this is â€” the injection in the username field comments out the password check entirely before the server ever evaluates it.</td>
           </tr>
           <tr>
             <td>"Log out" in r.text</td>
-            <td>If we're logged in, the response will contain a logout link. That's our success indicator — cleaner than checking for a specific page title that might vary.</td>
+            <td>If we're logged in, the response will contain a logout link. That's our success indicator â€” cleaner than checking for a specific page title that might vary.</td>
           </tr>
         </table>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this lab teaches</div>
-            <div class="takeaway-text">Authentication logic that relies entirely on the database query to validate credentials is fundamentally broken if the query can be manipulated. It also introduces a key real-world concept: <strong>CSRF tokens don't protect against SQLi</strong> — they prevent cross-site request forgery, not injection. You just need to collect the valid CSRF token as part of your attack flow.</div>
+            <div class="takeaway-text">Authentication logic that relies entirely on the database query to validate credentials is fundamentally broken if the query can be manipulated. It also introduces a key real-world concept: <strong>CSRF tokens don't protect against SQLi</strong> â€” they prevent cross-site request forgery, not injection. You just need to collect the valid CSRF token as part of your attack flow.</div>
           </div>
         </div>
       </div>
 
       <hr class="lab-divider" />
 
-      <!-- ═══════════════════ LAB 3 ═══════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LAB 3 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       <div class="lab-section" id="lab3">
         <div class="lab-header">
           <div class="lab-num">03</div>
@@ -496,25 +485,25 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
             <div class="lab-title-row">
               <span class="lab-difficulty diff-practitioner">Practitioner</span>
             </div>
-            <h2 class="lab-title">UNION Attack — Determining the Number of Columns</h2>
+            <h2 class="lab-title">UNION Attack â€” Determining the Number of Columns</h2>
             <div class="lab-goal">Goal: <span>Find out how many columns the original query returns using ORDER BY or UNION NULL probing</span></div>
           </div>
         </div>
 
         <h3>Why column count matters</h3>
         <p>
-          UNION-based SQLi lets you append a second <code>SELECT</code> statement to the original query and have its results returned in the response. But for UNION to work, <strong>your injected SELECT must return the exact same number of columns as the original query</strong>. Too few or too many columns = Internal Server Error. Additionally, the column types need to be compatible — which is why we later use NULL placeholders (NULL is type-agnostic in SQL).
+          UNION-based SQLi lets you append a second <code>SELECT</code> statement to the original query and have its results returned in the response. But for UNION to work, <strong>your injected SELECT must return the exact same number of columns as the original query</strong>. Too few or too many columns = Internal Server Error. Additionally, the column types need to be compatible â€” which is why we later use NULL placeholders (NULL is type-agnostic in SQL).
         </p>
         <p>
           Step one of any UNION attack is therefore figuring out how many columns exist. There are two main methods: <code>ORDER BY</code> probing (incrementing until an error fires) or <code>UNION NULL</code> probing (adding NULLs until the query succeeds). ORDER BY is cleaner because it requires only one loop instead of trying every column count combination.
         </p>
         <div class="vuln-query">
           <span class="label">probing with ORDER BY</span>
-          <span class="normal">SELECT ... WHERE category='Gifts'</span><span class="injected">'+ORDER+BY+1--</span>  ← works
+          <span class="normal">SELECT ... WHERE category='Gifts'</span><span class="injected">'+ORDER+BY+1--</span>  â† works
           <br/>
-          <span class="normal">SELECT ... WHERE category='Gifts'</span><span class="injected">'+ORDER+BY+2--</span>  ← works
+          <span class="normal">SELECT ... WHERE category='Gifts'</span><span class="injected">'+ORDER+BY+2--</span>  â† works
           <br/>
-          <span class="normal">SELECT ... WHERE category='Gifts'</span><span class="injected">'+ORDER+BY+3--</span>  ← <span style="color:#ff6b6b">500 error → 2 columns exist</span>
+          <span class="normal">SELECT ... WHERE category='Gifts'</span><span class="injected">'+ORDER+BY+3--</span>  â† <span style="color:#ff6b6b">500 error â†’ 2 columns exist</span>
         </div>
 
         <h3>The script</h3>
@@ -568,15 +557,15 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           <tr><th>line / concept</th><th>what it does and why</th></tr>
           <tr>
             <td>range(1, 50)</td>
-            <td>Tries ORDER BY 1 through ORDER BY 49. 50 is a safe upper bound — real queries rarely return more than 10–15 columns, but giving it headroom avoids edge cases.</td>
+            <td>Tries ORDER BY 1 through ORDER BY 49. 50 is a safe upper bound â€” real queries rarely return more than 10â€“15 columns, but giving it headroom avoids edge cases.</td>
           </tr>
           <tr>
             <td>"'+order+by+%s--" % i</td>
-            <td>The <code>%s</code> is Python's old-style string formatting — inserts the integer <code>i</code>. The <code>+</code> signs are URL-encoded spaces. Some servers require proper URL encoding; others accept literal spaces. Using <code>+</code> is safe for both.</td>
+            <td>The <code>%s</code> is Python's old-style string formatting â€” inserts the integer <code>i</code>. The <code>+</code> signs are URL-encoded spaces. Some servers require proper URL encoding; others accept literal spaces. Using <code>+</code> is safe for both.</td>
           </tr>
           <tr>
             <td>"Internal Server Error" in r.text</td>
-            <td>When ORDER BY exceeds the column count, the database throws an error and the app returns a 500. That's our signal — and the answer is <code>i - 1</code> (the last value that worked).</td>
+            <td>When ORDER BY exceeds the column count, the database throws an error and the app returns a 500. That's our signal â€” and the answer is <code>i - 1</code> (the last value that worked).</td>
           </tr>
           <tr>
             <td>return i - 1</td>
@@ -585,22 +574,22 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
         </table>
 
         <div class="callout warning">
-          <div class="callout-title">⚠️ Note on the path concat</div>
-          <p>There's a subtle bug in the script: <code>url + path + payload</code> — if <code>url</code> doesn't end with <code>/</code>, this becomes <code>https://example.comfilter?...</code>. Add a trailing slash to your URL argument, or fix it in the code with <code>url.rstrip('/') + '/' + path + payload</code>.</p>
+          <div class="callout-title">âš ï¸ Note on the path concat</div>
+          <p>There's a subtle bug in the script: <code>url + path + payload</code> â€” if <code>url</code> doesn't end with <code>/</code>, this becomes <code>https://example.comfilter?...</code>. Add a trailing slash to your URL argument, or fix it in the code with <code>url.rstrip('/') + '/' + path + payload</code>.</p>
         </div>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this lab teaches</div>
-            <div class="takeaway-text">Column count enumeration is always step one of a UNION attack. The ORDER BY technique is cleaner than trying UNION NULL combinations because a single incrementing loop is enough — you don't need to try every possible column count combination. This exact loop is a building block you'll reuse in the next labs.</div>
+            <div class="takeaway-text">Column count enumeration is always step one of a UNION attack. The ORDER BY technique is cleaner than trying UNION NULL combinations because a single incrementing loop is enough â€” you don't need to try every possible column count combination. This exact loop is a building block you'll reuse in the next labs.</div>
           </div>
         </div>
       </div>
 
       <hr class="lab-divider" />
 
-      <!-- ═══════════════════ LAB 4 ═══════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LAB 4 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       <div class="lab-section" id="lab4">
         <div class="lab-header">
           <div class="lab-num">04</div>
@@ -608,25 +597,25 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
             <div class="lab-title-row">
               <span class="lab-difficulty diff-practitioner">Practitioner</span>
             </div>
-            <h2 class="lab-title">UNION Attack — Finding a Column with String Data Type</h2>
+            <h2 class="lab-title">UNION Attack â€” Finding a Column with String Data Type</h2>
             <div class="lab-goal">Goal: <span>Identify which column in the query accepts string data, so we can inject text into the output</span></div>
           </div>
         </div>
 
         <h3>Why data types matter</h3>
         <p>
-          Knowing the column count isn't enough on its own. For UNION-based data exfiltration, we need to inject a string value into the response — but SQL requires that each column in a UNION has compatible types. A column that holds integers will throw an error if you try to inject a string into it.
+          Knowing the column count isn't enough on its own. For UNION-based data exfiltration, we need to inject a string value into the response â€” but SQL requires that each column in a UNION has compatible types. A column that holds integers will throw an error if you try to inject a string into it.
         </p>
         <p>
           The approach: try a UNION SELECT with a known test string in each column position, one at a time, while filling the others with <code>NULL</code> (which is type-compatible with anything). When the test string appears in the response, we've found our string column.
         </p>
         <div class="vuln-query">
-          <span class="label">probing — 3 columns, testing each position</span>
-          <span class="normal">UNION SELECT </span><span class="injected">'v2F6UA'</span><span class="normal">, NULL, NULL--</span>  ← check response
+          <span class="label">probing â€” 3 columns, testing each position</span>
+          <span class="normal">UNION SELECT </span><span class="injected">'v2F6UA'</span><span class="normal">, NULL, NULL--</span>  â† check response
           <br/>
-          <span class="normal">UNION SELECT NULL, </span><span class="injected">'v2F6UA'</span><span class="normal">, NULL--</span>  ← check response
+          <span class="normal">UNION SELECT NULL, </span><span class="injected">'v2F6UA'</span><span class="normal">, NULL--</span>  â† check response
           <br/>
-          <span class="normal">UNION SELECT NULL, NULL, </span><span class="injected">'v2F6UA'</span><span class="normal">--</span>  ← <span style="color:#5dffb2">string appears → column 3 is a string type</span>
+          <span class="normal">UNION SELECT NULL, NULL, </span><span class="injected">'v2F6UA'</span><span class="normal">--</span>  â† <span style="color:#5dffb2">string appears â†’ column 3 is a string type</span>
         </div>
 
         <h3>The script</h3>
@@ -698,7 +687,7 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           <tr><th>line / concept</th><th>what it does and why</th></tr>
           <tr>
             <td>payload_list = ['null'] * num_col</td>
-            <td>Creates a list of <code>null</code> values with the same length as the column count. For example, if there are 3 columns: <code>['null', 'null', 'null']</code>. NULL is SQL's universal type placeholder — compatible with any column type.</td>
+            <td>Creates a list of <code>null</code> values with the same length as the column count. For example, if there are 3 columns: <code>['null', 'null', 'null']</code>. NULL is SQL's universal type placeholder â€” compatible with any column type.</td>
           </tr>
           <tr>
             <td>payload_list[i-1] = string</td>
@@ -710,26 +699,26 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           </tr>
           <tr>
             <td>string.strip('\'')</td>
-            <td>Strips the surrounding single quotes from <code>'v2F6UA'</code> to get just <code>v2F6UA</code>. We check for the bare value in the response — the SQL quotes won't appear in the rendered HTML output.</td>
+            <td>Strips the surrounding single quotes from <code>'v2F6UA'</code> to get just <code>v2F6UA</code>. We check for the bare value in the response â€” the SQL quotes won't appear in the rendered HTML output.</td>
           </tr>
           <tr>
             <td>Two-phase design</td>
-            <td>Lab 4 builds directly on Lab 3 — it reuses the exact column-count function and adds the string-field detection on top. This is the right pattern: each piece of recon feeds the next step.</td>
+            <td>Lab 4 builds directly on Lab 3 â€” it reuses the exact column-count function and adds the string-field detection on top. This is the right pattern: each piece of recon feeds the next step.</td>
           </tr>
         </table>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this lab teaches</div>
-            <div class="takeaway-text">Once you have the column count and a confirmed string column, you have everything needed to pull actual data from the database. Labs 5+ will use this exact foundation to extract table names, usernames, and passwords. The test string <code>v2F6UA</code> is arbitrary — just something distinctive enough that it won't appear in normal page content, so there are no false positives.</div>
+            <div class="takeaway-text">Once you have the column count and a confirmed string column, you have everything needed to pull actual data from the database. Labs 5+ will use this exact foundation to extract table names, usernames, and passwords. The test string <code>v2F6UA</code> is arbitrary â€” just something distinctive enough that it won't appear in normal page content, so there are no false positives.</div>
           </div>
         </div>
       </div>
 
       <hr class="lab-divider" />
 
-      <!-- ═══════════════════ LAB 5 ═══════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LAB 5 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       <div class="lab-section" id="lab5">
         <div class="lab-header">
           <div class="lab-num">05</div>
@@ -737,14 +726,14 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
             <div class="lab-title-row">
               <span class="lab-difficulty diff-practitioner">Practitioner</span>
             </div>
-            <h2 class="lab-title">UNION Attack — Retrieving Data from Other Tables</h2>
+            <h2 class="lab-title">UNION Attack â€” Retrieving Data from Other Tables</h2>
             <div class="lab-goal">Goal: <span>Use a UNION-based injection to pull usernames and passwords from a <code>users</code> table and log in as administrator</span></div>
           </div>
         </div>
 
         <h3>What's happening</h3>
         <p>
-          This is where the UNION technique pays off. You've already enumerated columns and identified a string-typed one — now you can directly exfiltrate real data. The application builds its query around a category filter, but by appending a UNION SELECT we can bolt on a second query that reads from any table we want, including the <code>users</code> table.
+          This is where the UNION technique pays off. You've already enumerated columns and identified a string-typed one â€” now you can directly exfiltrate real data. The application builds its query around a category filter, but by appending a UNION SELECT we can bolt on a second query that reads from any table we want, including the <code>users</code> table.
         </p>
         <p>
           The key insight here is that SQL's UNION operator simply stacks result sets vertically. As long as the injected SELECT returns the same number of columns (with compatible types), its rows are appended to the original results and rendered in the page like any other product row.
@@ -756,12 +745,12 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           <span class="injected">UNION SELECT username, password FROM users--</span>
         </div>
         <p>
-          The application then renders both the normal products <em>and</em> all rows from the <code>users</code> table. We parse the response HTML to find the cell next to "administrator" — that's the password.
+          The application then renders both the normal products <em>and</em> all rows from the <code>users</code> table. We parse the response HTML to find the cell next to "administrator" â€” that's the password.
         </p>
 
         <div class="callout info">
-          <div class="callout-title">ℹ️ Why we know the table is called "users"</div>
-          <p>For this Apprentice-level lab, PortSwigger tells you the table and column names in the lab description. In real engagements and later labs, you'd enumerate these from <code>information_schema.tables</code> first — which Labs 9 and 10 cover.</p>
+          <div class="callout-title">â„¹ï¸ Why we know the table is called "users"</div>
+          <p>For this Apprentice-level lab, PortSwigger tells you the table and column names in the lab description. In real engagements and later labs, you'd enumerate these from <code>information_schema.tables</code> first â€” which Labs 9 and 10 cover.</p>
         </div>
 
         <h3>The script</h3>
@@ -820,26 +809,26 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           </tr>
           <tr>
             <td>soup.body.find(text="administrator")</td>
-            <td>Finds the exact text node "administrator" in the rendered HTML. BeautifulSoup's <code>find(text=...)</code> returns the NavigableString itself — you then navigate to its parent element and look at the next sibling <code>&lt;td&gt;</code> for the password.</td>
+            <td>Finds the exact text node "administrator" in the rendered HTML. BeautifulSoup's <code>find(text=...)</code> returns the NavigableString itself â€” you then navigate to its parent element and look at the next sibling <code>&lt;td&gt;</code> for the password.</td>
           </tr>
           <tr>
             <td>.parent.findNext('td').contents[0]</td>
-            <td>The username and password are adjacent table cells. <code>findNext('td')</code> walks to the immediately following cell — <code>.contents[0]</code> extracts the raw text from it.</td>
+            <td>The username and password are adjacent table cells. <code>findNext('td')</code> walks to the immediately following cell â€” <code>.contents[0]</code> extracts the raw text from it.</td>
           </tr>
         </table>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this lab teaches</div>
-            <div class="takeaway-text">Once you have column count and a string column, UNION-based exfil is straightforward: just replace the test string with the columns you actually want. The parse logic (navigating sibling table cells) is also a useful pattern you'll see repeatedly — the response structure is consistent once you know what you injected.</div>
+            <div class="takeaway-text">Once you have column count and a string column, UNION-based exfil is straightforward: just replace the test string with the columns you actually want. The parse logic (navigating sibling table cells) is also a useful pattern you'll see repeatedly â€” the response structure is consistent once you know what you injected.</div>
           </div>
         </div>
       </div>
 
       <hr class="lab-divider" />
 
-      <!-- ═══════════════════ LAB 6 ═══════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LAB 6 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       <div class="lab-section" id="lab6">
         <div class="lab-header">
           <div class="lab-num">06</div>
@@ -847,14 +836,14 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
             <div class="lab-title-row">
               <span class="lab-difficulty diff-practitioner">Practitioner</span>
             </div>
-            <h2 class="lab-title">UNION Attack — Retrieving Multiple Values in a Single Column</h2>
+            <h2 class="lab-title">UNION Attack â€” Retrieving Multiple Values in a Single Column</h2>
             <div class="lab-goal">Goal: <span>Extract both username and password into a single column using string concatenation when only one column accepts string data</span></div>
           </div>
         </div>
 
         <h3>The problem: only one usable column</h3>
         <p>
-          Sometimes the query returns multiple columns but only one of them is a string type — or you only have one string column available to inject into. You can't pull username into a text column and password into an integer column — that would cause a type error.
+          Sometimes the query returns multiple columns but only one of them is a string type â€” or you only have one string column available to inject into. You can't pull username into a text column and password into an integer column â€” that would cause a type error.
         </p>
         <p>
           The solution is <strong>string concatenation</strong>: merge both values into a single string with a separator character you can split on later. PostgreSQL uses the <code>||</code> operator for this. By injecting <code>username || '*' || password</code>, both fields are returned as one string like <code>administrator*s3cr3tp4ss</code>, then we split on <code>*</code> to extract the password.
@@ -863,12 +852,12 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           <span class="label">concat payload (PostgreSQL syntax)</span>
           <span class="injected">UNION SELECT NULL, username || '*' || password FROM users--</span>
           <br/>
-          <span class="normal" style="color:#5dffb2">→ renders: administrator*s3cr3tp4ss</span>
+          <span class="normal" style="color:#5dffb2">â†’ renders: administrator*s3cr3tp4ss</span>
         </div>
 
         <div class="callout warning">
-          <div class="callout-title">⚠️ Separator choice matters</div>
-          <p>The separator must be a character that won't appear naturally in either the username or password. A <code>~</code> or <code>|</code> usually works. Using <code>*</code> is risky if passwords are allowed to contain it — the split would produce unexpected results.</p>
+          <div class="callout-title">âš ï¸ Separator choice matters</div>
+          <p>The separator must be a character that won't appear naturally in either the username or password. A <code>~</code> or <code>|</code> usually works. Using <code>*</code> is risky if passwords are allowed to contain it â€” the split would produce unexpected results.</p>
         </div>
 
         <h3>The script</h3>
@@ -924,34 +913,34 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           <tr><th>line / concept</th><th>what it does and why</th></tr>
           <tr>
             <td>username || '*' || password</td>
-            <td>PostgreSQL's string concatenation operator. Merges three strings: the username, a literal asterisk separator, and the password. Other databases use different syntax — MySQL uses <code>CONCAT(a, '*', b)</code>, MSSQL uses <code>a + '*' + b</code>.</td>
+            <td>PostgreSQL's string concatenation operator. Merges three strings: the username, a literal asterisk separator, and the password. Other databases use different syntax â€” MySQL uses <code>CONCAT(a, '*', b)</code>, MSSQL uses <code>a + '*' + b</code>.</td>
           </tr>
           <tr>
             <td>re.compile('.*administrator.*')</td>
-            <td>A regex-based text search that finds any HTML text node containing the word "administrator". We need regex here because the text is <code>administrator*password</code> — not the bare word — so an exact match would fail.</td>
+            <td>A regex-based text search that finds any HTML text node containing the word "administrator". We need regex here because the text is <code>administrator*password</code> â€” not the bare word â€” so an exact match would fail.</td>
           </tr>
           <tr>
             <td>.split("*")[1]</td>
-            <td>Splits on the separator we injected and takes index [1] — that's everything after the first <code>*</code>, which is the password. Index [0] would be "administrator".</td>
+            <td>Splits on the separator we injected and takes index [1] â€” that's everything after the first <code>*</code>, which is the password. Index [0] would be "administrator".</td>
           </tr>
           <tr>
             <td>NULL in first position</td>
-            <td>The query has 2 columns. The first is not a string type (or we don't need it), so we fill it with NULL. The concatenated credentials go in column 2 — the one we confirmed accepts strings in Lab 4.</td>
+            <td>The query has 2 columns. The first is not a string type (or we don't need it), so we fill it with NULL. The concatenated credentials go in column 2 â€” the one we confirmed accepts strings in Lab 4.</td>
           </tr>
         </table>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this lab teaches</div>
-            <div class="takeaway-text">String concatenation is one of the most important UNION techniques for real engagements — real queries often have only one usable string column. Knowing the correct concat syntax for each database type (PostgreSQL <code>||</code>, MySQL <code>CONCAT()</code>, MSSQL <code>+</code>, Oracle <code>||</code>) is therefore part of your fingerprinting checklist.</div>
+            <div class="takeaway-text">String concatenation is one of the most important UNION techniques for real engagements â€” real queries often have only one usable string column. Knowing the correct concat syntax for each database type (PostgreSQL <code>||</code>, MySQL <code>CONCAT()</code>, MSSQL <code>+</code>, Oracle <code>||</code>) is therefore part of your fingerprinting checklist.</div>
           </div>
         </div>
       </div>
 
       <hr class="lab-divider" />
 
-      <!-- ═══════════════════ LAB 7 ═══════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LAB 7 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       <div class="lab-section" id="lab7">
         <div class="lab-header">
           <div class="lab-num">07</div>
@@ -959,7 +948,7 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
             <div class="lab-title-row">
               <span class="lab-difficulty diff-practitioner">Practitioner</span>
             </div>
-            <h2 class="lab-title">SQL Injection — Querying the Database Type (Oracle)</h2>
+            <h2 class="lab-title">SQL Injection â€” Querying the Database Type (Oracle)</h2>
             <div class="lab-goal">Goal: <span>Identify the database version by reading Oracle's <code>v$version</code> banner via a UNION injection</span></div>
           </div>
         </div>
@@ -969,17 +958,17 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           Different databases have different syntax, different system tables, different functions. Before you can reliably exploit anything beyond the most basic injections, you need to know which database you're talking to. Fingerprinting tells you which techniques apply and which don't.
         </p>
         <p>
-          On Oracle specifically, there are two things that differ from other databases that are immediately relevant to UNION attacks. First, Oracle does not allow a SELECT statement without a FROM clause — you always need <code>FROM dual</code> as a placeholder table when selecting constants. Second, the version information lives in a special view called <code>v$version</code>, not in <code>information_schema</code> like MySQL or PostgreSQL.
+          On Oracle specifically, there are two things that differ from other databases that are immediately relevant to UNION attacks. First, Oracle does not allow a SELECT statement without a FROM clause â€” you always need <code>FROM dual</code> as a placeholder table when selecting constants. Second, the version information lives in a special view called <code>v$version</code>, not in <code>information_schema</code> like MySQL or PostgreSQL.
         </p>
         <div class="vuln-query">
           <span class="label">Oracle version query via UNION</span>
           <span class="injected">UNION SELECT banner, NULL FROM v$version--</span>
           <br/>
-          <span class="normal" style="color:#5dffb2">→ Oracle Database 19c Enterprise Edition Release 19.0.0.0.0</span>
+          <span class="normal" style="color:#5dffb2">â†’ Oracle Database 19c Enterprise Edition Release 19.0.0.0.0</span>
         </div>
 
         <div class="callout info">
-          <div class="callout-title">ℹ️ Oracle quirk: FROM dual</div>
+          <div class="callout-title">â„¹ï¸ Oracle quirk: FROM dual</div>
           <p>In Oracle, even <code>SELECT 'test', NULL</code> needs a FROM clause: <code>SELECT 'test', NULL FROM dual</code>. <code>dual</code> is a built-in one-row dummy table that exists specifically for this purpose. Forgetting it produces an error that can tip you off that you're dealing with Oracle before you even look at the version string.</p>
         </div>
 
@@ -1036,11 +1025,11 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           <tr><th>line / concept</th><th>what it does and why</th></tr>
           <tr>
             <td>v$version</td>
-            <td>Oracle's built-in view that exposes version and component information. It returns multiple rows — one per component — so the UNION will append all of them to the response. We only care about the row that starts with "Oracle Database".</td>
+            <td>Oracle's built-in view that exposes version and component information. It returns multiple rows â€” one per component â€” so the UNION will append all of them to the response. We only care about the row that starts with "Oracle Database".</td>
           </tr>
           <tr>
             <td>"Oracle Database" in r.text</td>
-            <td>Fast pre-check — if this string appears anywhere in the response we know the UNION hit v$version successfully. Only then do we bother parsing the HTML in detail.</td>
+            <td>Fast pre-check â€” if this string appears anywhere in the response we know the UNION hit v$version successfully. Only then do we bother parsing the HTML in detail.</td>
           </tr>
           <tr>
             <td>re.compile('.*Oracle\sDatabase.*')</td>
@@ -1049,7 +1038,7 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
         </table>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this lab teaches</div>
             <div class="takeaway-text">Oracle differs from MySQL/PostgreSQL in two important ways for injection: it requires <code>FROM dual</code> for constant selects, and version info comes from <code>v$version</code> not <code>@@version</code>. Recognizing these quirks early lets you adapt your payloads before wasting time with syntax that won't work. Lab 8 covers the MySQL/MSSQL equivalent.</div>
@@ -1059,7 +1048,7 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
 
       <hr class="lab-divider" />
 
-      <!-- ═══════════════════ LAB 8 ═══════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LAB 8 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       <div class="lab-section" id="lab8">
         <div class="lab-header">
           <div class="lab-num">08</div>
@@ -1067,7 +1056,7 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
             <div class="lab-title-row">
               <span class="lab-difficulty diff-practitioner">Practitioner</span>
             </div>
-            <h2 class="lab-title">SQL Injection — Querying the Database Type (MySQL / MSSQL)</h2>
+            <h2 class="lab-title">SQL Injection â€” Querying the Database Type (MySQL / MSSQL)</h2>
             <div class="lab-goal">Goal: <span>Extract the MySQL or MSSQL database version via UNION using <code>@@version</code></span></div>
           </div>
         </div>
@@ -1077,13 +1066,13 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           MySQL and Microsoft SQL Server share the <code>@@version</code> global variable which returns the full version string in one shot. Unlike Oracle, there's no need for a special view or a FROM clause. The comment syntax also differs: MySQL uses <code>#</code> or <code>-- </code> (note the trailing space), while Oracle and PostgreSQL use <code>--</code>.
         </p>
         <p>
-          In this lab the URL-encoded <code>%23</code> is used instead of <code>--</code> to comment out the rest of the query — <code>%23</code> is the URL encoding for <code>#</code>, which is MySQL's inline comment character. This works in cases where <code>--</code> gets stripped by a WAF or the application layer.
+          In this lab the URL-encoded <code>%23</code> is used instead of <code>--</code> to comment out the rest of the query â€” <code>%23</code> is the URL encoding for <code>#</code>, which is MySQL's inline comment character. This works in cases where <code>--</code> gets stripped by a WAF or the application layer.
         </p>
         <div class="vuln-query">
           <span class="label">MySQL version via UNION</span>
           <span class="injected">UNION SELECT @@version, NULL%23</span>
           <br/>
-          <span class="normal" style="color:#5dffb2">→ 8.0.31-0ubuntu0.20.04.2</span>
+          <span class="normal" style="color:#5dffb2">â†’ 8.0.31-0ubuntu0.20.04.2</span>
         </div>
 
         <h3>The script</h3>
@@ -1138,7 +1127,7 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           <tr><th>line / concept</th><th>what it does and why</th></tr>
           <tr>
             <td>@@version</td>
-            <td>A MySQL/MSSQL global variable (note the double <code>@@</code>). Returns the full version string including build and OS details. This single variable works on both MySQL and SQL Server — making it a useful early probe before you've confirmed which one you're dealing with.</td>
+            <td>A MySQL/MSSQL global variable (note the double <code>@@</code>). Returns the full version string including build and OS details. This single variable works on both MySQL and SQL Server â€” making it a useful early probe before you've confirmed which one you're dealing with.</td>
           </tr>
           <tr>
             <td>%23 comment</td>
@@ -1146,22 +1135,22 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           </tr>
           <tr>
             <td>re.compile('.*\d{1,2}\.\d{1,2}\.\d{1,2}.*')</td>
-            <td>Matches a semantic version pattern like <code>8.0.31</code>. A database-agnostic detection heuristic — if any text node in the page contains a version-like string, it's almost certainly the result of our <code>@@version</code> injection.</td>
+            <td>Matches a semantic version pattern like <code>8.0.31</code>. A database-agnostic detection heuristic â€” if any text node in the page contains a version-like string, it's almost certainly the result of our <code>@@version</code> injection.</td>
           </tr>
         </table>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this lab teaches</div>
-            <div class="takeaway-text">MySQL and MSSQL share <code>@@version</code> syntax, which makes probing simpler than Oracle. The URL-encoding subtlety with <code>%23</code> vs <code>#</code> is also a useful thing to internalize — understanding how HTTP clients handle special characters in URLs is important when your payloads contain comment characters, quotes, or spaces.</div>
+            <div class="takeaway-text">MySQL and MSSQL share <code>@@version</code> syntax, which makes probing simpler than Oracle. The URL-encoding subtlety with <code>%23</code> vs <code>#</code> is also a useful thing to internalize â€” understanding how HTTP clients handle special characters in URLs is important when your payloads contain comment characters, quotes, or spaces.</div>
           </div>
         </div>
       </div>
 
       <hr class="lab-divider" />
 
-      <!-- ═══════════════════ LAB 9 ═══════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LAB 9 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       <div class="lab-section" id="lab9">
         <div class="lab-header">
           <div class="lab-num">09</div>
@@ -1169,26 +1158,26 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
             <div class="lab-title-row">
               <span class="lab-difficulty diff-practitioner">Practitioner</span>
             </div>
-            <h2 class="lab-title">SQL Injection — Listing Database Contents (Non-Oracle)</h2>
+            <h2 class="lab-title">SQL Injection â€” Listing Database Contents (Non-Oracle)</h2>
             <div class="lab-goal">Goal: <span>Enumerate tables and columns via <code>information_schema</code>, then dump the administrator password</span></div>
           </div>
         </div>
 
         <h3>information_schema: the attacker's map</h3>
         <p>
-          <code>information_schema</code> is a standard SQL schema present in MySQL, PostgreSQL, and MSSQL (but not Oracle) that acts as a metadata catalog — it contains tables listing every table, every column, every constraint in the database. For an attacker who's achieved UNION injection, this is a complete map of the database.
+          <code>information_schema</code> is a standard SQL schema present in MySQL, PostgreSQL, and MSSQL (but not Oracle) that acts as a metadata catalog â€” it contains tables listing every table, every column, every constraint in the database. For an attacker who's achieved UNION injection, this is a complete map of the database.
         </p>
         <p>
           The attack chain here is three steps: query <code>information_schema.tables</code> to find the users table name (which may be obfuscated), then query <code>information_schema.columns</code> to find the actual column names, then finally UNION SELECT the credentials directly.
         </p>
         <div class="vuln-query">
-          <span class="label">step 1 — enumerate tables</span>
+          <span class="label">step 1 â€” enumerate tables</span>
           <span class="injected">UNION SELECT table_name, NULL FROM information_schema.tables--</span>
           <br/><br/>
-          <span class="label">step 2 — enumerate columns in the users table</span>
+          <span class="label">step 2 â€” enumerate columns in the users table</span>
           <span class="injected">UNION SELECT column_name, NULL FROM information_schema.columns WHERE table_name='users'--</span>
           <br/><br/>
-          <span class="label">step 3 — dump credentials</span>
+          <span class="label">step 3 â€” dump credentials</span>
           <span class="injected">UNION SELECT username, password FROM users--</span>
         </div>
 
@@ -1266,7 +1255,7 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           <tr><th>line / concept</th><th>what it does and why</th></tr>
           <tr>
             <td>perform_request() helper</td>
-            <td>Factors out the repetitive request logic so each discovery function just passes a payload. Clean pattern — each function has one job: build a payload, parse the result, return the finding.</td>
+            <td>Factors out the repetitive request logic so each discovery function just passes a payload. Clean pattern â€” each function has one job: build a payload, parse the result, return the finding.</td>
           </tr>
           <tr>
             <td>information_schema.tables</td>
@@ -1274,26 +1263,26 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           </tr>
           <tr>
             <td>re.compile('.*users.*')</td>
-            <td>Finds any table name containing "users" — the actual name might be randomized (e.g., <code>users_abcxyz</code>) in some lab variants. The regex handles this without needing an exact match.</td>
+            <td>Finds any table name containing "users" â€” the actual name might be randomized (e.g., <code>users_abcxyz</code>) in some lab variants. The regex handles this without needing an exact match.</td>
           </tr>
           <tr>
             <td>Three-phase attack structure</td>
-            <td>Table name → column names → credentials. Each phase feeds the next. The final query uses the dynamically discovered names rather than assumptions. This is how a real blind enumeration would work against an unfamiliar target.</td>
+            <td>Table name â†’ column names â†’ credentials. Each phase feeds the next. The final query uses the dynamically discovered names rather than assumptions. This is how a real blind enumeration would work against an unfamiliar target.</td>
           </tr>
         </table>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this lab teaches</div>
-            <div class="takeaway-text"><code>information_schema</code> is one of the most powerful things to know about for SQL injection. It effectively hands you a full blueprint of the database. The three-phase enumeration pattern (tables → columns → data) is a reusable template you'll use on practically every non-blind UNION injection from here on.</div>
+            <div class="takeaway-text"><code>information_schema</code> is one of the most powerful things to know about for SQL injection. It effectively hands you a full blueprint of the database. The three-phase enumeration pattern (tables â†’ columns â†’ data) is a reusable template you'll use on practically every non-blind UNION injection from here on.</div>
           </div>
         </div>
       </div>
 
       <hr class="lab-divider" />
 
-      <!-- ═══════════════════ LAB 10 ═══════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LAB 10 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       <div class="lab-section" id="lab10">
         <div class="lab-header">
           <div class="lab-num">10</div>
@@ -1301,7 +1290,7 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
             <div class="lab-title-row">
               <span class="lab-difficulty diff-practitioner">Practitioner</span>
             </div>
-            <h2 class="lab-title">SQL Injection — Listing Database Contents (Oracle)</h2>
+            <h2 class="lab-title">SQL Injection â€” Listing Database Contents (Oracle)</h2>
             <div class="lab-goal">Goal: <span>Enumerate tables and columns via Oracle's <code>all_tables</code> / <code>all_tab_columns</code> views and dump admin credentials</span></div>
           </div>
         </div>
@@ -1311,13 +1300,13 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           Oracle doesn't have <code>information_schema</code>. Instead, it exposes schema metadata through its own family of catalog views: <code>all_tables</code> (tables accessible to the current user), <code>all_tab_columns</code> (columns in those tables), and <code>user_tables</code> / <code>dba_tables</code> for different privilege levels.
         </p>
         <p>
-          The logic is identical to Lab 9 — enumerate tables, then columns, then dump credentials — but the table names and column names in the metadata queries are different. In Oracle, the column is <code>table_name</code> in <code>all_tables</code>, and <code>column_name</code> in <code>all_tab_columns</code>. Oracle also tends to store names in uppercase, so <code>USERS_ABCDEF</code> instead of <code>users_abcdef</code>.
+          The logic is identical to Lab 9 â€” enumerate tables, then columns, then dump credentials â€” but the table names and column names in the metadata queries are different. In Oracle, the column is <code>table_name</code> in <code>all_tables</code>, and <code>column_name</code> in <code>all_tab_columns</code>. Oracle also tends to store names in uppercase, so <code>USERS_ABCDEF</code> instead of <code>users_abcdef</code>.
         </p>
         <div class="vuln-query">
-          <span class="label">Oracle — enumerate tables</span>
+          <span class="label">Oracle â€” enumerate tables</span>
           <span class="injected">UNION SELECT table_name, NULL FROM all_tables--</span>
           <br/><br/>
-          <span class="label">Oracle — enumerate columns</span>
+          <span class="label">Oracle â€” enumerate columns</span>
           <span class="injected">UNION SELECT column_name, NULL FROM all_tab_columns WHERE table_name='USERS_ABCDEF'--</span>
         </div>
 
@@ -1395,7 +1384,7 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           <tr><th>line / concept</th><th>what it does and why</th></tr>
           <tr>
             <td>all_tables vs information_schema.tables</td>
-            <td><code>all_tables</code> is Oracle's equivalent — it returns all tables accessible to the current session. <code>dba_tables</code> would return everything in the database, but requires DBA privileges. <code>user_tables</code> returns only tables owned by the current user.</td>
+            <td><code>all_tables</code> is Oracle's equivalent â€” it returns all tables accessible to the current session. <code>dba_tables</code> would return everything in the database, but requires DBA privileges. <code>user_tables</code> returns only tables owned by the current user.</td>
           </tr>
           <tr>
             <td>all_tab_columns</td>
@@ -1403,22 +1392,22 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           </tr>
           <tr>
             <td>re.compile('^USERS\_.*')</td>
-            <td>The <code>^</code> anchors to the start of the text node. Oracle stores table names in uppercase — the regex matches any name starting with "USERS_". The backslash escapes the underscore so it's treated as a literal character, not a single-char wildcard (though in Python regex, <code>_</code> doesn't need escaping — it's a defensive habit).</td>
+            <td>The <code>^</code> anchors to the start of the text node. Oracle stores table names in uppercase â€” the regex matches any name starting with "USERS_". The backslash escapes the underscore so it's treated as a literal character, not a single-char wildcard (though in Python regex, <code>_</code> doesn't need escaping â€” it's a defensive habit).</td>
           </tr>
         </table>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this lab teaches</div>
-            <div class="takeaway-text">The structural attack pattern is identical to Lab 9 — only the metadata table names change. This reinforces the value of database fingerprinting first: once you know it's Oracle, you know to use <code>all_tables</code> / <code>all_tab_columns</code> and expect uppercase names. The script structure here is a good template to adapt for any UNION-capable database.</div>
+            <div class="takeaway-text">The structural attack pattern is identical to Lab 9 â€” only the metadata table names change. This reinforces the value of database fingerprinting first: once you know it's Oracle, you know to use <code>all_tables</code> / <code>all_tab_columns</code> and expect uppercase names. The script structure here is a good template to adapt for any UNION-capable database.</div>
           </div>
         </div>
       </div>
 
       <hr class="lab-divider" />
 
-      <!-- ═══════════════════ LAB 11 ═══════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LAB 11 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       <div class="lab-section" id="lab11">
         <div class="lab-header">
           <div class="lab-num">11</div>
@@ -1426,31 +1415,31 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
             <div class="lab-title-row">
               <span class="lab-difficulty diff-practitioner">Practitioner</span>
             </div>
-            <h2 class="lab-title">Blind SQLi — Conditional Responses</h2>
+            <h2 class="lab-title">Blind SQLi â€” Conditional Responses</h2>
             <div class="lab-goal">Goal: <span>Extract the administrator password one character at a time by observing whether a "Welcome back" message appears in the response</span></div>
           </div>
         </div>
 
         <h3>What is blind SQL injection?</h3>
         <p>
-          All the labs so far have been <strong>in-band</strong> (or visible) injection — the query results were reflected directly into the page HTML. Blind SQLi is fundamentally different: the application doesn't return query data in the response at all. Instead, you infer information from <em>how</em> the application responds.
+          All the labs so far have been <strong>in-band</strong> (or visible) injection â€” the query results were reflected directly into the page HTML. Blind SQLi is fundamentally different: the application doesn't return query data in the response at all. Instead, you infer information from <em>how</em> the application responds.
         </p>
         <p>
-          In a <strong>boolean-based blind</strong> attack, you craft a query that evaluates to true or false, and observe a binary difference in the application's response. Here, the difference is whether "Welcome back" appears or not. By asking questions like "is the first character of the password greater than 'm'?" and watching the response, you can extract the entire password — one bit of information per request.
+          In a <strong>boolean-based blind</strong> attack, you craft a query that evaluates to true or false, and observe a binary difference in the application's response. Here, the difference is whether "Welcome back" appears or not. By asking questions like "is the first character of the password greater than 'm'?" and watching the response, you can extract the entire password â€” one bit of information per request.
         </p>
         <div class="vuln-query">
-          <span class="label">boolean blind payload — character extraction</span>
+          <span class="label">boolean blind payload â€” character extraction</span>
           <span class="injected">' AND (SELECT ASCII(SUBSTRING(password,1,1)) FROM users WHERE username='administrator')='97'--</span>
           <br/>
-          <span class="normal" style="color:#5dffb2">→ if "Welcome back" appears, first char is ASCII 97 ('a')</span>
+          <span class="normal" style="color:#5dffb2">â†’ if "Welcome back" appears, first char is ASCII 97 ('a')</span>
         </div>
         <p>
-          The script iterates this over all 20 character positions and ASCII values 32–125, making up to 1880 requests to extract a 20-character password. This is brute force — slow but reliable.
+          The script iterates this over all 20 character positions and ASCII values 32â€“125, making up to 1880 requests to extract a 20-character password. This is brute force â€” slow but reliable.
         </p>
 
         <div class="callout warning">
-          <div class="callout-title">⚠️ Hardcoded cookies</div>
-          <p>This script uses hardcoded <code>TrackingId</code> and <code>session</code> cookie values — they're specific to a single lab instance. Each time you spin up a new lab, you need to update these values from your browser session or Burp Suite before running the script.</p>
+          <div class="callout-title">âš ï¸ Hardcoded cookies</div>
+          <p>This script uses hardcoded <code>TrackingId</code> and <code>session</code> cookie values â€” they're specific to a single lab instance. Each time you spin up a new lab, you need to update these values from your browser session or Burp Suite before running the script.</p>
         </div>
 
         <h3>The script</h3>
@@ -1510,7 +1499,7 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           <tr><th>line / concept</th><th>what it does and why</th></tr>
           <tr>
             <td>range(1,21) outer loop</td>
-            <td>Iterates over character positions 1 through 20 — the assumed maximum password length. <code>SUBSTRING(password, i, 1)</code> extracts a single character at position <code>i</code>.</td>
+            <td>Iterates over character positions 1 through 20 â€” the assumed maximum password length. <code>SUBSTRING(password, i, 1)</code> extracts a single character at position <code>i</code>.</td>
           </tr>
           <tr>
             <td>range(32,126) inner loop</td>
@@ -1526,26 +1515,26 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           </tr>
           <tr>
             <td>sys.stdout.write + flush</td>
-            <td>Writes to stdout without a newline and immediately flushes the buffer. Combined with <code>\r</code> (carriage return), this creates a live updating display — you see the password being discovered character by character in real time.</td>
+            <td>Writes to stdout without a newline and immediately flushes the buffer. Combined with <code>\r</code> (carriage return), this creates a live updating display â€” you see the password being discovered character by character in real time.</td>
           </tr>
           <tr>
             <td>Cookie-based injection</td>
-            <td>The injection point here is the <code>TrackingId</code> cookie, not a URL parameter or form field. This is an important reminder: any value the server reads into a SQL query is a potential injection point — not just visible form inputs.</td>
+            <td>The injection point here is the <code>TrackingId</code> cookie, not a URL parameter or form field. This is an important reminder: any value the server reads into a SQL query is a potential injection point â€” not just visible form inputs.</td>
           </tr>
         </table>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this lab teaches</div>
-            <div class="takeaway-text">Boolean-based blind SQLi is slower and noisier than in-band injection, but it works when no data is reflected in the response. The key mental model: you're not reading data, you're asking yes/no questions. Any binary observable difference in application behavior — presence of a word, HTTP status code, response length — can be your oracle. This is foundational for understanding tools like sqlmap's blind modes.</div>
+            <div class="takeaway-text">Boolean-based blind SQLi is slower and noisier than in-band injection, but it works when no data is reflected in the response. The key mental model: you're not reading data, you're asking yes/no questions. Any binary observable difference in application behavior â€” presence of a word, HTTP status code, response length â€” can be your oracle. This is foundational for understanding tools like sqlmap's blind modes.</div>
           </div>
         </div>
       </div>
 
       <hr class="lab-divider" />
 
-      <!-- ═══════════════════ LAB 12 ═══════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LAB 12 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       <div class="lab-section" id="lab12">
         <div class="lab-header">
           <div class="lab-num">12</div>
@@ -1553,28 +1542,28 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
             <div class="lab-title-row">
               <span class="lab-difficulty diff-practitioner">Practitioner</span>
             </div>
-            <h2 class="lab-title">Blind SQLi — Conditional Errors</h2>
-            <div class="lab-goal">Goal: <span>Extract the admin password by triggering database errors on true conditions — when no visual difference exists between true and false responses</span></div>
+            <h2 class="lab-title">Blind SQLi â€” Conditional Errors</h2>
+            <div class="lab-goal">Goal: <span>Extract the admin password by triggering database errors on true conditions â€” when no visual difference exists between true and false responses</span></div>
           </div>
         </div>
 
         <h3>When there's no "Welcome back" to observe</h3>
         <p>
-          Sometimes an application is so well-hardened that it returns identical responses for both true and false conditions — no conditional message, no content difference whatsoever. Boolean-based blind SQLi fails here. The solution: make the database <em>error</em> on purpose when a condition is true.
+          Sometimes an application is so well-hardened that it returns identical responses for both true and false conditions â€” no conditional message, no content difference whatsoever. Boolean-based blind SQLi fails here. The solution: make the database <em>error</em> on purpose when a condition is true.
         </p>
         <p>
-          In Oracle, the expression <code>TO_CHAR(1/0)</code> causes a divide-by-zero error. By placing it inside a <code>CASE WHEN</code> — only evaluated when the condition is true — you can turn a true/false result into a 200 response vs. a 500 response. The server always returns a 500 on a database error, which is your oracle.
+          In Oracle, the expression <code>TO_CHAR(1/0)</code> causes a divide-by-zero error. By placing it inside a <code>CASE WHEN</code> â€” only evaluated when the condition is true â€” you can turn a true/false result into a 200 response vs. a 500 response. The server always returns a 500 on a database error, which is your oracle.
         </p>
         <div class="vuln-query">
           <span class="label">error-based blind payload (Oracle)</span>
           <span class="injected">' || (SELECT CASE WHEN (ascii(substr(password,1,1))='97') THEN TO_CHAR(1/0) ELSE '' END FROM users WHERE username='administrator') || '</span>
           <br/>
-          <span class="normal" style="color:#ff6b6b">→ 500 error = condition true (char is 'a')</span>
+          <span class="normal" style="color:#ff6b6b">â†’ 500 error = condition true (char is 'a')</span>
           <br/>
-          <span class="normal" style="color:#5dffb2">→ 200 OK = condition false</span>
+          <span class="normal" style="color:#5dffb2">â†’ 200 OK = condition false</span>
         </div>
         <p>
-          Note the <code>|| '</code> at the end — this closes the string concatenation that started in the cookie value, keeping the overall SQL syntax valid when the CASE returns an empty string.
+          Note the <code>|| '</code> at the end â€” this closes the string concatenation that started in the cookie value, keeping the overall SQL syntax valid when the CASE returns an empty string.
         </p>
 
         <h3>The script</h3>
@@ -1634,7 +1623,7 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           <tr><th>line / concept</th><th>what it does and why</th></tr>
           <tr>
             <td>CASE WHEN ... THEN TO_CHAR(1/0) ELSE '' END</td>
-            <td>The core trick. <code>CASE WHEN (condition) THEN TO_CHAR(1/0)</code> — if the condition is true, Oracle evaluates <code>TO_CHAR(1/0)</code>, which divides by zero and throws an error. If false, it returns an empty string. The character extraction condition is embedded in the WHERE clause of the subquery.</td>
+            <td>The core trick. <code>CASE WHEN (condition) THEN TO_CHAR(1/0)</code> â€” if the condition is true, Oracle evaluates <code>TO_CHAR(1/0)</code>, which divides by zero and throws an error. If false, it returns an empty string. The character extraction condition is embedded in the WHERE clause of the subquery.</td>
           </tr>
           <tr>
             <td>String concatenation with || '</td>
@@ -1642,26 +1631,26 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           </tr>
           <tr>
             <td>r.status_code == 500</td>
-            <td>The observable oracle. A 500 means the database threw an error — condition was true. A 200 means the CASE returned empty string — condition was false. Cleaner than parsing response text.</td>
+            <td>The observable oracle. A 500 means the database threw an error â€” condition was true. A 200 means the CASE returned empty string â€” condition was false. Cleaner than parsing response text.</td>
           </tr>
           <tr>
             <td>CASE WHEN (1=1) THEN...</td>
-            <td>Note the payload uses <code>CASE WHEN (1=1)</code> with the character condition in the WHERE clause. This means: "always try to divide by zero, but only if the WHERE clause matches" — the WHERE clause filters to the row where both username is administrator AND the current character matches.</td>
+            <td>Note the payload uses <code>CASE WHEN (1=1)</code> with the character condition in the WHERE clause. This means: "always try to divide by zero, but only if the WHERE clause matches" â€” the WHERE clause filters to the row where both username is administrator AND the current character matches.</td>
           </tr>
         </table>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this lab teaches</div>
-            <div class="takeaway-text">Error-based blind SQLi exploits the fact that HTTP status codes differ between normal and error states. The <code>CASE WHEN ... THEN [error] ELSE [safe] END</code> pattern is powerful and portable — the error trigger varies by database (<code>TO_CHAR(1/0)</code> for Oracle, <code>1/0</code> for PostgreSQL, <code>CONVERT(int, 'a')</code> for MSSQL) but the logical structure is the same.</div>
+            <div class="takeaway-text">Error-based blind SQLi exploits the fact that HTTP status codes differ between normal and error states. The <code>CASE WHEN ... THEN [error] ELSE [safe] END</code> pattern is powerful and portable â€” the error trigger varies by database (<code>TO_CHAR(1/0)</code> for Oracle, <code>1/0</code> for PostgreSQL, <code>CONVERT(int, 'a')</code> for MSSQL) but the logical structure is the same.</div>
           </div>
         </div>
       </div>
 
       <hr class="lab-divider" />
 
-      <!-- ═══════════════════ LAB 13 ═══════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LAB 13 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       <div class="lab-section" id="lab13">
         <div class="lab-header">
           <div class="lab-num">13</div>
@@ -1669,7 +1658,7 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
             <div class="lab-title-row">
               <span class="lab-difficulty diff-practitioner">Practitioner</span>
             </div>
-            <h2 class="lab-title">Blind SQLi — Triggering Time Delays</h2>
+            <h2 class="lab-title">Blind SQLi â€” Triggering Time Delays</h2>
             <div class="lab-goal">Goal: <span>Confirm a blind SQLi vulnerability by causing the database to sleep for 10 seconds using <code>pg_sleep()</code></span></div>
           </div>
         </div>
@@ -1679,21 +1668,21 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           When an application returns identical responses for true and false conditions <em>and</em> suppresses all database errors (showing a generic error page or silently failing), both boolean-based and error-based techniques fail. Time-based blind SQLi introduces a third oracle: response time.
         </p>
         <p>
-          By injecting a conditional sleep function, you force the database to pause for a known duration when a condition is true. If the HTTP response arrives 10 seconds later, the condition was true. If it arrives immediately, it was false. The injected query doesn't need to return data or produce an error — just delay.
+          By injecting a conditional sleep function, you force the database to pause for a known duration when a condition is true. If the HTTP response arrives 10 seconds later, the condition was true. If it arrives immediately, it was false. The injected query doesn't need to return data or produce an error â€” just delay.
         </p>
         <div class="vuln-query">
-          <span class="label">PostgreSQL — unconditional sleep</span>
+          <span class="label">PostgreSQL â€” unconditional sleep</span>
           <span class="injected">' || (SELECT pg_sleep(10))--</span>
           <br/>
-          <span class="normal" style="color:#f5a623">→ response delayed 10 seconds = injection confirmed</span>
+          <span class="normal" style="color:#f5a623">â†’ response delayed 10 seconds = injection confirmed</span>
         </div>
         <p>
-          This lab is just a confirmation step — you're verifying the injection point is viable before attempting full extraction in Lab 14. The <code>pg_sleep(10)</code> is PostgreSQL-specific. MSSQL uses <code>WAITFOR DELAY '0:0:10'</code>, MySQL uses <code>SLEEP(10)</code>, and Oracle uses <code>dbms_pipe.receive_message('a',10)</code>.
+          This lab is just a confirmation step â€” you're verifying the injection point is viable before attempting full extraction in Lab 14. The <code>pg_sleep(10)</code> is PostgreSQL-specific. MSSQL uses <code>WAITFOR DELAY '0:0:10'</code>, MySQL uses <code>SLEEP(10)</code>, and Oracle uses <code>dbms_pipe.receive_message('a',10)</code>.
         </p>
 
         <div class="callout danger">
-          <div class="callout-title">⚠️ Bug in the original script</div>
-          <p>There's a typo in the original proxies dict: <code>'http': 'http:127.0.0.1:8080'</code> — missing the <code>//</code>. Fix to <code>'http://127.0.0.1:8080'</code>. There's also a <code>pring()</code> typo in the usage message — should be <code>print()</code>. Neither crashes the core function but the proxy won't route correctly without the fix.</p>
+          <div class="callout-title">âš ï¸ Bug in the original script</div>
+          <p>There's a typo in the original proxies dict: <code>'http': 'http:127.0.0.1:8080'</code> â€” missing the <code>//</code>. Fix to <code>'http://127.0.0.1:8080'</code>. There's also a <code>pring()</code> typo in the usage message â€” should be <code>print()</code>. Neither crashes the core function but the proxy won't route correctly without the fix.</p>
         </div>
 
         <h3>The script</h3>
@@ -1746,7 +1735,7 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           <tr><th>line / concept</th><th>what it does and why</th></tr>
           <tr>
             <td>pg_sleep(10)</td>
-            <td>PostgreSQL function that suspends execution for 10 seconds. The <code>||</code> concatenation appends the sleep call to the tracking cookie's string context — PostgreSQL evaluates the entire expression including the subquery. The sleep happens before the response is sent.</td>
+            <td>PostgreSQL function that suspends execution for 10 seconds. The <code>||</code> concatenation appends the sleep call to the tracking cookie's string context â€” PostgreSQL evaluates the entire expression including the subquery. The sleep happens before the response is sent.</td>
           </tr>
           <tr>
             <td>r.elapsed.total_seconds()</td>
@@ -1754,22 +1743,22 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           </tr>
           <tr>
             <td>threshold > 10</td>
-            <td>The condition is slightly lenient — we expect exactly 10 seconds, but network jitter and processing overhead might push it to 10.2 seconds. A threshold of 9 is safe without false positives in normal conditions.</td>
+            <td>The condition is slightly lenient â€” we expect exactly 10 seconds, but network jitter and processing overhead might push it to 10.2 seconds. A threshold of 9 is safe without false positives in normal conditions.</td>
           </tr>
         </table>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this lab teaches</div>
-            <div class="takeaway-text">Time-based blind SQLi is the technique of last resort — it works even when nothing else does, because you're not relying on any application-level output. The tradeoff is speed: every true/false question requires a full sleep cycle. Extracting a 20-character password with a 10-second sleep per character takes over 3 minutes at best. Lab 14 shows the full extraction version.</div>
+            <div class="takeaway-text">Time-based blind SQLi is the technique of last resort â€” it works even when nothing else does, because you're not relying on any application-level output. The tradeoff is speed: every true/false question requires a full sleep cycle. Extracting a 20-character password with a 10-second sleep per character takes over 3 minutes at best. Lab 14 shows the full extraction version.</div>
           </div>
         </div>
       </div>
 
       <hr class="lab-divider" />
 
-      <!-- ═══════════════════ LAB 14 ═══════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LAB 14 â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       <div class="lab-section" id="lab14">
         <div class="lab-header">
           <div class="lab-num">14</div>
@@ -1777,32 +1766,32 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
             <div class="lab-title-row">
               <span class="lab-difficulty diff-practitioner">Practitioner</span>
             </div>
-            <h2 class="lab-title">Blind SQLi — Time-Delay Password Extraction</h2>
+            <h2 class="lab-title">Blind SQLi â€” Time-Delay Password Extraction</h2>
             <div class="lab-goal">Goal: <span>Combine conditional logic with <code>pg_sleep()</code> to extract the administrator password one character at a time via response timing</span></div>
           </div>
         </div>
 
         <h3>Combining conditional logic with sleep</h3>
         <p>
-          Lab 13 was just a proof-of-concept for the sleep technique. Lab 14 combines it with character extraction: the sleep only fires when the current character guess is correct. You iterate over each character position and every printable ASCII value, measure the response time for each guess — a 10-second delay means a hit, an instant response means a miss.
+          Lab 13 was just a proof-of-concept for the sleep technique. Lab 14 combines it with character extraction: the sleep only fires when the current character guess is correct. You iterate over each character position and every printable ASCII value, measure the response time for each guess â€” a 10-second delay means a hit, an instant response means a miss.
         </p>
         <p>
-          The payload uses PostgreSQL's <code>CASE WHEN ... THEN pg_sleep(10) ELSE pg_sleep(-1) END</code>. The <code>pg_sleep(-1)</code> for the false branch is intentional — it forces an immediate return (negative values are treated as 0) rather than relying on the CASE simply not sleeping.
+          The payload uses PostgreSQL's <code>CASE WHEN ... THEN pg_sleep(10) ELSE pg_sleep(-1) END</code>. The <code>pg_sleep(-1)</code> for the false branch is intentional â€” it forces an immediate return (negative values are treated as 0) rather than relying on the CASE simply not sleeping.
         </p>
         <div class="vuln-query">
           <span class="label">conditional sleep payload (PostgreSQL)</span>
           <span class="injected">' || (SELECT CASE WHEN (username='administrator' AND ascii(substring(password,1,1))='97') THEN pg_sleep(10) ELSE pg_sleep(-1) END FROM users)--</span>
           <br/>
-          <span class="normal" style="color:#f5a623">→ 10s delay = first char is 'a' (ASCII 97)</span>
+          <span class="normal" style="color:#f5a623">â†’ 10s delay = first char is 'a' (ASCII 97)</span>
           <br/>
-          <span class="normal" style="color:#5dffb2">→ instant response = not a match, try next ASCII value</span>
+          <span class="normal" style="color:#5dffb2">â†’ instant response = not a match, try next ASCII value</span>
         </div>
         <p>
-          This produces up to 1880 requests in the worst case (20 chars × 94 ASCII values). In practice it's faster because you break on the first match per position — and common password characters appear earlier in the ASCII range.
+          This produces up to 1880 requests in the worst case (20 chars Ã— 94 ASCII values). In practice it's faster because you break on the first match per position â€” and common password characters appear earlier in the ASCII range.
         </p>
 
         <div class="callout warning">
-          <div class="callout-title">⚠️ Time-based attacks are fragile</div>
+          <div class="callout-title">âš ï¸ Time-based attacks are fragile</div>
           <p>Network latency jitter can cause false positives or missed detections if the server is slow or the connection is unstable. For more reliable extraction, use a threshold slightly below the sleep value (e.g., threshold of 9 for a 10-second sleep). If you're behind a high-latency connection, increase the sleep duration to 15 or 20 seconds.</p>
         </div>
 
@@ -1863,84 +1852,68 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
           <tr><th>line / concept</th><th>what it does and why</th></tr>
           <tr>
             <td>CASE WHEN (...) THEN pg_sleep(10) ELSE pg_sleep(-1)</td>
-            <td>When the character guess is correct: sleep 10 seconds. When wrong: sleep -1 (effectively 0, instant). This is more explicit than the ELSE branch doing nothing — it ensures a clean binary timing signal with no ambiguity about whether the false branch might also delay.</td>
+            <td>When the character guess is correct: sleep 10 seconds. When wrong: sleep -1 (effectively 0, instant). This is more explicit than the ELSE branch doing nothing â€” it ensures a clean binary timing signal with no ambiguity about whether the false branch might also delay.</td>
           </tr>
           <tr>
             <td>Both conditions in WHEN clause</td>
-            <td><code>username='administrator' AND ascii(substring(password,i,1))='j'</code> — the username filter ensures we're reading from the right row. Without it, if multiple users exist with different passwords, the CASE might fire on any of them and produce garbage.</td>
+            <td><code>username='administrator' AND ascii(substring(password,i,1))='j'</code> â€” the username filter ensures we're reading from the right row. Without it, if multiple users exist with different passwords, the CASE might fire on any of them and produce garbage.</td>
           </tr>
           <tr>
             <td>elapsed.total_seconds() > 9</td>
-            <td>Threshold set to 9 (not 10) to account for minor network overhead. In practice, a genuine 10-second sleep will consistently show as 10.0–10.5s. The 1-second margin is enough to distinguish from normal fast responses (typically &lt;1s).</td>
+            <td>Threshold set to 9 (not 10) to account for minor network overhead. In practice, a genuine 10-second sleep will consistently show as 10.0â€“10.5s. The 1-second margin is enough to distinguish from normal fast responses (typically &lt;1s).</td>
           </tr>
           <tr>
             <td>Performance characteristics</td>
-            <td>Worst case: 20 positions × 94 ASCII values × 10 seconds = ~5.2 hours. In practice passwords use lowercase alphanumeric chars — the inner loop hits the correct character on average halfway through its range, and the sleep only fires on matches. Realistic runtime is 20–40 minutes for a 20-char password.</td>
+            <td>Worst case: 20 positions Ã— 94 ASCII values Ã— 10 seconds = ~5.2 hours. In practice passwords use lowercase alphanumeric chars â€” the inner loop hits the correct character on average halfway through its range, and the sleep only fires on matches. Realistic runtime is 20â€“40 minutes for a 20-char password.</td>
           </tr>
         </table>
 
         <div class="lab-takeaway">
-          <div class="takeaway-icon">🧠</div>
+          <div class="takeaway-icon">ðŸ§ </div>
           <div>
             <div class="takeaway-title">What this lab teaches</div>
-            <div class="takeaway-text">Time-based blind SQLi is the most complete technique because it works regardless of what the application does with query results or errors. The cost is time — it's inherently slow because you're waiting for real clock seconds as your information signal. For real engagements, automated tools with binary search optimization (sqlmap does this) can reduce the request count from ~1880 to ~140 per character using binary search on the ASCII value.</div>
+            <div class="takeaway-text">Time-based blind SQLi is the most complete technique because it works regardless of what the application does with query results or errors. The cost is time â€” it's inherently slow because you're waiting for real clock seconds as your information signal. For real engagements, automated tools with binary search optimization (sqlmap does this) can reduce the request count from ~1880 to ~140 per character using binary search on the ASCII value.</div>
           </div>
         </div>
       </div>
 
-      <!-- ═══════════════════ RECAP ═══════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• RECAP â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       <hr />
 
       <div id="recap">
-        <h3 style="font-family: var(--display); font-size: 1.4rem; font-weight: 700; margin-bottom: 1.25rem;">Series Recap — Labs 1–14</h3>
+        <h3 style="font-family: var(--display); font-size: 1.4rem; font-weight: 700; margin-bottom: 1.25rem;">Series Recap â€” Labs 1â€“14</h3>
         <p>Fourteen labs in, we've covered the full arc from trivial filter bypass to the most robust blind extraction technique. Here's the complete mental model in one view:</p>
         <div class="conclusion-grid">
           <div class="conclusion-card">
-            <div class="conclusion-card-title">Labs 1–2 — Break the query</div>
+            <div class="conclusion-card-title">Labs 1â€“2 â€” Break the query</div>
             <p>Single quote escapes string context. <code>OR 1=1--</code> bypasses filters. <code>administrator'--</code> bypasses auth. CSRF tokens don't help.</p>
           </div>
           <div class="conclusion-card">
-            <div class="conclusion-card-title">Labs 3–4 — UNION prep</div>
+            <div class="conclusion-card-title">Labs 3â€“4 â€” UNION prep</div>
             <p>ORDER BY probing for column count. NULL substitution to find the string-typed column. The required groundwork before any UNION exfil.</p>
           </div>
           <div class="conclusion-card">
-            <div class="conclusion-card-title">Labs 5–6 — UNION exfil</div>
+            <div class="conclusion-card-title">Labs 5â€“6 â€” UNION exfil</div>
             <p>Directly pull <code>username, password FROM users</code>. When only one string column is available, concatenate with <code>||</code> and split on a separator.</p>
           </div>
           <div class="conclusion-card">
-            <div class="conclusion-card-title">Labs 7–8 — Fingerprinting</div>
+            <div class="conclusion-card-title">Labs 7â€“8 â€” Fingerprinting</div>
             <p>Oracle uses <code>v$version</code> and needs <code>FROM dual</code>. MySQL/MSSQL use <code>@@version</code>. Know your DB type before writing payloads.</p>
           </div>
           <div class="conclusion-card">
-            <div class="conclusion-card-title">Labs 9–10 — Schema enumeration</div>
-            <p><code>information_schema</code> for non-Oracle. <code>all_tables</code> / <code>all_tab_columns</code> for Oracle. Tables → columns → data.</p>
+            <div class="conclusion-card-title">Labs 9â€“10 â€” Schema enumeration</div>
+            <p><code>information_schema</code> for non-Oracle. <code>all_tables</code> / <code>all_tab_columns</code> for Oracle. Tables â†’ columns â†’ data.</p>
           </div>
           <div class="conclusion-card">
-            <div class="conclusion-card-title">Labs 11–14 — Blind techniques</div>
+            <div class="conclusion-card-title">Labs 11â€“14 â€” Blind techniques</div>
             <p>Boolean (response text), error-based (HTTP 500), time-based (pg_sleep). Each works when the previous one fails. Time is the last resort but always works.</p>
           </div>
         </div>
 
         <div class="callout success">
-          <div class="callout-title">✅ Up next — Lab 15</div>
-          <p>The next lab moves into out-of-band SQLi — exfiltrating data via DNS lookups rather than HTTP responses or timing. Requires <code>xxe_sleep</code>-style payloads and a collaborator listener, representing a different class of exfiltration entirely.</p>
+          <div class="callout-title">âœ… Up next â€” Lab 15</div>
+          <p>The next lab moves into out-of-band SQLi â€” exfiltrating data via DNS lookups rather than HTTP responses or timing. Requires <code>xxe_sleep</code>-style payloads and a collaborator listener, representing a different class of exfiltration entirely.</p>
         </div>
       </div>
 
     </article>
-
-    <div class="post-footer">
-      <a href="../blog.html" class="btn">← Back to blog</a>
-      <a href="sql-injection.html" class="btn btn-accent">SQLi Overview →</a>
-    </div>
-
-  </div>
-
-  <footer>
-    <span>© 2025 Vali Hakuryuko</span>
-    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ back to top</span>
-  </footer>
-
-  <script src="../script.js"></script>
-</body>
-</html>
