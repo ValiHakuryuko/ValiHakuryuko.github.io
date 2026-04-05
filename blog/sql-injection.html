@@ -8,47 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../post.css" />
   <style>
-    :root {
-      --bg: #0b0b0d; --surface: #111114; --surface2: #18181c; --border: #222228;
-      --text: #f0ede6; --text2: #8a8794; --text3: #5a5768;
-      --accent: #5dffb2; --accent-dim: #0e2b1f;
-      --mono: 'JetBrains Mono', monospace; --sans: 'Outfit', sans-serif; --display: 'Syne', sans-serif;
-      --radius: 8px; --transition: 0.2s ease;
-    }
-    [data-theme="light"] { --bg: #f5f3ef; --surface: #ffffff; --surface2: #eeece8; --border: #ddd9d0; --text: #18161a; --text2: #6b6878; --text3: #aaa8b5; --accent-dim: #d4fce8; }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body { background: var(--bg); color: var(--text); font-family: var(--sans); font-weight: 400; line-height: 1.6; transition: background var(--transition), color var(--transition); }
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    nav { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; backdrop-filter: blur(12px); }
-    .nav-logo { font-family: var(--mono); font-size: 0.85rem; color: var(--accent); text-decoration: none; }
-    .nav-logo span { color: var(--text2); }
-    .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
-    .nav-links a { font-size: 0.875rem; font-weight: 500; color: var(--text2); transition: color var(--transition); text-decoration: none; }
-    .nav-links a:hover { color: var(--text); }
-    .theme-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); cursor: pointer; font-family: var(--mono); font-size: 0.75rem; padding: 0.35rem 0.75rem; border-radius: var(--radius); transition: all var(--transition); }
-    .theme-btn:hover { color: var(--text); border-color: var(--accent); }
-    .layout { display: grid; grid-template-columns: 1fr min(740px, 100%) 1fr; padding: 0 2rem; }
-    .layout > * { grid-column: 2; }
-    .post-header { padding: 4rem 0 3rem; border-bottom: 1px solid var(--border); margin-bottom: 3rem; }
-    .post-breadcrumb { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); margin-bottom: 1.5rem; }
-    .post-breadcrumb a { color: var(--accent); text-decoration: none; }
-    .post-breadcrumb a:hover { text-decoration: underline; }
-    .post-meta-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
-    .post-date { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); }
-    .post-tag { font-family: var(--mono); font-size: 0.65rem; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent); padding: 0.15rem 0.5rem; border-radius: 100px; }
-    .post-read-time { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); }
-    h1.post-title { font-family: var(--display); font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1.25rem; }
-    .post-subtitle { font-size: 1.1rem; color: var(--text2); font-weight: 300; line-height: 1.65; }
-    .toc { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; padding: 1.5rem; margin-bottom: 3rem; }
-    .toc-title { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
-    .toc ol { padding-left: 1.25rem; }
-    .toc li { margin-bottom: 0.4rem; }
-    .toc a { font-size: 0.875rem; color: var(--text2); text-decoration: none; transition: color var(--transition); }
-    .toc a:hover { color: var(--accent); }
-    article { margin-bottom: 4rem; }
     article h2 { font-family: var(--display); font-size: 1.45rem; font-weight: 700; margin: 3rem 0 1rem; letter-spacing: -0.02em; padding-top: 1rem; border-top: 1px solid var(--border); }
     article h2:first-child { border-top: none; margin-top: 0; }
     article h3 { font-family: var(--display); font-size: 1.05rem; font-weight: 600; margin: 1.75rem 0 0.6rem; color: var(--text); }
@@ -84,25 +46,12 @@
     .tool-pill { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; text-align: center; }
     .tool-pill-name { font-family: var(--mono); font-size: 0.72rem; color: var(--accent); margin-bottom: 0.3rem; }
     .tool-pill p { font-size: 0.8rem; color: var(--text2); margin: 0; }
-    hr { border: none; border-top: 1px solid var(--border); margin: 3rem 0; }
-    .post-footer { padding: 3rem 0; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
-    .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.65rem 1.25rem; border-radius: var(--radius); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all var(--transition); border: 1px solid var(--border); color: var(--text2); text-decoration: none; }
-    .btn:hover { border-color: var(--text2); color: var(--text); text-decoration: none; }
-    .btn-accent { border-color: var(--accent); color: var(--accent); }
-    .btn-accent:hover { background: var(--accent-dim); }
-    footer { border-top: 1px solid var(--border); padding: 2rem 6vw; display: flex; justify-content: space-between; align-items: center; font-family: var(--mono); font-size: 0.75rem; color: var(--text3); }
-    .footer-back { cursor: pointer; transition: color var(--transition); }
-    .footer-back:hover { color: var(--accent); }
     @media (max-width: 768px) {
-      nav { padding: 0 1.5rem; } .nav-links { display: none; }
-      .layout { grid-template-columns: 1fr; padding: 0 1.5rem; }
       .sqli-types, .tools-row { grid-template-columns: 1fr; }
-      .post-footer { flex-direction: column; align-items: flex-start; }
-      footer { flex-direction: column; gap: 1rem; text-align: center; }
     }
   </style>
 </head>
-<body>
+<body class="post-page">
   <nav>
     <a href="../index.html" class="nav-logo"><span>~/</span>Vali</a>
     <ul class="nav-links">
@@ -304,14 +253,6 @@ sqlmap -r request.txt --level=3 --risk=2</code></pre>
     <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ back to top</span>
   </footer>
 
-  <script>
-    const root = document.documentElement;
-    root.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');
-    function toggleTheme() {
-      const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      root.setAttribute('data-theme', next);
-      localStorage.setItem('theme', next);
-    }
-  </script>
+  <script src="../script.js"></script>
 </body>
 </html>

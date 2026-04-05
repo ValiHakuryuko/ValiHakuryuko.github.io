@@ -8,82 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="site.css" />
+  <link rel="stylesheet" href="style.css" />
   <style>
-    :root {
-      --bg: #0b0b0d;
-      --surface: #111114;
-      --surface2: #18181c;
-      --border: #222228;
-      --text: #f0ede6;
-      --text2: #8a8794;
-      --text3: #5a5768;
-      --accent: #5dffb2;
-      --accent-dim: #0e2b1f;
-      --mono: 'JetBrains Mono', monospace;
-      --sans: 'Outfit', sans-serif;
-      --display: 'Syne', sans-serif;
-      --radius: 8px;
-      --transition: 0.2s ease;
-    }
-    [data-theme="light"] {
-      --bg: #f5f3ef;
-      --surface: #ffffff;
-      --surface2: #eeece8;
-      --border: #ddd9d0;
-      --text: #18161a;
-      --text2: #6b6878;
-      --text3: #aaa8b5;
-      --accent-dim: #d4fce8;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      font-weight: 400;
-      line-height: 1.6;
-      transition: background var(--transition), color var(--transition);
-    }
-    a { color: inherit; text-decoration: none; }
-
-    /* NAV */
-    nav {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: var(--bg);
-      border-bottom: 1px solid var(--border);
-      padding: 0 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 60px;
-      backdrop-filter: blur(12px);
-    }
-    .nav-logo {
-      font-family: var(--mono);
-      font-size: 0.85rem;
-      color: var(--accent);
-      letter-spacing: 0.05em;
-    }
-    .nav-logo span { color: var(--text2); }
-    .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
-    .nav-links a { font-size: 0.875rem; font-weight: 500; color: var(--text2); transition: color var(--transition); }
-    .nav-links a:hover, .nav-links a.active { color: var(--text); }
-    .theme-btn {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text2);
-      cursor: pointer;
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      padding: 0.35rem 0.75rem;
-      border-radius: var(--radius);
-      transition: all var(--transition);
-    }
-    .theme-btn:hover { color: var(--text); border-color: var(--accent); }
-
     /* PAGE HEADER */
     .page-header {
       padding: 4rem 6vw 3rem;
@@ -186,99 +113,23 @@
     }
 
     /* Regular post cards */
-    .posts-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 1.25rem;
-    }
-    .post-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.75rem;
-      transition: border-color var(--transition), transform var(--transition);
-      display: flex;
-      flex-direction: column;
-    }
-    .post-card:hover { border-color: var(--accent); transform: translateY(-2px); }
     .post-meta {
       display: flex;
       align-items: center;
       gap: 0.75rem;
       margin-bottom: 1rem;
     }
-    .post-date {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      color: var(--text3);
-    }
-    .post-tag {
-      font-family: var(--mono);
-      font-size: 0.65rem;
-      color: var(--accent);
-      background: var(--accent-dim);
-      border: 1px solid var(--accent);
-      padding: 0.15rem 0.5rem;
-      border-radius: 100px;
-    }
-    .post-title {
-      font-family: var(--display);
-      font-size: 1.15rem;
-      font-weight: 700;
-      line-height: 1.3;
-      margin-bottom: 0.75rem;
-      transition: color var(--transition);
-    }
     .post-featured .post-title { font-size: 1.5rem; }
-    .post-card:hover .post-title,
     .post-featured:hover .post-title { color: var(--accent); }
-    .post-excerpt {
-      font-size: 0.875rem;
-      color: var(--text2);
-      line-height: 1.65;
-      flex: 1;
-      margin-bottom: 1.25rem;
-    }
-    .post-read-more {
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      color: var(--accent);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-    .post-read-more::after { content: '→'; transition: transform var(--transition); }
-    .post-card:hover .post-read-more::after,
     .post-featured:hover .post-read-more::after { transform: translateX(3px); }
 
-    /* FOOTER */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 2rem 6vw;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      color: var(--text3);
-    }
-    .footer-back { cursor: pointer; transition: color var(--transition); }
-    .footer-back:hover { color: var(--accent); }
-
-    /* FADE IN */
-    .fade-in { opacity: 0; transform: translateY(16px); transition: opacity 0.45s ease, transform 0.45s ease; }
-    .fade-in.visible { opacity: 1; transform: none; }
-
     @media (max-width: 768px) {
-      nav { padding: 0 1.5rem; }
-      .nav-links { display: none; }
       .page-header, .filters, main { padding-left: 1.5rem; padding-right: 1.5rem; }
       .post-featured { grid-template-columns: 1fr; }
-      footer { flex-direction: column; gap: 1rem; text-align: center; }
     }
   </style>
 </head>
-<body>
+<body class="site-page archive-page">
 
   <nav>
     <a href="index.html" class="nav-logo"><span>~/</span>Vali</a>
@@ -296,13 +147,21 @@
     <p class="page-desc">Write-ups, techniques, and notes from the trenches of web pentesting and CTF challenges.</p>
   </div>
 
+  <div class="blog-toolbar fade-in">
+    <label class="blog-search" for="post-search">
+      <span class="blog-search-label">Search the archive</span>
+      <input id="post-search" type="search" placeholder="Search write-ups, labs, tools, and topics" autocomplete="off" />
+    </label>
+    <p class="blog-search-note">Use <code>/</code> to focus search. Filters and search work together.</p>
+  </div>
+
   <div class="filters">
-    <button class="filter-btn active" onclick="filterPosts('all', this)">All Posts</button>
-    <button class="filter-btn" onclick="filterPosts('web', this)">Web</button>
-    <button class="filter-btn" onclick="filterPosts('linux', this)">Linux</button>
-    <button class="filter-btn" onclick="filterPosts('burp-suite', this)">Burp Suite</button>
-    <button class="filter-btn" onclick="filterPosts('tools', this)">Tools</button>
-    <button class="filter-btn" onclick="filterPosts('port-swigger', this)">Port Swigger</button>
+    <button class="filter-btn active" data-filter="all" onclick="filterPosts('all', this)">All Posts</button>
+    <button class="filter-btn" data-filter="web" onclick="filterPosts('web', this)">Web</button>
+    <button class="filter-btn" data-filter="linux" onclick="filterPosts('linux', this)">Linux</button>
+    <button class="filter-btn" data-filter="burp-suite" onclick="filterPosts('burp-suite', this)">Burp Suite</button>
+    <button class="filter-btn" data-filter="tools" onclick="filterPosts('tools', this)">Tools</button>
+    <button class="filter-btn" data-filter="port-swigger" onclick="filterPosts('port-swigger', this)">Port Swigger</button>
   </div>
 
   <main>
@@ -377,6 +236,11 @@
         <span class="post-read-more">read post</span>
       </a>
     </div>
+
+    <div class="posts-empty" id="posts-empty" hidden>
+      <div class="posts-empty-title">No posts match that search yet.</div>
+      <p>Try a broader keyword or switch back to the full archive.</p>
+    </div>
   </main>
 
   <footer>
@@ -384,37 +248,6 @@
     <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ back to top</span>
   </footer>
 
-  <script>
-    const root = document.documentElement;
-    const saved = localStorage.getItem('theme') || 'dark';
-    root.setAttribute('data-theme', saved);
-    function toggleTheme() {
-      const current = root.getAttribute('data-theme');
-      const next = current === 'dark' ? 'light' : 'dark';
-      root.setAttribute('data-theme', next);
-      localStorage.setItem('theme', next);
-    }
-
-    // Intersection observer
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-    }, { threshold: 0.08 });
-    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
-
-    // Filter
-    function filterPosts(tag, btn) {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const allCards = document.querySelectorAll('.post-card, .post-featured');
-      let count = 0;
-      allCards.forEach(card => {
-        const tags = card.getAttribute('data-tags') || '';
-        const show = tag === 'all' || tags.includes(tag);
-        card.style.display = show ? '' : 'none';
-        if (show) count++;
-      });
-      document.getElementById('posts-count').textContent = count + (count === 1 ? ' post' : ' posts');
-    }
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
