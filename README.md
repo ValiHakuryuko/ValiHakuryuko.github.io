@@ -4,9 +4,7 @@ The good stuff can be found [here](https://valihakuryuko.github.io/)
 
 ## Local development
 
-This site now uses a Jekyll content flow for posts and archive listings.
+This site is a plain static HTML, CSS, and JavaScript website.
 
-1. Install Ruby and Bundler.
-2. Run `bundle install`.
-3. Start the local server with `bundle exec jekyll serve`.
-4. Open `http://127.0.0.1:4000/`.
+1. Run `python -m http.server 8000`.
+2. Open `http://127.0.0.1:8000/`.

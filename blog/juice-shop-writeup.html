@@ -1,42 +1,62 @@
----
-layout: post
-article: true
-slug: juice-shop-writeup
-title: "OWASP Juice Shop CTF Write-Up"
-display_title: "OWASP Juice Shop<br>CTF Write-Up"
-card_title: "OWASP Juice Shop Write-Up"
-description: "A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target."
-excerpt: "A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target."
-post_subtitle: "A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target."
-summary: "A challenge-driven walkthrough of Juice Shop findings, from discovery and DOM XSS to coupon leaks and SQL injection login bypasses."
-target_lab: "OWASP Juice Shop in Docker"
-tools_used:
-  - "Burp Suite"
-  - "Browser DevTools"
-  - "DOM payloads"
-  - "SQLite-focused SQLi"
-takeaways:
-  - "Treat Juice Shop like a real application and let discovery guide the path."
-  - "Client-side flaws, business logic issues, and SQLi all appear in one realistic target."
-  - "Documenting the reasoning behind each solved challenge is as useful as the payload itself."
-date: 2026-04-03
-read_time: "~20 min read"
-permalink: /blog/juice-shop-writeup.html
-tags:
-  - label: "Web"
-  - label: "XSS"
-    tone: red
-  - label: "SQLi"
-    tone: orange
-  - label: "OWASP"
-    tone: blue
-  - label: "CTF"
-    tone: purple
-listing_tags:
-  - "Web"
-  - "Burp Suite"
----
-<style>
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OWASP Juice Shop CTF Write-Up - Vali Hakuryuko</title>
+  <meta name="description" content="A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target." />
+  <meta property="og:title" content="OWASP Juice Shop CTF Write-Up - Vali Hakuryuko" />
+  <meta property="og:description" content="A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target." />
+  <meta property="og:type" content="article" />
+  <meta property="og:image" content="/image/profile.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/post.css" />
+</head>
+<body class="post-page">
+  <nav>
+    <a href="/index.html" class="nav-logo"><span>~/</span>Vali</a>
+    <ul class="nav-links">
+      <li><a href="/index.html#about">About</a></li>
+      <li><a href="/blog.html">Blog</a></li>
+      <li><a href="/index.html#contact">Contact</a></li>
+    </ul>
+    <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
+  </nav>
+  <div class="layout">
+    <header class="post-header">
+      <div class="post-breadcrumb"><a href="/index.html">~</a> / <a href="/blog.html">blog</a> / juice-shop-writeup</div>
+      <div class="post-meta-row">
+        <span class="post-date">2026-04-03</span>
+        <a href="/blog.html?tag=web" class="post-tag-link" aria-label="Browse Web posts"><span class="post-tag">Web</span></a><a href="/blog.html?tag=xss" class="post-tag-link" aria-label="Browse XSS posts"><span class="post-tag red">XSS</span></a><a href="/blog.html?tag=sqli" class="post-tag-link" aria-label="Browse SQLi posts"><span class="post-tag orange">SQLi</span></a><a href="/blog.html?tag=owasp" class="post-tag-link" aria-label="Browse OWASP posts"><span class="post-tag blue">OWASP</span></a><a href="/blog.html?tag=ctf" class="post-tag-link" aria-label="Browse CTF posts"><span class="post-tag purple">CTF</span></a>
+        <span class="post-read-time">~20 min read</span>
+      </div>
+      <h1 class="post-title">OWASP Juice Shop<br>CTF Write-Up</h1>
+      <p class="post-subtitle">A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target.</p>
+    </header>
+    <section class="article-brief" aria-label="Article overview">
+  <div class="article-brief-grid">
+    <div class="article-brief-block">
+      <span class="article-brief-label">What This Covers</span>
+      <p>A challenge-driven walkthrough of Juice Shop findings, from discovery and DOM XSS to coupon leaks and SQL injection login bypasses.</p>
+    </div>
+    <div class="article-brief-block">
+      <span class="article-brief-label">Target / Lab</span>
+      <p>OWASP Juice Shop in Docker</p>
+    </div>
+    <div class="article-brief-block">
+      <span class="article-brief-label">Tools Used</span>
+      <div class="article-tools"><span class="article-tool">Burp Suite</span><span class="article-tool">Browser DevTools</span><span class="article-tool">DOM payloads</span><span class="article-tool">SQLite-focused SQLi</span></div>
+    </div>
+    <div class="article-brief-block article-brief-wide">
+      <span class="article-brief-label">Key Takeaways</span>
+      <ul class="article-takeaways"><li>Treat Juice Shop like a real application and let discovery guide the path.</li><li>Client-side flaws, business logic issues, and SQLi all appear in one realistic target.</li><li>Documenting the reasoning behind each solved challenge is as useful as the payload itself.</li></ul>
+    </div>
+  </div>
+</section>
+    <style>
     :root {
       --post-width: 800px;
       --post-subtitle-size: 1.05rem;
@@ -718,3 +738,64 @@ listing_tags:
       </div>
 
     </article>
+
+    <section class="post-navigation" aria-labelledby="post-navigation-title">
+      <div class="post-section-head">
+        <div>
+          <span class="post-section-label">Continue reading</span>
+          <h2 id="post-navigation-title" class="post-section-title">Move through the archive</h2>
+        </div>
+        <a href="/blog.html" class="btn">Browse all posts</a>
+      </div>
+      <div class="post-nav-grid"><a href="/blog/sqli-labs.html" class="post-nav-card">
+  <span class="post-nav-label">Older post</span>
+  <strong class="post-nav-title">PortSwigger SQLi Labs Write-Up</strong>
+  <span class="post-nav-meta">2026-04-02 . ~45 min read</span>
+</a></div>
+    </section>
+    <section class="post-related" aria-labelledby="related-posts-title">
+      <div class="post-section-head">
+        <div>
+          <span class="post-section-label">Keep exploring</span>
+          <h2 id="related-posts-title" class="post-section-title">Related posts</h2>
+        </div>
+        <p class="post-section-copy">Posts that overlap with the same tools, techniques, or target areas.</p>
+      </div>
+      <div class="related-posts-grid"><a href="/blog/sqli-labs.html" class="related-post-card">
+  <div class="related-post-meta">
+    <span class="post-date">2026-04-02</span>
+    <span class="post-tag">Web</span><span class="post-tag">Port Swigger</span>
+  </div>
+  <h3 class="related-post-title">PortSwigger SQLi Labs Write-Up</h3>
+  <p class="related-post-excerpt">A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step.</p>
+  <span class="related-post-read">Read article</span>
+</a><a href="/blog/burp-suite-basics.html" class="related-post-card">
+  <div class="related-post-meta">
+    <span class="post-date">2025-07-23</span>
+    <span class="post-tag">Burp Suite</span>
+  </div>
+  <h3 class="related-post-title">Getting Started with Burp Suite</h3>
+  <p class="related-post-excerpt">A practical introduction to Burp Suite&#x27;s core tools, showing how Proxy, Repeater, Intruder, and Scanner fit into a modern web testing workflow.</p>
+  <span class="related-post-read">Read article</span>
+</a><a href="/blog/sql-injection.html" class="related-post-card">
+  <div class="related-post-meta">
+    <span class="post-date">2025-06-15</span>
+    <span class="post-tag">Web</span>
+  </div>
+  <h3 class="related-post-title">Understanding SQL Injection</h3>
+  <p class="related-post-excerpt">A technical overview of SQL injection testing, covering union-based, blind, and time-based techniques with a methodical assessment mindset.</p>
+  <span class="related-post-read">Read article</span>
+</a></div>
+    </section>
+    <div class="post-footer">
+      <a href="/blog.html" class="btn">&larr; Back to blog</a>
+      <span class="post-footer-note">Use the topic tags above to jump into the matching archive filter.</span>
+    </div>
+  </div>
+  <footer>
+    <span>(c) 2026 Vali Hakuryuko</span>
+    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">^ back to top</span>
+  </footer>
+  <script src="/script.js"></script>
+</body>
+</html>

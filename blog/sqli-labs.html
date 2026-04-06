@@ -1,35 +1,62 @@
----
-layout: post
-article: true
-slug: sqli-labs
-title: "PortSwigger SQLi Labs 1-14 Write-Up & Exploit Scripts"
-display_title: "PortSwigger SQLi Labs 1-14<br>Write-Up &amp; Exploit Scripts"
-card_title: "PortSwigger SQLi Labs Write-Up"
-description: "A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step."
-excerpt: "A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step."
-post_subtitle: "A structured walkthrough of the first 14 PortSwigger SQL injection labs, combining manual exploitation, Python scripting, and explanations of why each payload works."
-summary: "A lab-by-lab breakdown of the first 14 PortSwigger SQL injection exercises, including payload logic, manual validation, and Python automation."
-target_lab: "PortSwigger Web Security Academy SQL injection track"
-tools_used:
-  - "Burp Suite"
-  - "Repeater"
-  - "Python"
-  - "Manual SQLi payloads"
-takeaways:
-  - "Validate each injection manually before automating extraction."
-  - "Match the payload style to the database behavior and response clues you observe."
-  - "Use scripts to scale confirmed techniques, not to replace understanding."
-date: 2026-04-02
-read_time: "~45 min read"
-permalink: /blog/sqli-labs.html
-tags:
-  - "Web"
-  - "Port Swigger"
-listing_tags:
-  - "Web"
-  - "Port Swigger"
----
-<style>
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PortSwigger SQLi Labs 1-14 Write-Up &amp; Exploit Scripts - Vali Hakuryuko</title>
+  <meta name="description" content="A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step." />
+  <meta property="og:title" content="PortSwigger SQLi Labs 1-14 Write-Up &amp; Exploit Scripts - Vali Hakuryuko" />
+  <meta property="og:description" content="A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step." />
+  <meta property="og:type" content="article" />
+  <meta property="og:image" content="/image/profile.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/post.css" />
+</head>
+<body class="post-page">
+  <nav>
+    <a href="/index.html" class="nav-logo"><span>~/</span>Vali</a>
+    <ul class="nav-links">
+      <li><a href="/index.html#about">About</a></li>
+      <li><a href="/blog.html">Blog</a></li>
+      <li><a href="/index.html#contact">Contact</a></li>
+    </ul>
+    <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
+  </nav>
+  <div class="layout">
+    <header class="post-header">
+      <div class="post-breadcrumb"><a href="/index.html">~</a> / <a href="/blog.html">blog</a> / sqli-labs</div>
+      <div class="post-meta-row">
+        <span class="post-date">2026-04-02</span>
+        <a href="/blog.html?tag=web" class="post-tag-link" aria-label="Browse Web posts"><span class="post-tag">Web</span></a><a href="/blog.html?tag=port-swigger" class="post-tag-link" aria-label="Browse Port Swigger posts"><span class="post-tag">Port Swigger</span></a>
+        <span class="post-read-time">~45 min read</span>
+      </div>
+      <h1 class="post-title">PortSwigger SQLi Labs 1-14<br>Write-Up &amp; Exploit Scripts</h1>
+      <p class="post-subtitle">A structured walkthrough of the first 14 PortSwigger SQL injection labs, combining manual exploitation, Python scripting, and explanations of why each payload works.</p>
+    </header>
+    <section class="article-brief" aria-label="Article overview">
+  <div class="article-brief-grid">
+    <div class="article-brief-block">
+      <span class="article-brief-label">What This Covers</span>
+      <p>A lab-by-lab breakdown of the first 14 PortSwigger SQL injection exercises, including payload logic, manual validation, and Python automation.</p>
+    </div>
+    <div class="article-brief-block">
+      <span class="article-brief-label">Target / Lab</span>
+      <p>PortSwigger Web Security Academy SQL injection track</p>
+    </div>
+    <div class="article-brief-block">
+      <span class="article-brief-label">Tools Used</span>
+      <div class="article-tools"><span class="article-tool">Burp Suite</span><span class="article-tool">Repeater</span><span class="article-tool">Python</span><span class="article-tool">Manual SQLi payloads</span></div>
+    </div>
+    <div class="article-brief-block article-brief-wide">
+      <span class="article-brief-label">Key Takeaways</span>
+      <ul class="article-takeaways"><li>Validate each injection manually before automating extraction.</li><li>Match the payload style to the database behavior and response clues you observe.</li><li>Use scripts to scale confirmed techniques, not to replace understanding.</li></ul>
+    </div>
+  </div>
+</section>
+    <style>
     :root {
       --post-width: 780px;
       --post-subtitle-size: 1.05rem;
@@ -1917,3 +1944,68 @@ proxies <span class="op">=</span> {<span class="str">'http'</span>: <span class=
       </div>
 
     </article>
+
+    <section class="post-navigation" aria-labelledby="post-navigation-title">
+      <div class="post-section-head">
+        <div>
+          <span class="post-section-label">Continue reading</span>
+          <h2 id="post-navigation-title" class="post-section-title">Move through the archive</h2>
+        </div>
+        <a href="/blog.html" class="btn">Browse all posts</a>
+      </div>
+      <div class="post-nav-grid"><a href="/blog/juice-shop-writeup.html" class="post-nav-card">
+  <span class="post-nav-label">Newer post</span>
+  <strong class="post-nav-title">OWASP Juice Shop Write-Up</strong>
+  <span class="post-nav-meta">2026-04-03 . ~20 min read</span>
+</a><a href="/blog/Linux-Privilege-Escalation.html" class="post-nav-card">
+  <span class="post-nav-label">Older post</span>
+  <strong class="post-nav-title">Understanding Linux Privilege Escalation</strong>
+  <span class="post-nav-meta">2025-07-30 . ~8 min read</span>
+</a></div>
+    </section>
+    <section class="post-related" aria-labelledby="related-posts-title">
+      <div class="post-section-head">
+        <div>
+          <span class="post-section-label">Keep exploring</span>
+          <h2 id="related-posts-title" class="post-section-title">Related posts</h2>
+        </div>
+        <p class="post-section-copy">Posts that overlap with the same tools, techniques, or target areas.</p>
+      </div>
+      <div class="related-posts-grid"><a href="/blog/juice-shop-writeup.html" class="related-post-card">
+  <div class="related-post-meta">
+    <span class="post-date">2026-04-03</span>
+    <span class="post-tag">Web</span><span class="post-tag">Burp Suite</span>
+  </div>
+  <h3 class="related-post-title">OWASP Juice Shop Write-Up</h3>
+  <p class="related-post-excerpt">A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target.</p>
+  <span class="related-post-read">Read article</span>
+</a><a href="/blog/burp-suite-basics.html" class="related-post-card">
+  <div class="related-post-meta">
+    <span class="post-date">2025-07-23</span>
+    <span class="post-tag">Burp Suite</span>
+  </div>
+  <h3 class="related-post-title">Getting Started with Burp Suite</h3>
+  <p class="related-post-excerpt">A practical introduction to Burp Suite&#x27;s core tools, showing how Proxy, Repeater, Intruder, and Scanner fit into a modern web testing workflow.</p>
+  <span class="related-post-read">Read article</span>
+</a><a href="/blog/sql-injection.html" class="related-post-card">
+  <div class="related-post-meta">
+    <span class="post-date">2025-06-15</span>
+    <span class="post-tag">Web</span>
+  </div>
+  <h3 class="related-post-title">Understanding SQL Injection</h3>
+  <p class="related-post-excerpt">A technical overview of SQL injection testing, covering union-based, blind, and time-based techniques with a methodical assessment mindset.</p>
+  <span class="related-post-read">Read article</span>
+</a></div>
+    </section>
+    <div class="post-footer">
+      <a href="/blog.html" class="btn">&larr; Back to blog</a>
+      <span class="post-footer-note">Use the topic tags above to jump into the matching archive filter.</span>
+    </div>
+  </div>
+  <footer>
+    <span>(c) 2026 Vali Hakuryuko</span>
+    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">^ back to top</span>
+  </footer>
+  <script src="/script.js"></script>
+</body>
+</html>

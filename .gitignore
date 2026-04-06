@@ -1,8 +1,3 @@
 preview-server*.log
 preview-server*.pid
 __preview_build/
-_site/
-.jekyll-cache/
-.sass-cache/
-.bundle/
-vendor/bundle/
