@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frankenstein NAS Build - Vali Hakuryuko</title>
+  <meta name="description" content="A zero-cost home NAS build using an old ISP router, a powered 1TB drive, SMB, and a lot of compatibility troubleshooting across Windows 11 and iPhone." />
+  <meta property="og:title" content="Frankenstein NAS Build - Vali Hakuryuko" />
+  <meta property="og:description" content="Turning an old router and a stray hard drive into a working home NAS, including Windows 11 fixes, iPhone access, storage quirks, and the limits of a LAN-only build." />
+  <meta property="og:type" content="article" />
+  <meta property="og:image" content="/image/profile.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/post.css" />
+</head>
+<body class="post-page">
+  <nav>
+    <a href="/index.html" class="nav-logo"><span>~/</span>Vali</a>
+    <ul class="nav-links">
+      <li><a href="/index.html#about">About</a></li>
+      <li><a href="/blog.html">Blog</a></li>
+      <li><a href="/index.html#contact">Contact</a></li>
+    </ul>
+    <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
+  </nav>
+  <div class="layout">
+    <header class="post-header">
+      <div class="post-breadcrumb"><a href="/index.html">~</a> / <a href="/blog.html">blog</a> / nas-frankenstein-build</div>
+      <div class="post-meta-row">
+        <span class="post-date">2026-04-18</span>
+        <a href="/blog.html?tag=homelab" class="post-tag-link" aria-label="Browse Home Lab posts"><span class="post-tag blue">Home Lab</span></a><a href="/blog.html?tag=tools" class="post-tag-link" aria-label="Browse Tools posts"><span class="post-tag">Tools</span></a><a href="/blog.html?tag=networking" class="post-tag-link" aria-label="Browse Networking posts"><span class="post-tag orange">Networking</span></a>
+        <span class="post-read-time">~12 min read</span>
+      </div>
+      <h1 class="post-title">Frankenstein NAS Build<br>from an Old Router + 1TB Drive</h1>
+      <p class="post-subtitle">A zero-cost home NAS built from spare parts: an old ISP router, a powered hard-drive enclosure, Windows 11 workarounds, iPhone SMB access, and a lot of compatibility debugging.</p>
+    </header>
+
+    <section class="article-brief" aria-label="Article overview">
+      <div class="article-brief-grid">
+        <div class="article-brief-block">
+          <span class="article-brief-label">What This Covers</span>
+          <p>How I turned discarded hardware into a working LAN-only file server and what broke along the way: SMB compatibility, partition issues, stale permissions, and mobile access.</p>
+        </div>
+        <div class="article-brief-block">
+          <span class="article-brief-label">Target / Build</span>
+          <p>Old ISP router + powered 1TB HDD enclosure + Windows 11 desktop + iPhone Files app</p>
+        </div>
+        <div class="article-brief-block">
+          <span class="article-brief-label">Tools Used</span>
+          <div class="article-tools"><span class="article-tool">Router Web UI</span><span class="article-tool">Windows Disk Management</span><span class="article-tool">SMB</span><span class="article-tool">iOS Files</span></div>
+        </div>
+        <div class="article-brief-block article-brief-wide">
+          <span class="article-brief-label">Key Takeaways</span>
+          <ul class="article-takeaways"><li>Old hardware can still be useful if you understand the compatibility ceiling.</li><li>Most of the work was not hardware assembly, but debugging protocol, partition, and permission mismatches.</li><li>A DIY NAS is not just storage; it is a systems-integration problem across hardware, filesystems, auth, and client behavior.</li></ul>
+        </div>
+      </div>
+    </section>
+
+    <style>
+    :root {
+      --post-width: 800px;
+      --post-subtitle-size: 1.05rem;
+    }
+
+    .build-strip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.35rem 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      align-items: center;
+    }
+    .build-stat { display: flex; flex-direction: column; gap: 0.2rem; }
+    .build-label { font-family: var(--mono); font-size: 0.65rem; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; }
+    .build-value { font-family: var(--display); font-size: 1.35rem; font-weight: 800; color: var(--accent); }
+    .build-divider { width: 1px; height: 36px; background: var(--border); }
+
+    .resource-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      margin: 0 0 2.5rem;
+    }
+    .resource-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text2);
+      transition: border-color var(--transition), transform var(--transition), color var(--transition);
+    }
+    .resource-link:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .toc-note {
+      margin-bottom: 1.2rem;
+      color: var(--text3);
+      font-size: 0.92rem;
+    }
+
+    article h2 { font-family: var(--display); font-size: 1.45rem; font-weight: 700; margin: 3rem 0 1rem; letter-spacing: -0.02em; padding-top: 1rem; border-top: 1px solid var(--border); }
+    article h2:first-child { border-top: none; margin-top: 0; }
+    article h3 { font-family: var(--display); font-size: 1.05rem; font-weight: 700; margin: 1.8rem 0 0.7rem; color: var(--text); }
+    article p { color: var(--text2); font-size: 1rem; line-height: 1.85; margin-bottom: 1.15rem; }
+    article p strong { color: var(--text); font-weight: 600; }
+    article ul, article ol { padding-left: 1.5rem; margin-bottom: 1.15rem; }
+    article li { color: var(--text2); font-size: 1rem; line-height: 1.75; margin-bottom: 0.45rem; }
+    article li strong { color: var(--text); }
+    code { font-family: var(--mono); font-size: 0.875em; background: var(--surface2); border: 1px solid var(--border); padding: 0.15em 0.4em; border-radius: 4px; color: var(--accent); }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.4rem; overflow-x: auto; margin: 1.4rem 0; }
+    pre code { background: none; border: none; padding: 0; color: var(--text); font-size: 0.85rem; line-height: 1.7; }
+
+    .callout { border-radius: var(--radius); padding: 1.15rem 1.4rem; margin: 1.5rem 0; border-left: 3px solid; }
+    .callout-title { font-family: var(--mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.45rem; font-weight: 500; }
+    .callout p { margin: 0; font-size: 0.9rem; color: var(--text2); }
+    .callout.info { background: var(--accent3-dim); border-color: var(--accent3); }
+    .callout.info .callout-title { color: var(--accent3); }
+    .callout.warning { background: var(--accent4-dim); border-color: var(--accent4); }
+    .callout.warning .callout-title { color: var(--accent4); }
+    .callout.success { background: var(--accent-dim); border-color: var(--accent); }
+    .callout.success .callout-title { color: var(--accent); }
+
+    .architecture {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.3rem 1.4rem;
+      margin: 1.5rem 0 1.8rem;
+    }
+    .architecture-label {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.75rem;
+    }
+
+    .constraint-grid,
+    .limits-grid,
+    .roadmap-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .constraint-card,
+    .limit-card,
+    .roadmap-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.15rem 1.2rem;
+    }
+    .constraint-card-title,
+    .limit-card-title,
+    .roadmap-card-title {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--accent);
+      margin-bottom: 0.45rem;
+    }
+    .constraint-card p,
+    .limit-card p,
+    .roadmap-card p {
+      font-size: 0.88rem;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .troubleshoot-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.4rem 0 1.8rem;
+      overflow: hidden;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    .troubleshoot-table th,
+    .troubleshoot-table td {
+      padding: 0.95rem 1rem;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--border);
+    }
+    .troubleshoot-table th {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: var(--surface2);
+    }
+    .troubleshoot-table td { font-size: 0.92rem; color: var(--text2); line-height: 1.65; }
+    .troubleshoot-table tr:last-child td { border-bottom: none; }
+
+    @media (max-width: 768px) {
+      .build-strip { gap: 1rem; }
+      .build-divider { display: none; }
+      .constraint-grid,
+      .limits-grid,
+      .roadmap-grid { grid-template-columns: 1fr; }
+      .troubleshoot-table,
+      .troubleshoot-table tbody,
+      .troubleshoot-table tr,
+      .troubleshoot-table th,
+      .troubleshoot-table td { display: block; width: 100%; }
+      .troubleshoot-table thead { display: none; }
+      .troubleshoot-table tr { border-bottom: 1px solid var(--border); }
+      .troubleshoot-table td { border-bottom: none; padding-top: 0.55rem; padding-bottom: 0.55rem; }
+    }
+  </style>
+
+    <div class="build-strip" aria-label="Build snapshot">
+      <div class="build-stat">
+        <span class="build-label">Storage</span>
+        <span class="build-value">1TB</span>
+      </div>
+      <div class="build-divider"></div>
+      <div class="build-stat">
+        <span class="build-label">Cost</span>
+        <span class="build-value">Rs0</span>
+      </div>
+      <div class="build-divider"></div>
+      <div class="build-stat">
+        <span class="build-label">Clients</span>
+        <span class="build-value">Windows + iPhone</span>
+      </div>
+      <div class="build-divider"></div>
+      <div class="build-stat">
+        <span class="build-label">Scope</span>
+        <span class="build-value">LAN only</span>
+      </div>
+    </div>
+
+    <div class="resource-links">
+      <a href="https://github.com/ValiHakuryuko/frankenstein-nas-homelab" target="_blank" class="resource-link">repo -> frankenstein-nas-homelab</a>
+      <a href="/blog.html" class="resource-link">archive -> more writeups</a>
+    </div>
+
+    <div class="toc">
+      <div class="toc-title">// contents</div>
+      <p class="toc-note">This build looks simple from the outside, but most of the work happened in the compatibility layer between old hardware and newer clients.</p>
+      <ol>
+        <li><a href="#why">Why this build existed</a></li>
+        <li><a href="#constraints">Hardware and constraints</a></li>
+        <li><a href="#layout">Network and storage layout</a></li>
+        <li><a href="#bringup">Router and drive bring-up</a></li>
+        <li><a href="#windows">Windows 11 compatibility battle</a></li>
+        <li><a href="#iphone">iPhone access over SMB</a></li>
+        <li><a href="#limits">What this setup can and cannot do</a></li>
+        <li><a href="#security">Security decisions</a></li>
+        <li><a href="#roadmap">Upgrade roadmap</a></li>
+      </ol>
+    </div>
+
+    <article>
+
+      <h2 id="why">Why this build existed</h2>
+      <p>
+        I had two spare parts sitting around doing nothing: an old Omantel-branded ISP router with a USB port and a 1TB hard drive already mounted in a powered enclosure. That combination immediately suggested a question worth testing:
+      </p>
+      <div class="callout info">
+        <div class="callout-title">Project question</div>
+        <p>Can I turn discarded consumer hardware into a usable home NAS without buying a Raspberry Pi, a mini PC, or a dedicated Synology-style box?</p>
+      </div>
+      <p>
+        The answer turned out to be yes, but only after dealing with a chain of compatibility problems that had nothing to do with raw storage capacity and everything to do with protocol age, partition layout, client behavior, and stale access control settings.
+      </p>
+      <p>
+        The actual goal was simple: a local network file share I could use from my Windows 11 desktop and my iPhone, with no third-party cloud layer, no subscription, and no exposure to the public internet.
+      </p>
+
+      <h2 id="constraints">Hardware and constraints</h2>
+      <p>
+        This was never going to be a "real" NAS in the enterprise sense. It is a repurposed consumer router acting as a low-power storage endpoint. That distinction matters because it defines the ceiling for performance, features, and security.
+      </p>
+      <div class="constraint-grid">
+        <div class="constraint-card">
+          <div class="constraint-card-title">Router limitation</div>
+          <p>The router is old, proprietary, and likely limited to SMB 1.0-era behavior. That means compatibility workarounds become part of the build.</p>
+        </div>
+        <div class="constraint-card">
+          <div class="constraint-card-title">Drive limitation</div>
+          <p>The 3.5-inch hard drive needs a powered enclosure. Without separate power, the drive would be unreliable or fail to mount entirely.</p>
+        </div>
+        <div class="constraint-card">
+          <div class="constraint-card-title">Feature limitation</div>
+          <p>No RAID, no snapshots, no apps, no monitoring dashboard, and no confidence that SMART or health data is exposed cleanly through the router.</p>
+        </div>
+        <div class="constraint-card">
+          <div class="constraint-card-title">Security limitation</div>
+          <p>If SMB 1.0 is required for compatibility, the build must stay strictly LAN-only and never be treated like an internet-facing storage appliance.</p>
+        </div>
+      </div>
+      <p>
+        In other words: this is a homelab build, not a backup strategy and not a production-grade file server. That framing is important because it lets the project stay honest while still being technically interesting.
+      </p>
+
+      <h2 id="layout">Network and storage layout</h2>
+      <p>
+        The topology is intentionally boring, which is exactly what I wanted. No VPN, no port forwarding, no WAN exposure, and no remote sync layer. Just clients on the same local network talking to a router-hosted SMB share.
+      </p>
+      <div class="architecture">
+        <div class="architecture-label">Build diagram</div>
+<pre><code>Internet
+  |
+  |  (not exposed)
+  v
+Home LAN
+  |
+  +-- Windows 11 desktop ----\
+  |                           \ SMB
+  +-- iPhone Files app ------- > old ISP router with USB share enabled
+                              /
+                             / USB
+                            v
+                    1TB HDD in powered enclosure</code></pre>
+      </div>
+      <p>
+        The router handles user auth and exposes the share. The enclosure handles the drive's power draw. The desktop maps the share as a network drive. The iPhone connects through the native Files app over SMB.
+      </p>
+
+      <h2 id="bringup">Router and drive bring-up</h2>
+      <p>
+        The first success condition was purely physical: the drive needed to spin up reliably and remain visible through the router's USB interface. Because the disk was already inside a powered enclosure, that part was straightforward.
+      </p>
+      <p>
+        Once the router saw the drive, I went into the dashboard at <code>192.168.100.1</code>, opened the USB sharing page, created a local user, and set share permissions. The first subtle problem showed up immediately: the share was configured as read-only by default.
+      </p>
+      <div class="callout warning">
+        <div class="callout-title">Early gotcha</div>
+        <p>If the account has read-only access at the router layer, every later client-side troubleshooting step becomes misleading because the share looks reachable but not actually usable.</p>
+      </div>
+      <p>
+        After switching the user to full access, the share was discoverable, but that did not mean it was healthy yet. Old storage devices often carry partition junk from previous use, and that turned into one of the bigger problems later in the build.
+      </p>
+
+      <h2 id="windows">Windows 11 compatibility battle</h2>
+      <p>
+        The Windows side was where the project stopped being "plug it in and map a drive" and turned into a proper troubleshooting exercise. Three separate issues surfaced back-to-back:
+      </p>
+      <table class="troubleshoot-table" aria-label="Windows and client troubleshooting matrix">
+        <thead>
+          <tr>
+            <th>Symptom</th>
+            <th>Root cause</th>
+            <th>Fix</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>0x80004005</code> when mapping the share</td>
+            <td>Windows 11 disables SMB 1.0 by default, while the router appears to rely on that older protocol.</td>
+            <td>Enable the SMB 1.0/CIFS Client feature, reboot, then retry the mapping flow.</td>
+          </tr>
+          <tr>
+            <td>Windows tries Microsoft account credentials</td>
+            <td>The OS assumes modern account-backed auth, but the router only understands the local user created in its dashboard.</td>
+            <td>Use different credentials and authenticate with the router-local username and password.</td>
+          </tr>
+          <tr>
+            <td>Only 256MB of storage appears</td>
+            <td>The router mounted a tiny leftover partition instead of the main usable disk area.</td>
+            <td>Delete old partitions, rebuild the disk as a single NTFS volume, and use MBR for older-hardware compatibility.</td>
+          </tr>
+          <tr>
+            <td>iPhone says "Socket is not connected"</td>
+            <td>Generic discovery was unreliable and mobile-side network state was stale.</td>
+            <td>Use the direct SMB path and refresh the network state before retrying.</td>
+          </tr>
+          <tr>
+            <td>Mobile connects in read-only mode</td>
+            <td>The router was still holding stale ACL bindings after the partition rebuild.</td>
+            <td>Rebind user permissions to the newly created partition path in the router UI.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        The partition problem was especially misleading because it looks like a capacity issue until you inspect the disk properly. Disk Management made it obvious that the drive still had a tiny partition table layout from an earlier life, and the router was latching onto the wrong piece of it.
+      </p>
+      <div class="callout success">
+        <div class="callout-title">Storage fix</div>
+        <p>I rebuilt the disk as one full NTFS volume with an MBR partition table. That is not the newest option, but older embedded hardware tends to behave more predictably with MBR than GPT.</p>
+      </div>
+      <p>
+        Once that was done and the router restarted, the full terabyte appeared correctly and the desktop side finally behaved like a usable network drive instead of a half-mounted mystery device.
+      </p>
+
+      <h2 id="iphone">iPhone access over SMB</h2>
+      <p>
+        Desktop success did not automatically translate to mobile success. The iPhone Files app connected more reliably when I stopped depending on generic browse behavior and targeted the share directly.
+      </p>
+<pre><code>smb://192.168.100.1/usb-152d-ABCDEF_2</code></pre>
+      <p>
+        That got me past discovery, but not past permissions. The iPhone initially connected in read-only mode even though the Windows client had full access. That pointed away from filesystem format and toward access control state on the router itself.
+      </p>
+      <p>
+        The underlying problem was that the router still had user permissions attached to the old partition path from before the reformat. Rebinding the ACL to the newly created volume fixed the mismatch and gave mobile clients the same effective write access as the desktop.
+      </p>
+      <div class="callout info">
+        <div class="callout-title">Useful lesson</div>
+        <p>When storage is rebuilt underneath an old sharing service, permissions may stay attached to the stale mount target rather than the actual current volume. Client-side behavior then looks inconsistent even though the real fault is server-side metadata.</p>
+      </div>
+
+      <h2 id="limits">What this setup can and cannot do</h2>
+      <p>
+        Once it was working, the build was good enough for exactly the kind of use case I had in mind: local file access, small transfers, media storage, and "get this off my main machine" duty. But the limits are real and worth stating clearly.
+      </p>
+      <div class="limits-grid">
+        <div class="limit-card">
+          <div class="limit-card-title">What it is good at</div>
+          <p>Shared documents, local backups of non-critical files, small media libraries, and quick cross-device transfer inside the house.</p>
+        </div>
+        <div class="limit-card">
+          <div class="limit-card-title">What it is bad at</div>
+          <p>High-throughput workloads, multiple simultaneous heavy users, remote access, virtualization storage, or anything that needs modern NAS features.</p>
+        </div>
+        <div class="limit-card">
+          <div class="limit-card-title">Why performance is limited</div>
+          <p>The bottleneck is almost certainly the router's chipset and USB implementation, not the drive. Old consumer routers were not built to be storage appliances.</p>
+        </div>
+        <div class="limit-card">
+          <div class="limit-card-title">Why reliability is limited</div>
+          <p>Single disk, no redundancy, uncertain monitoring, and no second copy. This setup increases convenience, not resilience.</p>
+        </div>
+      </div>
+
+      <h2 id="security">Security decisions</h2>
+      <p>
+        The biggest tradeoff in this entire build is protocol age. If the router only behaves properly with SMB 1.0-era compatibility, then the correct response is not to pretend that is fine globally. The correct response is to shrink the blast radius.
+      </p>
+      <ul>
+        <li>Do not expose the share to the internet.</li>
+        <li>Do not forward ports to the router for remote file access.</li>
+        <li>Use a strong local password even if the environment is "just home".</li>
+        <li>Treat the NAS as a convenience box on a trusted LAN, not as a hardened storage platform.</li>
+        <li>Keep important data backed up somewhere else because this box is not a full backup strategy.</li>
+      </ul>
+      <div class="callout warning">
+        <div class="callout-title">Security reality check</div>
+        <p>The moment a build depends on legacy SMB support, it should lose all ambition of being internet-accessible. LAN-only is not a compromise here; it is the correct design boundary.</p>
+      </div>
+
+      <h2 id="roadmap">Upgrade roadmap</h2>
+      <p>
+        What makes this project interesting is not that it is "done". It is that it creates a baseline system I can iterate on. The current build proves the concept. The next versions improve reliability, throughput, and security.
+      </p>
+      <div class="roadmap-grid">
+        <div class="roadmap-card">
+          <div class="roadmap-card-title">Short term</div>
+          <p>Add a second backup destination, organize shares properly, and document stable client paths so the setup is easier to recover if the router resets.</p>
+        </div>
+        <div class="roadmap-card">
+          <div class="roadmap-card-title">Medium term</div>
+          <p>Replace the router with a low-power mini PC, Raspberry Pi alternative, or OpenWrt-capable device that supports modern SMB more cleanly.</p>
+        </div>
+        <div class="roadmap-card">
+          <div class="roadmap-card-title">Storage term</div>
+          <p>Move toward mirrored drives or at least a scheduled backup workflow so the NAS stops being a single-disk convenience layer.</p>
+        </div>
+        <div class="roadmap-card">
+          <div class="roadmap-card-title">Service term</div>
+          <p>Eventually layer in proper self-hosted services like media serving, better auth, and health monitoring once the hardware foundation improves.</p>
+        </div>
+      </div>
+      <p>
+        That is why I consider this a real project rather than just a quick hardware hack. It touched storage layout, filesystem compatibility, old consumer firmware behavior, Windows networking, iPhone SMB access, and local network security boundaries all in one build.
+      </p>
+
+      <hr />
+
+      <div class="callout success">
+        <div class="callout-title">Final take</div>
+        <p>For Rs0 and a weekend of troubleshooting, this build turned forgotten hardware into a working home storage node. It is not a polished NAS appliance, but it is a solid homelab project and a useful reminder that systems work often lives in the seams between hardware, protocol, and client behavior.</p>
+      </div>
+
+      <p>
+        I also turned this into a fuller GitHub project with separate docs, troubleshooting notes, and upgrade plans. If you want the repo version of this build, it lives here:
+      </p>
+<pre><code>https://github.com/ValiHakuryuko/frankenstein-nas-homelab</code></pre>
+
+    </article>
+
+    <section class="post-navigation" aria-labelledby="post-navigation-title">
+      <div class="post-section-head">
+        <div>
+          <span class="post-section-label">Continue reading</span>
+          <h2 id="post-navigation-title" class="post-section-title">Move through the archive</h2>
+        </div>
+        <a href="/blog.html" class="btn">Browse all posts</a>
+      </div>
+      <div class="post-nav-grid"><a href="/blog/juice-shop-writeup.html" class="post-nav-card">
+  <span class="post-nav-label">Older post</span>
+  <strong class="post-nav-title">OWASP Juice Shop Write-Up</strong>
+  <span class="post-nav-meta">2026-04-03 . ~20 min read</span>
+</a></div>
+    </section>
+
+    <section class="post-related" aria-labelledby="related-posts-title">
+      <div class="post-section-head">
+        <div>
+          <span class="post-section-label">Keep exploring</span>
+          <h2 id="related-posts-title" class="post-section-title">Related posts</h2>
+        </div>
+        <p class="post-section-copy">Adjacent build notes, tooling posts, and hands-on writeups from the archive.</p>
+      </div>
+      <div class="related-posts-grid"><a href="/blog/hosting-xampp-localnet.html" class="related-post-card">
+  <div class="related-post-meta">
+    <span class="post-date">2025-07-22</span>
+    <span class="post-tag">Tools</span>
+  </div>
+  <h3 class="related-post-title">Hosting a Local Website with XAMPP and LocalToNet</h3>
+  <p class="related-post-excerpt">A step-by-step guide to exposing a locally hosted site with XAMPP and LocalToNet for demos, testing, and short-lived external access.</p>
+  <span class="related-post-read">Read article</span>
+</a><a href="/blog/Linux-Privilege-Escalation.html" class="related-post-card">
+  <div class="related-post-meta">
+    <span class="post-date">2025-07-30</span>
+    <span class="post-tag">Linux</span>
+  </div>
+  <h3 class="related-post-title">Understanding Linux Privilege Escalation</h3>
+  <p class="related-post-excerpt">A focused guide to common Linux privilege escalation paths, including SUID abuse, cron jobs, weak permissions, and systematic enumeration.</p>
+  <span class="related-post-read">Read article</span>
+</a><a href="/blog/juice-shop-writeup.html" class="related-post-card">
+  <div class="related-post-meta">
+    <span class="post-date">2026-04-03</span>
+    <span class="post-tag">Web</span><span class="post-tag">Burp Suite</span>
+  </div>
+  <h3 class="related-post-title">OWASP Juice Shop Write-Up</h3>
+  <p class="related-post-excerpt">A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target.</p>
+  <span class="related-post-read">Read article</span>
+</a></div>
+    </section>
+
+    <div class="post-footer">
+      <a href="/blog.html" class="btn">&larr; Back to blog</a>
+      <span class="post-footer-note">Read the repo for the fuller build log, then come back here for the article version.</span>
+    </div>
+  </div>
+  <footer>
+    <span>(c) 2026 Vali Hakuryuko</span>
+    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">^ back to top</span>
+  </footer>
+  <script src="/script.js"></script>
+</body>
+</html>

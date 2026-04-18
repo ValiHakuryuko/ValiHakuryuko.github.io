@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Blog - Vali Hakuryuko</title>
-  <meta name="description" content="Writeups, techniques, and pentesting notes by Vali Hakuryuko. SQL injection labs, Linux privilege escalation, Burp Suite guides, and security research.">
+  <meta name="description" content="Writeups, techniques, homelab builds, and pentesting notes by Vali Hakuryuko. Security research, storage experiments, Linux notes, and hands-on technical work.">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -223,7 +223,7 @@
   <div class="page-header">
     <div class="page-breadcrumb"><a href="index.html">~</a> / Blog</div>
     <h1>Blog</h1>
-    <p class="page-desc">Technical write-ups, lab notes, and security walkthroughs focused on web testing, tooling, and hands-on offensive practice.</p>
+    <p class="page-desc">Technical write-ups, homelab builds, lab notes, and security walkthroughs focused on hands-on learning, tooling, and real troubleshooting.</p>
   </div>
 
   <div class="blog-toolbar fade-in">
@@ -238,6 +238,7 @@
     <button type="button" class="filter-btn active" data-filter="all" onclick="filterPosts('all', this)">All Posts</button>
     <button type="button" class="filter-btn" data-filter="burp-suite" onclick="filterPosts('burp-suite', this)">Burp Suite</button>
     <button type="button" class="filter-btn" data-filter="ctf" onclick="filterPosts('ctf', this)">CTF</button>
+    <button type="button" class="filter-btn" data-filter="homelab" onclick="filterPosts('homelab', this)">Home Lab</button>
     <button type="button" class="filter-btn" data-filter="linux" onclick="filterPosts('linux', this)">Linux</button>
     <button type="button" class="filter-btn" data-filter="owasp" onclick="filterPosts('owasp', this)">OWASP</button>
     <button type="button" class="filter-btn" data-filter="port-swigger" onclick="filterPosts('port-swigger', this)">Port Swigger</button>
@@ -248,11 +249,12 @@
   </div>
 
   <main>
-    <div class="posts-count" id="posts-count">6 posts</div>
+    <div class="posts-count" id="posts-count">7 posts</div>
 
-    <a href="/blog/juice-shop-writeup.html" class="post-featured fade-in" data-tags="web xss sqli owasp ctf"><div><div class="post-featured-meta"><span class="post-date">2026-04-03</span><span class="post-tag">Web</span><span class="post-tag">Burp Suite</span></div><div class="post-title">OWASP Juice Shop Write-Up</div><p class="post-excerpt">A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target.</p><span class="post-read-more">read post</span></div></a>
+    <a href="/blog/nas-frankenstein-build.html" class="post-featured fade-in" data-tags="homelab tools networking storage"><div><div class="post-featured-meta"><span class="post-date">2026-04-18</span><span class="post-tag">Home Lab</span><span class="post-tag">Networking</span></div><div class="post-title">Frankenstein NAS Build</div><p class="post-excerpt">Turning an old ISP router and a powered 1TB drive into a working home NAS, including Windows 11 SMB fixes, iPhone access, and the limits of a LAN-only build.</p><span class="post-read-more">read post</span></div></a>
 
     <div class="posts-grid" id="posts-grid">
+      <a href="/blog/juice-shop-writeup.html" class="post-card fade-in" data-tags="web xss sqli owasp ctf"><div class="post-meta"><span class="post-date">2026-04-03</span><span class="post-tag">Web</span><span class="post-tag">Burp Suite</span></div><div class="post-title">OWASP Juice Shop Write-Up</div><p class="post-excerpt">A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target.</p><span class="post-read-more">read post</span></a>
       <a href="/blog/sqli-labs.html" class="post-card fade-in" data-tags="web port-swigger"><div class="post-meta"><span class="post-date">2026-04-02</span><span class="post-tag">Web</span><span class="post-tag">Port Swigger</span></div><div class="post-title">PortSwigger SQLi Labs Write-Up</div><p class="post-excerpt">A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step.</p><span class="post-read-more">read post</span></a>
       <a href="/blog/Linux-Privilege-Escalation.html" class="post-card fade-in" data-tags="linux"><div class="post-meta"><span class="post-date">2025-07-30</span><span class="post-tag">Linux</span></div><div class="post-title">Understanding Linux Privilege Escalation</div><p class="post-excerpt">A focused guide to common Linux privilege escalation paths, including SUID abuse, cron jobs, weak permissions, and systematic enumeration.</p><span class="post-read-more">read post</span></a>
       <a href="/blog/burp-suite-basics.html" class="post-card fade-in" data-tags="burp-suite web"><div class="post-meta"><span class="post-date">2025-07-23</span><span class="post-tag">Burp Suite</span></div><div class="post-title">Getting Started with Burp Suite</div><p class="post-excerpt">A practical introduction to Burp Suite&#x27;s core tools, showing how Proxy, Repeater, Intruder, and Scanner fit into a modern web testing workflow.</p><span class="post-read-more">read post</span></a>
