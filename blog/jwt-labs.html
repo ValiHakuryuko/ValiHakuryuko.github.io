@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PortSwigger JWT Labs 1-8 Write-Up &amp; Burp Workflows - Vali Hakuryuko</title>
+  <meta name="description" content="A Burp-first walkthrough of PortSwigger's JWT labs, covering none-alg abuse, weak secrets, header injection, and algorithm confusion without Python automation." />
+  <meta property="og:title" content="PortSwigger JWT Labs 1-8 Write-Up &amp; Burp Workflows - Vali Hakuryuko" />
+  <meta property="og:description" content="A Burp-first walkthrough of PortSwigger's JWT labs, covering none-alg abuse, weak secrets, header injection, and algorithm confusion without Python automation." />
+  <meta property="og:type" content="article" />
+  <meta property="og:image" content="/image/profile.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/post.css" />
+</head>
+<body class="post-page">
+  <nav>
+    <a href="/index.html" class="nav-logo"><span>~/</span>Vali</a>
+    <ul class="nav-links">
+      <li><a href="/index.html#about">About</a></li>
+      <li><a href="/blog.html">Blog</a></li>
+      <li><a href="/index.html#contact">Contact</a></li>
+    </ul>
+    <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
+  </nav>
+  <div class="layout">
+    <header class="post-header">
+      <div class="post-breadcrumb"><a href="/index.html">~</a> / <a href="/blog.html">blog</a> / jwt-labs</div>
+      <div class="post-meta-row">
+        <span class="post-date">2026-06-07</span>
+        <a href="/blog.html?tag=web" class="post-tag-link" aria-label="Browse Web posts"><span class="post-tag">Web</span></a><a href="/blog.html?tag=port-swigger" class="post-tag-link" aria-label="Browse Port Swigger posts"><span class="post-tag">Port Swigger</span></a><a href="/blog.html?tag=burp-suite" class="post-tag-link" aria-label="Browse Burp Suite posts"><span class="post-tag blue">Burp Suite</span></a><a href="/blog.html?tag=jwt" class="post-tag-link" aria-label="Browse JWT posts"><span class="post-tag orange">JWT</span></a>
+        <span class="post-read-time">~28 min read</span>
+      </div>
+      <h1 class="post-title">PortSwigger JWT Labs 1-8<br>Write-Up &amp; Burp Workflows</h1>
+      <p class="post-subtitle">A lab-by-lab walkthrough of the PortSwigger JWT track, focused on what to do in Burp Suite: decode, tamper, re-sign, replay, and prove exactly why each trust decision fails.</p>
+    </header>
+
+    <section class="article-brief" aria-label="Article overview">
+      <div class="article-brief-grid">
+        <div class="article-brief-block">
+          <span class="article-brief-label">What This Covers</span>
+          <p>The full eight-lab JWT path in Web Security Academy, from <code>alg: none</code> abuse to JWK header injection and algorithm confusion.</p>
+        </div>
+        <div class="article-brief-block">
+          <span class="article-brief-label">Target / Lab</span>
+          <p>PortSwigger Web Security Academy JWT labs</p>
+        </div>
+        <div class="article-brief-block">
+          <span class="article-brief-label">Tools Used</span>
+          <div class="article-tools"><span class="article-tool">Burp Suite</span><span class="article-tool">JWT Editor</span><span class="article-tool">Repeater</span><span class="article-tool">Exploit Server</span><span class="article-tool">sig2n helper</span></div>
+        </div>
+        <div class="article-brief-block article-brief-wide">
+          <span class="article-brief-label">Key Takeaways</span>
+          <ul class="article-takeaways"><li>Most JWT bugs are trust bugs: the server trusts attacker-controlled headers, claims, or algorithm choices.</li><li>Burp is enough for almost the whole track once JWT Editor is installed and you are comfortable re-signing tokens.</li><li>When a backend confuses RSA and HMAC, even a public key can become the secret that forges admin access.</li></ul>
+        </div>
+      </div>
+    </section>
+
+    <style>
+    :root {
+      --post-width: 800px;
+      --post-subtitle-size: 1.05rem;
+    }
+
+    .series-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 3rem; }
+    .series-bar-title { font-family: var(--mono); font-size: 0.7rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
+    .series-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .series-pill { font-family: var(--mono); font-size: 0.68rem; padding: 0.3rem 0.7rem; border-radius: var(--radius); border: 1px solid var(--border); color: var(--text3); }
+    .series-pill.done { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+    .token-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 1.5rem 0 2rem;
+    }
+    .token-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.15rem;
+    }
+    .token-card-label {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.55rem;
+    }
+    .token-card p {
+      font-size: 0.88rem;
+      line-height: 1.65;
+      margin: 0;
+      color: var(--text2);
+    }
+
+    .lab-section { margin-bottom: 5rem; }
+    .lab-header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem 2rem;
+      margin-bottom: 2rem;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .lab-num {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #000;
+      background: var(--accent);
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .lab-title-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.4rem; flex-wrap: wrap; }
+    .lab-difficulty { font-family: var(--mono); font-size: 0.65rem; padding: 0.2rem 0.55rem; border-radius: 100px; border: 1px solid; }
+    .diff-apprentice { color: #5dffb2; border-color: #5dffb2; background: #0e2b1f; }
+    .diff-practitioner { color: #f5a623; border-color: #f5a623; background: #1e1800; }
+    h2.lab-title { font-family: var(--display); font-size: 1.3rem; font-weight: 700; letter-spacing: -0.02em; }
+    .lab-goal { font-family: var(--mono); font-size: 0.75rem; color: var(--text3); margin-top: 0.4rem; }
+    .lab-goal span { color: var(--accent); }
+
+    h3 {
+      font-family: var(--display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 2rem 0 0.75rem;
+      color: var(--text);
+    }
+    p { color: var(--text2); font-size: 1rem; line-height: 1.85; margin-bottom: 1.1rem; }
+    p strong { color: var(--text); font-weight: 600; }
+    ul, ol { padding-left: 1.5rem; margin-bottom: 1.1rem; }
+    li { color: var(--text2); font-size: 1rem; line-height: 1.75; margin-bottom: 0.45rem; }
+    li strong { color: var(--text); }
+
+    code { font-family: var(--mono); font-size: 0.875em; background: var(--surface2); border: 1px solid var(--border); padding: 0.15em 0.4em; border-radius: 4px; color: var(--accent); }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; overflow-x: auto; margin: 1.5rem 0; }
+    pre code { background: none; border: none; padding: 0; color: var(--text); font-size: 0.85rem; line-height: 1.7; }
+
+    .workflow-card,
+    .snapshot-card,
+    .lab-takeaway,
+    .conclusion-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .workflow-card {
+      padding: 1.35rem 1.5rem;
+      margin: 1.25rem 0 1.5rem;
+    }
+    .workflow-title {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.8rem;
+    }
+
+    .snapshot-card {
+      padding: 1.25rem 1.4rem;
+      margin: 1.25rem 0;
+      font-family: var(--mono);
+      font-size: 0.83rem;
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+    .snapshot-card .label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.65rem;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .snapshot-card .accent { color: var(--accent); }
+    .snapshot-card .warning { color: var(--accent4); }
+    .snapshot-card .danger { color: var(--accent2); }
+
+    .callout { border-radius: var(--radius); padding: 1.1rem 1.4rem; margin: 1.5rem 0; border-left: 3px solid; }
+    .callout-title { font-family: var(--mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.4rem; font-weight: 500; }
+    .callout p { margin: 0; font-size: 0.88rem; color: var(--text2); }
+    .callout.info { background: var(--accent3-dim); border-color: var(--accent3); }
+    .callout.info .callout-title { color: var(--accent3); }
+    .callout.warning { background: var(--accent4-dim); border-color: var(--accent4); }
+    .callout.warning .callout-title { color: var(--accent4); }
+    .callout.success { background: var(--accent-dim); border-color: var(--accent); }
+    .callout.success .callout-title { color: var(--accent); }
+
+    .lab-takeaway {
+      padding: 1.45rem;
+      margin-top: 1.75rem;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1rem;
+      align-items: start;
+    }
+    .takeaway-icon { font-size: 1.15rem; }
+    .takeaway-title { font-family: var(--mono); font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.35rem; }
+    .takeaway-text { font-size: 0.88rem; color: var(--text2); line-height: 1.6; }
+
+    .lab-divider { border: none; border-top: 1px solid var(--border); margin: 4rem 0; }
+
+    .conclusion-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .conclusion-card { padding: 1.25rem; }
+    .conclusion-card-title {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .conclusion-card p { font-size: 0.86rem; color: var(--text2); margin: 0; line-height: 1.6; }
+
+    @media (max-width: 768px) {
+      .token-grid,
+      .conclusion-grid {
+        grid-template-columns: 1fr;
+      }
+      .lab-header {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+    }
+    </style>
+
+    <div class="series-bar">
+      <div class="series-bar-title">// JWT series progress - 8 of 8 labs</div>
+      <div class="series-pills">
+        <span class="series-pill done">Lab 01</span>
+        <span class="series-pill done">Lab 02</span>
+        <span class="series-pill done">Lab 03</span>
+        <span class="series-pill done">Lab 04</span>
+        <span class="series-pill done">Lab 05</span>
+        <span class="series-pill done">Lab 06</span>
+        <span class="series-pill done">Lab 07</span>
+        <span class="series-pill done">Lab 08</span>
+      </div>
+    </div>
+
+    <div class="toc">
+      <div class="toc-title">// contents</div>
+      <ol>
+        <li><a href="#setup">JWT setup in Burp</a></li>
+        <li><a href="#lab1">Lab 1 - Unverified signature</a></li>
+        <li><a href="#lab2">Lab 2 - Flawed signature verification</a></li>
+        <li><a href="#lab3">Lab 3 - Weak signing key</a></li>
+        <li><a href="#lab4">Lab 4 - JWK header injection</a></li>
+        <li><a href="#lab5">Lab 5 - JKU header injection</a></li>
+        <li><a href="#lab6">Lab 6 - KID header path traversal</a></li>
+        <li><a href="#lab7">Lab 7 - Algorithm confusion</a></li>
+        <li><a href="#lab8">Lab 8 - Algorithm confusion with no exposed key</a></li>
+        <li><a href="#recap">Series recap</a></li>
+      </ol>
+    </div>
+
+    <article>
+      <h2 id="setup">JWT setup in Burp</h2>
+      <p>
+        Before touching the labs, install the <strong>JWT Editor</strong> extension from the Burp BApp Store. That gives you the fast path for decoding tokens, editing claims, generating RSA keys, embedding JWK values, and re-signing tokens without leaving Repeater.
+      </p>
+      <p>
+        The reusable workflow for almost every JWT lab is the same: capture a request that carries the token, send it to Repeater, inspect the cookie or <code>Authorization</code> header, change the claims, then decide whether the exploit needs <code>none</code>, a forged HMAC signature, or a completely attacker-supplied key.
+      </p>
+
+      <div class="token-grid">
+        <div class="token-card">
+          <div class="token-card-label">Header</div>
+          <p>Declares metadata like <code>alg</code>, <code>kid</code>, <code>jwk</code>, or <code>jku</code>. The dangerous pattern is letting the client choose how verification works.</p>
+        </div>
+        <div class="token-card">
+          <div class="token-card-label">Payload</div>
+          <p>Contains identity and authorization claims such as <code>sub</code>, <code>username</code>, and <code>role</code>. Most labs are won by making the server trust a modified payload.</p>
+        </div>
+        <div class="token-card">
+          <div class="token-card-label">Signature</div>
+          <p>Should prove that the token came from the server. The entire JWT track is really about all the different ways that guarantee gets broken.</p>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-title">Burp stack</div>
+        <p>My default stack for these labs is Burp Repeater, JWT Editor, Decoder, and the Exploit Server where needed. For the last algorithm confusion lab, I keep PortSwigger's <code>sig2n</code> helper nearby to derive candidate RSA public keys before finishing the attack back in Burp.</p>
+      </div>
+
+      <div class="lab-section" id="lab1">
+        <div class="lab-header">
+          <div class="lab-num">01</div>
+          <div>
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-apprentice">Apprentice</span>
+            </div>
+            <h2 class="lab-title">JWT authentication bypass via unverified signature</h2>
+            <div class="lab-goal">Goal: <span>Change a normal session token into an administrator token and reach the admin panel.</span></div>
+          </div>
+        </div>
+
+        <h3>What's happening</h3>
+        <p>
+          The application reads the payload claims but never validates the signature. That means you can change the identity claim from your own user to <code>administrator</code>, keep the now-invalid signature in place, and the backend still accepts the token as authoritative.
+        </p>
+
+        <div class="snapshot-card">
+          <span class="label">Claim to target</span>
+          {
+            "sub": "<span class="danger">administrator</span>"
+          }
+        </div>
+
+        <h3>Burp workflow</h3>
+        <div class="workflow-card">
+          <div class="workflow-title">Repeater steps</div>
+          <ol>
+            <li>Log in as a normal user and capture a request that carries the JWT.</li>
+            <li>Send the request to Repeater and open the token in JWT Editor.</li>
+            <li>Change the identity claim that the app actually trusts, usually <code>sub</code> or <code>username</code>, to <code>administrator</code>.</li>
+            <li>Leave the signature as-is, or let it become stale naturally after the payload change. This lab does not care.</li>
+            <li>Replay the request, then browse to the admin endpoint and complete the admin action.</li>
+          </ol>
+        </div>
+
+        <div class="callout info">
+          <div class="callout-title">Validation clue</div>
+          <p>If a tampered token still loads a higher-privilege page even though you never re-signed it, the server is parsing claims without authenticating them first.</p>
+        </div>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">01</div>
+          <div>
+            <div class="takeaway-title">Takeaway</div>
+            <div class="takeaway-text">A JWT is only as trustworthy as its signature verification. If the server skips that step, the token is just attacker-controlled JSON with extra punctuation.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider">
+
+      <div class="lab-section" id="lab2">
+        <div class="lab-header">
+          <div class="lab-num">02</div>
+          <div>
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-apprentice">Apprentice</span>
+            </div>
+            <h2 class="lab-title">JWT authentication bypass via flawed signature verification</h2>
+            <div class="lab-goal">Goal: <span>Abuse <code>alg: none</code> handling to promote your token to administrator.</span></div>
+          </div>
+        </div>
+
+        <h3>What's happening</h3>
+        <p>
+          This time the backend does look at signature metadata, but it incorrectly honors the attacker-controlled <code>alg</code> header. By switching the token to <code>none</code>, you tell the server there is no signature to verify at all.
+        </p>
+
+        <div class="snapshot-card">
+          <span class="label">Header mutation</span>
+          {
+            "alg": "<span class="warning">none</span>",
+            "typ": "JWT"
+          }
+        </div>
+
+        <h3>Burp workflow</h3>
+        <div class="workflow-card">
+          <div class="workflow-title">JWT Editor flow</div>
+          <ol>
+            <li>Capture the session token in Repeater and change the payload claim to <code>administrator</code>.</li>
+            <li>Use JWT Editor to change the header from its original algorithm to <code>none</code>.</li>
+            <li>Remove the signature content so the third segment is empty.</li>
+            <li>Replay the request with the modified token and verify that the application accepts the unsigned admin session.</li>
+          </ol>
+        </div>
+
+        <div class="callout warning">
+          <div class="callout-title">Why this matters</div>
+          <p>The algorithm must be fixed server-side. If the backend trusts the token to describe how it should be verified, the attacker gets to choose the weakest possible path.</p>
+        </div>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">02</div>
+          <div>
+            <div class="takeaway-title">Takeaway</div>
+            <div class="takeaway-text">Never let the client negotiate verification rules. The moment the token chooses its own algorithm, you are already off the rails.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider">
+
+      <div class="lab-section" id="lab3">
+        <div class="lab-header">
+          <div class="lab-num">03</div>
+          <div>
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">JWT authentication bypass via weak signing key</h2>
+            <div class="lab-goal">Goal: <span>Recover a weak HMAC secret, then forge a valid administrator token.</span></div>
+          </div>
+        </div>
+
+        <h3>What's happening</h3>
+        <p>
+          The token is signed with an HMAC algorithm such as <code>HS256</code>, but the secret is weak enough to guess from a common list. Once you know that secret, the rest of the lab becomes easy: edit the claims and re-sign the JWT legitimately.
+        </p>
+
+        <div class="snapshot-card">
+          <span class="label">What changes after recovery</span>
+          <span class="accent">Original:</span> user claims + server secret<br>
+          <span class="accent">Forged:</span> administrator claims + same recovered secret
+        </div>
+
+        <h3>Burp workflow</h3>
+        <div class="workflow-card">
+          <div class="workflow-title">Signing path</div>
+          <ol>
+            <li>Confirm the JWT uses an HMAC algorithm such as <code>HS256</code>.</li>
+            <li>Recover the weak secret using your preferred weak-secret workflow, then move back into JWT Editor for the rest.</li>
+            <li>Edit the payload so the trusted identity claim becomes <code>administrator</code>.</li>
+            <li>Re-sign the token with the recovered secret and replay the request in Repeater.</li>
+            <li>Use the valid forged admin token to access the privileged function.</li>
+          </ol>
+        </div>
+
+        <div class="callout info">
+          <div class="callout-title">Burp-first note</div>
+          <p>The important part of this lab is the signed replay, not the cracking tool itself. Once the secret is known, Burp handles the entire forgery and validation loop cleanly.</p>
+        </div>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">03</div>
+          <div>
+            <div class="takeaway-title">Takeaway</div>
+            <div class="takeaway-text">JWT security is not just about choosing a modern algorithm. Weak shared secrets collapse the whole scheme because anyone who learns the secret becomes the signing authority.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider">
+
+      <div class="lab-section" id="lab4">
+        <div class="lab-header">
+          <div class="lab-num">04</div>
+          <div>
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">JWT authentication bypass via JWK header injection</h2>
+            <div class="lab-goal">Goal: <span>Embed your own public key inside the token and make the server trust it.</span></div>
+          </div>
+        </div>
+
+        <h3>What's happening</h3>
+        <p>
+          The server accepts a <code>jwk</code> header supplied by the client and uses that embedded key to verify the signature. That turns verification into self-approval: you generate the key pair, provide the public key, and sign the token with the matching private key.
+        </p>
+
+        <div class="snapshot-card">
+          <span class="label">Attacker-controlled header</span>
+          {
+            "alg": "RS256",
+            "jwk": { ...your public key... }
+          }
+        </div>
+
+        <h3>Burp workflow</h3>
+        <div class="workflow-card">
+          <div class="workflow-title">JWT Editor flow</div>
+          <ol>
+            <li>Generate a fresh RSA key pair in JWT Editor.</li>
+            <li>Modify the JWT payload so the identity claim becomes <code>administrator</code>.</li>
+            <li>Use the extension's embedded JWK attack flow to inject your public key into the header.</li>
+            <li>Sign the token with the private key you just generated.</li>
+            <li>Replay the forged token in Repeater and confirm the backend accepts the attacker-supplied key material.</li>
+          </ol>
+        </div>
+
+        <div class="callout warning">
+          <div class="callout-title">Trust boundary failure</div>
+          <p>Verification keys must come from trusted server configuration, not from the JWT itself. A self-declared verification key is not verification at all.</p>
+        </div>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">04</div>
+          <div>
+            <div class="takeaway-title">Takeaway</div>
+            <div class="takeaway-text">If the token can ship its own verification key, you no longer have a signature check. You have an attacker writing both the exam and the answer key.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider">
+
+      <div class="lab-section" id="lab5">
+        <div class="lab-header">
+          <div class="lab-num">05</div>
+          <div>
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">JWT authentication bypass via JKU header injection</h2>
+            <div class="lab-goal">Goal: <span>Host your own JWKS file, point the token at it, and sign your own admin session.</span></div>
+          </div>
+        </div>
+
+        <h3>What's happening</h3>
+        <p>
+          Instead of trusting an inline <code>jwk</code>, the application trusts a remote key URL from the <code>jku</code> header. If the server fetches that URL without a strong allowlist, you can serve a malicious JWKS document from your own infrastructure and make the backend validate against your key.
+        </p>
+
+        <pre><code>{
+  "keys": [
+    {
+      "kty": "RSA",
+      "kid": "attacker-key",
+      "e": "AQAB",
+      "n": "..."
+    }
+  ]
+}</code></pre>
+
+        <h3>Burp workflow</h3>
+        <div class="workflow-card">
+          <div class="workflow-title">Exploit Server flow</div>
+          <ol>
+            <li>Generate an RSA key pair in JWT Editor and export the public JWK.</li>
+            <li>Host a JWKS document on the exploit server that contains your public key.</li>
+            <li>Change the token payload to <code>administrator</code>.</li>
+            <li>Set the header <code>jku</code> to your exploit server URL and make sure the <code>kid</code> matches the key in the JWKS file.</li>
+            <li>Sign the token with your private key and replay it in Repeater.</li>
+          </ol>
+        </div>
+
+        <div class="callout info">
+          <div class="callout-title">Operational detail</div>
+          <p>If the JWKS document is malformed or the <code>kid</code> value does not line up exactly, the request usually fails fast. This lab is as much about clean key hosting as it is about header abuse.</p>
+        </div>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">05</div>
+          <div>
+            <div class="takeaway-title">Takeaway</div>
+            <div class="takeaway-text">Remote key URLs are high-risk unless they are tightly pinned. A signature check is useless when the attacker can tell the server where to fetch the trusted key from.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider">
+
+      <div class="lab-section" id="lab6">
+        <div class="lab-header">
+          <div class="lab-num">06</div>
+          <div>
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">JWT authentication bypass via KID header path traversal</h2>
+            <div class="lab-goal">Goal: <span>Abuse file-based key lookup so the backend signs against a file you control indirectly.</span></div>
+          </div>
+        </div>
+
+        <h3>What's happening</h3>
+        <p>
+          Some applications use the <code>kid</code> header as a filename or database lookup key. In this lab, that lookup is vulnerable to path traversal, so you can point the backend at <code>/dev/null</code> and make it use an empty secret for HMAC verification.
+        </p>
+
+        <div class="snapshot-card">
+          <span class="label">Header mutation</span>
+          {
+            "alg": "HS256",
+            "kid": "<span class="danger">../../../../../../dev/null</span>"
+          }
+        </div>
+
+        <h3>Burp workflow</h3>
+        <div class="workflow-card">
+          <div class="workflow-title">Empty-secret replay</div>
+          <ol>
+            <li>Open the JWT in JWT Editor and change the payload claim to <code>administrator</code>.</li>
+            <li>Modify the <code>kid</code> header so it traverses to <code>/dev/null</code>.</li>
+            <li>Sign the token as <code>HS256</code> with a blank secret.</li>
+            <li>Replay the request and confirm the server now validates against the empty file target instead of the intended key store.</li>
+          </ol>
+        </div>
+
+        <div class="callout warning">
+          <div class="callout-title">Same root cause, new wrapper</div>
+          <p>This is still path traversal, just hiding inside JWT plumbing. Anytime header values become filesystem paths, the attack surface expands immediately.</p>
+        </div>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">06</div>
+          <div>
+            <div class="takeaway-title">Takeaway</div>
+            <div class="takeaway-text">JWT bugs are often just classic bugs in costume. Here the token is only the transport layer for a file path injection bug.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider">
+
+      <div class="lab-section" id="lab7">
+        <div class="lab-header">
+          <div class="lab-num">07</div>
+          <div>
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">JWT authentication bypass via algorithm confusion</h2>
+            <div class="lab-goal">Goal: <span>Convert an RSA verification flow into an HMAC signing flow using the public key as the secret.</span></div>
+          </div>
+        </div>
+
+        <h3>What's happening</h3>
+        <p>
+          The application expects asymmetric signatures, but the backend verification routine accepts whatever algorithm the token requests. If you flip the header to <code>HS256</code> and use the server's RSA public key bytes as the HMAC secret, the generic verifier can be tricked into blessing your forged token.
+        </p>
+
+        <div class="snapshot-card">
+          <span class="label">Header pivot</span>
+          {
+            "alg": "<span class="warning">HS256</span>",
+            "typ": "JWT"
+          }
+        </div>
+
+        <h3>Burp workflow</h3>
+        <div class="workflow-card">
+          <div class="workflow-title">Key confusion attack</div>
+          <ol>
+            <li>Obtain the server's RSA public key from the lab material, a JWKS endpoint, or another exposed source.</li>
+            <li>Change the token payload to carry administrator-level claims.</li>
+            <li>Use JWT Editor's HMAC key confusion flow to switch the token to <code>HS256</code>.</li>
+            <li>Sign the forged token with the server's public key bytes as the HMAC secret.</li>
+            <li>Replay the request and verify that the generic verifier accepts the token under the wrong algorithm family.</li>
+          </ol>
+        </div>
+
+        <div class="callout info">
+          <div class="callout-title">Mental model</div>
+          <p>RSA public keys are safe to share only when the server treats them strictly as public verification material. The moment the code path lets them act like HMAC secrets, sharing them becomes enough to forge tokens.</p>
+        </div>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">07</div>
+          <div>
+            <div class="takeaway-title">Takeaway</div>
+            <div class="takeaway-text">Algorithm confusion is a design failure, not a crypto failure. The cryptography works exactly as implemented; the implementation just allows the attacker to select the wrong primitive.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider">
+
+      <div class="lab-section" id="lab8">
+        <div class="lab-header">
+          <div class="lab-num">08</div>
+          <div>
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">JWT authentication bypass via algorithm confusion with no exposed key</h2>
+            <div class="lab-goal">Goal: <span>Derive candidate public keys from observed RSA tokens, then finish the confusion attack in Burp.</span></div>
+          </div>
+        </div>
+
+        <h3>What's happening</h3>
+        <p>
+          The backend still suffers from algorithm confusion, but this time it does not hand you the RSA public key directly. The trick is to collect multiple valid RS256 tokens, derive candidate public keys using PortSwigger's <code>sig2n</code> helper, then return to Burp and test each candidate as the HMAC secret.
+        </p>
+
+        <div class="snapshot-card">
+          <span class="label">Two-stage attack</span>
+          <span class="accent">Stage 1:</span> derive candidate public keys from real RS256 tokens<br>
+          <span class="accent">Stage 2:</span> sign an <code>HS256</code> admin token in Burp with each candidate until one lands
+        </div>
+
+        <h3>Burp workflow</h3>
+        <div class="workflow-card">
+          <div class="workflow-title">Derive, then replay</div>
+          <ol>
+            <li>Capture at least two valid RSA-signed JWTs from the application.</li>
+            <li>Feed those tokens into <code>sig2n</code> to generate candidate public keys and matching forged-token material.</li>
+            <li>Back in Burp, edit the payload to <code>administrator</code> and flip the header to <code>HS256</code>.</li>
+            <li>Try the candidate public keys as HMAC secrets until the server accepts one of the forged tokens.</li>
+            <li>Use the working token to reach the admin function and finish the lab.</li>
+          </ol>
+        </div>
+
+        <div class="callout warning">
+          <div class="callout-title">The key lesson</div>
+          <p>Even when the public key is not visibly exposed, broken algorithm handling can still collapse once enough signed material leaks through the application. Hiding the key is not the same thing as removing the confusion flaw.</p>
+        </div>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">08</div>
+          <div>
+            <div class="takeaway-title">Takeaway</div>
+            <div class="takeaway-text">This is the most technical lab in the set, but the root cause is unchanged: the backend still lets the token steer verification logic that should have been fixed in code.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider">
+
+      <div class="lab-section" id="recap">
+        <div class="lab-header">
+          <div class="lab-num">R</div>
+          <div>
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Recap</span>
+            </div>
+            <h2 class="lab-title">What the JWT track really teaches</h2>
+            <div class="lab-goal">Goal: <span>Recognize JWT flaws as trust-boundary bugs, not just token-format tricks.</span></div>
+          </div>
+        </div>
+
+        <p>
+          Taken together, these labs form a clean progression. The early labs show what happens when the server skips signature checks entirely. The middle labs show the danger of trusting attacker-controlled key metadata. The last two labs show why algorithm selection must be pinned rigidly server-side.
+        </p>
+
+        <div class="conclusion-grid">
+          <div class="conclusion-card">
+            <div class="conclusion-card-title">Labs 1-3</div>
+            <p>Signature handling failures. Ignore the signature, accept <code>none</code>, or use a weak HMAC secret, and the attacker can simply mint an admin identity.</p>
+          </div>
+          <div class="conclusion-card">
+            <div class="conclusion-card-title">Labs 4-6</div>
+            <p>Header injection failures. <code>jwk</code>, <code>jku</code>, and <code>kid</code> become attacker-controlled input to the key-selection process.</p>
+          </div>
+          <div class="conclusion-card">
+            <div class="conclusion-card-title">Labs 7-8</div>
+            <p>Algorithm confusion failures. Mixing asymmetric verification with symmetric signing logic turns public information into signing material.</p>
+          </div>
+          <div class="conclusion-card">
+            <div class="conclusion-card-title">Burp pattern</div>
+            <p>Capture, decode, tamper, re-sign, replay. The lab changes, but the manual workflow stays consistent enough that Burp becomes the natural home for the whole JWT track.</p>
+          </div>
+        </div>
+
+        <div class="callout success">
+          <div class="callout-title">Up next</div>
+          <p>If you keep moving through the Academy after JWTs, the same mindset transfers well into OAuth, access-control flaws, and API authorization issues: map the trust boundary first, then ask what the client is still allowed to influence.</p>
+        </div>
+      </div>
+
+    </article>
+
+    <section class="post-navigation" aria-labelledby="post-navigation-title">
+      <div class="post-section-head">
+        <div>
+          <span class="post-section-label">Continue reading</span>
+          <h2 id="post-navigation-title" class="post-section-title">Move through the archive</h2>
+        </div>
+        <a href="/blog.html" class="btn">Browse all posts</a>
+      </div>
+      <div class="post-nav-grid"><a href="/blog/nas-frankenstein-build.html" class="post-nav-card">
+  <span class="post-nav-label">Older post</span>
+  <strong class="post-nav-title">Frankenstein NAS Build</strong>
+  <span class="post-nav-meta">2026-04-18 . ~12 min read</span>
+</a></div>
+    </section>
+    <section class="post-related" aria-labelledby="related-posts-title">
+      <div class="post-section-head">
+        <div>
+          <span class="post-section-label">Keep exploring</span>
+          <h2 id="related-posts-title" class="post-section-title">Related posts</h2>
+        </div>
+        <p class="post-section-copy">Posts that overlap with the same tools, techniques, or training targets.</p>
+      </div>
+      <div class="related-posts-grid"><a href="/blog/sqli-labs.html" class="related-post-card">
+  <div class="related-post-meta">
+    <span class="post-date">2026-04-02</span>
+    <span class="post-tag">Web</span><span class="post-tag">Port Swigger</span>
+  </div>
+  <h3 class="related-post-title">PortSwigger SQLi Labs Write-Up</h3>
+  <p class="related-post-excerpt">A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step.</p>
+  <span class="related-post-read">Read article</span>
+</a><a href="/blog/burp-suite-basics.html" class="related-post-card">
+  <div class="related-post-meta">
+    <span class="post-date">2025-07-23</span>
+    <span class="post-tag">Burp Suite</span>
+  </div>
+  <h3 class="related-post-title">Getting Started with Burp Suite</h3>
+  <p class="related-post-excerpt">A practical introduction to Burp Suite's core tools, showing how Proxy, Repeater, Intruder, and Scanner fit into a modern web testing workflow.</p>
+  <span class="related-post-read">Read article</span>
+</a><a href="/blog/juice-shop-writeup.html" class="related-post-card">
+  <div class="related-post-meta">
+    <span class="post-date">2026-04-03</span>
+    <span class="post-tag">Web</span><span class="post-tag">Burp Suite</span>
+  </div>
+  <h3 class="related-post-title">OWASP Juice Shop Write-Up</h3>
+  <p class="related-post-excerpt">A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target.</p>
+  <span class="related-post-read">Read article</span>
+</a></div>
+    </section>
+    <div class="post-footer">
+      <a href="/blog.html" class="btn">&larr; Back to blog</a>
+      <span class="post-footer-note">Use the topic tags above to jump straight into the matching archive filter.</span>
+    </div>
+  </div>
+  <footer>
+    <span>(c) 2026 Vali Hakuryuko</span>
+    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">^ back to top</span>
+  </footer>
+  <script src="/script.js"></script>
+</body>
+</html>
