@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="../favicon/favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg">
+  <link rel="apple-touch-icon" href="../favicon/apple-touch-icon.png">
   <title>Hosting a Local Website with XAMPP and LocalToNet - Vali Hakuryuko</title>
   <meta name="description" content="A step-by-step guide to exposing a locally hosted site with XAMPP and LocalToNet for demos, testing, and short-lived external access." />
   <meta property="og:title" content="Hosting a Local Website with XAMPP and LocalToNet - Vali Hakuryuko" />
@@ -12,25 +15,28 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css" />
-  <link rel="stylesheet" href="/post.css" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../post.css" />
+  <link rel="stylesheet" href="../interactive.css" />
 </head>
 <body class="post-page">
   <nav>
-    <a href="/index.html" class="nav-logo"><span>~/</span>Vali</a>
+    <a href="../index.html" class="nav-logo"><span>~/</span>Vali</a>
     <ul class="nav-links">
-      <li><a href="/index.html#about">About</a></li>
-      <li><a href="/blog.html">Blog</a></li>
-      <li><a href="/index.html#contact">Contact</a></li>
+      <li><a href="../index.html#about">About</a></li>
+      <li><a href="../blog.html">Blog</a></li>
+      <li><a href="../learning-path.html">Path</a></li>
+      <li><a href="../index.html#contact">Contact</a></li>
     </ul>
     <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
   </nav>
   <div class="layout">
-    <header class="post-header">
-      <div class="post-breadcrumb"><a href="/index.html">~</a> / <a href="/blog.html">blog</a> / hosting-xampp-localnet</div>
+    <header class="post-header header-with-particles" data-particle-scope data-particle-density="48" data-particle-link-distance="112">
+      <canvas class="site-particle-canvas post-particle-canvas" data-hero-particles aria-hidden="true"></canvas>
+      <div class="post-breadcrumb"><a href="../index.html">~</a> / <a href="../blog.html">blog</a> / hosting-xampp-localnet</div>
       <div class="post-meta-row">
         <span class="post-date">2025-07-22</span>
-        <a href="/blog.html?tag=tools" class="post-tag-link" aria-label="Browse Tools posts"><span class="post-tag">Tools</span></a>
+        <a href="../blog.html?tag=tools" class="post-tag-link" aria-label="Browse Tools posts"><span class="post-tag">Tools</span></a>
         <span class="post-read-time">~4 min read</span>
       </div>
       <h1 class="post-title">Hosting a Local Website with XAMPP and LocalToNet</h1>
@@ -82,7 +88,7 @@
     .req-list-title { font-family: var(--mono); font-size: 0.72rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
     .req-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; color: var(--text2); }
     .req-item:last-child { border-bottom: none; padding-bottom: 0; }
-    .req-item::before { content: 'âœ“'; color: var(--accent); font-family: var(--mono); font-size: 0.75rem; }
+    .req-item::before { content: '✓'; color: var(--accent); font-family: var(--mono); font-size: 0.75rem; }
     .step-number { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--accent); color: #000; border-radius: 50%; font-family: var(--mono); font-size: 0.75rem; font-weight: 700; margin-right: 0.75rem; flex-shrink: 0; }
     .step-header { display: flex; align-items: center; margin-bottom: 1rem; }
     .step-header h3 { margin: 0; font-family: var(--display); font-size: 1.1rem; font-weight: 700; }
@@ -93,8 +99,8 @@
       <ol>
         <li><a href="#overview">Overview</a></li>
         <li><a href="#requirements">Requirements</a></li>
-        <li><a href="#step1">Step 1 â€” Install & Configure XAMPP</a></li>
-        <li><a href="#step2">Step 2 â€” Expose Localhost with LocalToNet</a></li>
+        <li><a href="#step1">Step 1 — Install & Configure XAMPP</a></li>
+        <li><a href="#step2">Step 2 — Expose Localhost with LocalToNet</a></li>
         <li><a href="#result">Final Result</a></li>
       </ol>
     </div>
@@ -103,27 +109,27 @@
 
       <h2 id="overview">Overview</h2>
       <p>
-        Sometimes you need to quickly spin up a web server â€” to test a PHP app, share a local project with someone, or set up a target for practicing web exploitation. XAMPP gives you Apache + MySQL + PHP in one installer. LocalToNet gives you a public URL tunneling into your localhost, bypassing router NAT without any port forwarding config.
+        Sometimes you need to quickly spin up a web server — to test a PHP app, share a local project with someone, or set up a target for practicing web exploitation. XAMPP gives you Apache + MySQL + PHP in one installer. LocalToNet gives you a public URL tunneling into your localhost, bypassing router NAT without any port forwarding config.
       </p>
       <p>
-        This combo is especially useful for <strong>security testing labs</strong> â€” spin up a vulnerable app locally, expose it temporarily, and tear it down when done.
+        This combo is especially useful for <strong>security testing labs</strong> — spin up a vulnerable app locally, expose it temporarily, and tear it down when done.
       </p>
 
       <h2 id="requirements">Requirements</h2>
       <div class="req-list">
         <div class="req-list-title">// what you need</div>
         <div class="req-item">A PC running Windows, macOS, or Linux</div>
-        <div class="req-item"><a href="https://www.apachefriends.org/index.html" target="_blank">XAMPP</a> installed (free from apachefriends.org)</div>
-        <div class="req-item">A <a href="https://localtonet.com/" target="_blank">LocalToNet</a> account (free tier available)</div>
+        <div class="req-item"><a href="https://www.apachefriends.org/index.html" target="_blank" rel="noopener noreferrer">XAMPP</a> installed (free from apachefriends.org)</div>
+        <div class="req-item">A <a href="https://localtonet.com/" target="_blank" rel="noopener noreferrer">LocalToNet</a> account (free tier available)</div>
       </div>
 
-      <h2 id="step1">Step 1 â€” Install & Configure XAMPP</h2>
+      <h2 id="step1">Step 1 — Install & Configure XAMPP</h2>
       <div class="step-header">
         <span class="step-number">1</span>
         <h3>Download and install XAMPP</h3>
       </div>
       <p>
-        Grab the installer from <a href="https://www.apachefriends.org/index.html" target="_blank">apachefriends.org</a> and run it. The defaults are fine â€” just make sure <strong>Apache</strong> and <strong>MySQL</strong> are checked.
+        Grab the installer from <a href="https://www.apachefriends.org/index.html" target="_blank" rel="noopener noreferrer">apachefriends.org</a> and run it. The defaults are fine — just make sure <strong>Apache</strong> and <strong>MySQL</strong> are checked.
       </p>
 
       <div class="step-header">
@@ -138,7 +144,7 @@
         <span class="step-number">3</span>
         <h3>Test your local server</h3>
       </div>
-      <p>Visit <code>http://localhost</code> in your browser. You should see the XAMPP welcome page â€” that means Apache is running.</p>
+      <p>Visit <code>http://localhost</code> in your browser. You should see the XAMPP welcome page — that means Apache is running.</p>
 
       <div class="step-header">
         <span class="step-number">4</span>
@@ -152,25 +158,25 @@
       <p>Access your project at <code>http://localhost/your-project/index.html</code> (or <code>.php</code>).</p>
 
       <div class="callout info">
-        <div class="callout-title">â„¹ï¸ PHP files</div>
-        <p>If you're running PHP, make sure the file extension is <code>.php</code> â€” Apache needs to process it through the PHP interpreter, not serve it as static HTML.</p>
+        <div class="callout-title">ℹ️ PHP files</div>
+        <p>If you're running PHP, make sure the file extension is <code>.php</code> — Apache needs to process it through the PHP interpreter, not serve it as static HTML.</p>
       </div>
 
-      <h2 id="step2">Step 2 â€” Expose Localhost with LocalToNet</h2>
+      <h2 id="step2">Step 2 — Expose Localhost with LocalToNet</h2>
       <div class="step-header">
         <span class="step-number">1</span>
         <h3>Sign up and download LocalToNet</h3>
       </div>
-      <p>Create a free account at <a href="https://localtonet.com/" target="_blank">localtonet.com</a>, then download the LocalToNet client application for your OS.</p>
+      <p>Create a free account at <a href="https://localtonet.com/" target="_blank" rel="noopener noreferrer">localtonet.com</a>, then download the LocalToNet client application for your OS.</p>
 
       <div class="step-header">
         <span class="step-number">2</span>
         <h3>Add LocalToNet to your PATH</h3>
       </div>
       <p>Extract the binary and add its folder to your system's environment variables so you can run it from any terminal.</p>
-      <span class="code-label">windows â€” add to PATH via PowerShell</span>
+      <span class="code-label">windows — add to PATH via PowerShell</span>
       <pre><code>$env:PATH += ";C:\path\to\localtonet"</code></pre>
-      <span class="code-label">linux / mac â€” add to PATH</span>
+      <span class="code-label">linux / mac — add to PATH</span>
       <pre><code>export PATH=$PATH:/path/to/localtonet
 # Add the above line to ~/.bashrc or ~/.zshrc to persist it</code></pre>
 
@@ -181,20 +187,20 @@
       <p>Open a terminal and run:</p>
       <span class="code-label">bash</span>
       <pre><code>localtonet</code></pre>
-      <p>When prompted, enter your <strong>AuthToken</strong> â€” find it in your LocalToNet dashboard under your account settings.</p>
+      <p>When prompted, enter your <strong>AuthToken</strong> — find it in your LocalToNet dashboard under your account settings.</p>
 
       <div class="step-header">
         <span class="step-number">4</span>
         <h3>Create an HTTP tunnel</h3>
       </div>
       <p>
-        In the LocalToNet dashboard, go to <strong>My Tokens â†’ HTTP</strong> tab â†’ create a new tunnel. Point it at <code>localhost:80</code> (XAMPP's Apache port).
+        In the LocalToNet dashboard, go to <strong>My Tokens → HTTP</strong> tab → create a new tunnel. Point it at <code>localhost:80</code> (XAMPP's Apache port).
         Start the tunnel and LocalToNet will generate a public URL like <code>https://abc123.localto.net</code>.
       </p>
 
       <div class="callout success">
-        <div class="callout-title">âœ… Done!</div>
-        <p>Anyone with that URL can now access your local project from anywhere on the internet â€” no router config, no static IP needed.</p>
+        <div class="callout-title">✅ Done!</div>
+        <p>Anyone with that URL can now access your local project from anywhere on the internet — no router config, no static IP needed.</p>
       </div>
 
       <h2 id="result">Final Result</h2>
@@ -203,8 +209,8 @@
       </p>
 
       <div class="callout warning">
-        <div class="callout-title">âš ï¸ Security note</div>
-        <p>Don't leave tunnels open when not in use â€” especially if you're running intentionally vulnerable apps. Anyone with the URL can access your local server. Tear down the tunnel when you're done.</p>
+        <div class="callout-title">⚠️ Security note</div>
+        <p>Don't leave tunnels open when not in use — especially if you're running intentionally vulnerable apps. Anyone with the URL can access your local server. Tear down the tunnel when you're done.</p>
       </div>
 
     </article>
@@ -215,13 +221,13 @@
           <span class="post-section-label">Continue reading</span>
           <h2 id="post-navigation-title" class="post-section-title">Move through the archive</h2>
         </div>
-        <a href="/blog.html" class="btn">Browse all posts</a>
+        <a href="../blog.html" class="btn">Browse all posts</a>
       </div>
-      <div class="post-nav-grid"><a href="/blog/burp-suite-basics.html" class="post-nav-card">
+      <div class="post-nav-grid"><a href="burp-suite-basics.html" class="post-nav-card">
   <span class="post-nav-label">Newer post</span>
   <strong class="post-nav-title">Getting Started with Burp Suite</strong>
   <span class="post-nav-meta">2025-07-23 . ~5 min read</span>
-</a><a href="/blog/sql-injection.html" class="post-nav-card">
+</a><a href="sql-injection.html" class="post-nav-card">
   <span class="post-nav-label">Older post</span>
   <strong class="post-nav-title">Understanding SQL Injection</strong>
   <span class="post-nav-meta">2025-06-15 . ~7 min read</span>
@@ -235,7 +241,7 @@
         </div>
         <p class="post-section-copy">A few more write-ups to keep the thread going.</p>
       </div>
-      <div class="related-posts-grid"><a href="/blog/juice-shop-writeup.html" class="related-post-card">
+      <div class="related-posts-grid"><a href="juice-shop-writeup.html" class="related-post-card">
   <div class="related-post-meta">
     <span class="post-date">2026-04-03</span>
     <span class="post-tag">Web</span><span class="post-tag">Burp Suite</span>
@@ -243,7 +249,7 @@
   <h3 class="related-post-title">OWASP Juice Shop Write-Up</h3>
   <p class="related-post-excerpt">A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target.</p>
   <span class="related-post-read">Read article</span>
-</a><a href="/blog/sqli-labs.html" class="related-post-card">
+</a><a href="sqli-labs.html" class="related-post-card">
   <div class="related-post-meta">
     <span class="post-date">2026-04-02</span>
     <span class="post-tag">Web</span><span class="post-tag">Port Swigger</span>
@@ -251,7 +257,7 @@
   <h3 class="related-post-title">PortSwigger SQLi Labs Write-Up</h3>
   <p class="related-post-excerpt">A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step.</p>
   <span class="related-post-read">Read article</span>
-</a><a href="/blog/Linux-Privilege-Escalation.html" class="related-post-card">
+</a><a href="Linux-Privilege-Escalation.html" class="related-post-card">
   <div class="related-post-meta">
     <span class="post-date">2025-07-30</span>
     <span class="post-tag">Linux</span>
@@ -262,7 +268,7 @@
 </a></div>
     </section>
     <div class="post-footer">
-      <a href="/blog.html" class="btn">&larr; Back to blog</a>
+      <a href="../blog.html" class="btn">&larr; Back to blog</a>
       <span class="post-footer-note">Use the topic tags above to jump into the matching archive filter.</span>
     </div>
   </div>
@@ -270,6 +276,6 @@
     <span>(c) 2026 Vali Hakuryuko</span>
     <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">^ back to top</span>
   </footer>
-  <script src="/script.js"></script>
+  <script src="../script.js"></script>
 </body>
 </html>

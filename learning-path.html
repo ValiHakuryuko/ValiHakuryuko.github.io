@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <meta property="og:title" content="Learning Path - Vali Hakuryuko" />
+  <meta property="og:description" content="A public cybersecurity learning path across web security, PortSwigger labs, Linux privilege escalation, Burp Suite, and homelab work." />
+  <meta property="og:image" content="https://valihakuryuko.github.io/image/profile.jpg" />
+  <meta property="og:url" content="https://valihakuryuko.github.io/learning-path.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Learning Path - Vali Hakuryuko" />
+  <meta name="twitter:description" content="A public cybersecurity learning path across web security, PortSwigger labs, Linux privilege escalation, Burp Suite, and homelab work." />
+  <meta name="twitter:image" content="https://valihakuryuko.github.io/image/profile.jpg" />
+  <link rel="canonical" href="https://valihakuryuko.github.io/learning-path.html" />
+<link rel="icon" href="favicon/favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg">
+  <link rel="apple-touch-icon" href="favicon/apple-touch-icon.png">
+  <title>Learning Path - Vali Hakuryuko</title>
+  <meta name="description" content="A public cybersecurity learning path across web security, PortSwigger labs, Linux privilege escalation, Burp Suite, and homelab work." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="site.css" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="interactive.css" />
+</head>
+<body class="site-page path-page">
+  <nav>
+    <a href="index.html" class="nav-logo"><span>~/</span>Vali</a>
+    <ul class="nav-links">
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="learning-path.html" class="active">Path</a></li>
+      <li><a href="index.html#contact">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
+    </div>
+  </nav>
+
+  <header class="path-hero header-with-particles fade-in" data-particle-scope data-particle-density="88" data-particle-link-distance="124">
+    <canvas class="site-particle-canvas path-particle-canvas" data-hero-particles aria-hidden="true"></canvas>
+    <div class="page-breadcrumb"><a href="index.html">~</a> / learning-path</div>
+    <h1>Public lab notebook,<br><em>mapped as a learning path.</em></h1>
+    <p>
+      A recruiter-friendly view of my cybersecurity progression: what I have already written up, what I am actively strengthening, and what comes next on the BSCP → OSCP track.
+    </p>
+    <div class="path-stats" aria-label="Learning path status">
+      <div class="path-stat"><strong>8</strong><span>published write-ups</span></div>
+      <div class="path-stat"><strong>2</strong><span>core tracks completed</span></div>
+      <div class="path-stat"><strong>BSCP</strong><span>current target</span></div>
+    </div>
+  </header>
+
+  <div class="path-controls fade-in" aria-label="Filter learning path">
+    <button class="path-filter-btn is-active" data-path-filter="all">All</button>
+    <button class="path-filter-btn" data-path-filter="done">Completed</button>
+    <button class="path-filter-btn" data-path-filter="progress">In progress</button>
+    <button class="path-filter-btn" data-path-filter="next">Next</button>
+    <button class="path-filter-btn" data-path-filter="web">Web</button>
+    <button class="path-filter-btn" data-path-filter="linux">Linux</button>
+    <button class="path-filter-btn" data-path-filter="homelab">Homelab</button>
+  </div>
+
+  <main class="path-board fade-in" id="learning-board">
+    <article class="learning-card" data-status="done" data-updated="2026-06-07" data-tags="done web jwt burp portswigger">
+      <div class="learning-card-top"><h2>JWT security labs</h2><span class="learning-status done">Completed</span></div>
+      <p>Token tampering, none-alg abuse, weak secrets, key header injection, JWKS, JKU, KID, and algorithm confusion.</p>
+      <div class="learning-tags"><span>JWT</span><span>Burp Suite</span><span>PortSwigger</span></div>
+      <a href="blog/jwt-labs.html">open write-up -></a>
+    </article>
+
+    <article class="learning-card" data-status="done" data-updated="2026-04-02" data-tags="done web sqli burp portswigger">
+      <div class="learning-card-top"><h2>SQL injection labs</h2><span class="learning-status done">Completed</span></div>
+      <p>Union-based SQLi, blind SQLi, conditional responses, conditional errors, time delays, Oracle and non-Oracle enumeration.</p>
+      <div class="learning-tags"><span>SQLi</span><span>Python</span><span>Burp</span></div>
+      <a href="blog/sqli-labs.html">open write-up -></a>
+    </article>
+
+    <article class="learning-card" data-status="progress" data-updated="2026-04-03" data-tags="progress web owasp xss ctf">
+      <div class="learning-card-top"><h2>OWASP Juice Shop practice</h2><span class="learning-status progress">In progress</span></div>
+      <p>Challenge discovery, XSS, login bypasses, request manipulation, and Burp-driven testing against a modern vulnerable app.</p>
+      <div class="learning-tags"><span>OWASP</span><span>XSS</span><span>CTF</span></div>
+      <a href="blog/juice-shop-writeup.html">open write-up -></a>
+    </article>
+
+    <article class="learning-card" data-status="progress" data-updated="2025-07-30" data-tags="progress linux privesc">
+      <div class="learning-card-top"><h2>Linux privilege escalation</h2><span class="learning-status progress">In progress</span></div>
+      <p>Enumeration, SUID, sudo rights, PATH hijacking, cron jobs, capabilities, kernel exploits, and post-exploitation workflow.</p>
+      <div class="learning-tags"><span>Linux</span><span>PrivEsc</span><span>Post-exploitation</span></div>
+      <a href="blog/Linux-Privilege-Escalation.html">open reference -></a>
+    </article>
+
+    <article class="learning-card" data-status="done" data-updated="2025-07-23" data-tags="done burp web tools">
+      <div class="learning-card-top"><h2>Burp Suite workflow</h2><span class="learning-status done">Completed</span></div>
+      <p>Proxy, Repeater, Intruder, Decoder, Comparer, and a practical manual testing workflow for web assessments.</p>
+      <div class="learning-tags"><span>Burp</span><span>Tools</span><span>Workflow</span></div>
+      <a href="blog/burp-suite-basics.html">open guide -></a>
+    </article>
+
+    <article class="learning-card" data-status="done" data-updated="2026-04-18" data-tags="done homelab networking storage">
+      <div class="learning-card-top"><h2>Homelab and infrastructure</h2><span class="learning-status done">Completed</span></div>
+      <p>NAS experimentation, local website exposure, tunneling, SMB, device access, and practical infrastructure troubleshooting.</p>
+      <div class="learning-tags"><span>Homelab</span><span>Networking</span><span>Storage</span></div>
+      <a href="blog/nas-frankenstein-build.html">open build -></a>
+    </article>
+
+    <article class="learning-card" data-status="next" data-updated="2026-06-12" data-tags="next web access-control ssrf oauth">
+      <div class="learning-card-top"><h2>Next web tracks</h2><span class="learning-status">Next</span></div>
+      <p>Access control, SSRF, OAuth, web cache deception, WebSockets, and authentication flaws. These should become future write-up clusters.</p>
+      <div class="learning-tags"><span>Access Control</span><span>SSRF</span><span>OAuth</span></div>
+      <a href="blog.html">watch the archive -></a>
+    </article>
+
+    <article class="learning-card" data-status="next" data-updated="2026-06-12" data-tags="next oscp linux windows active-directory">
+      <div class="learning-card-top"><h2>OSCP-level foundation</h2><span class="learning-status">Next</span></div>
+      <p>Linux/Windows enumeration, privilege escalation, tunneling, Active Directory basics, exploit adaptation, and report writing.</p>
+      <div class="learning-tags"><span>OSCP</span><span>AD</span><span>Reporting</span></div>
+      <a href="blog.html?tag=linux">start from Linux notes -></a>
+    </article>
+  </main>
+
+  <footer>
+    <span>(c) 2025 Vali Hakuryuko - Some rights reserved</span>
+    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">^ back to top</span>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

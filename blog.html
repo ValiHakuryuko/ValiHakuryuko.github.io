@@ -3,6 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <meta property="og:title" content="Blog - Vali Hakuryuko" />
+  <meta property="og:description" content="Security writeups, PortSwigger lab notes, web exploitation walkthroughs, homelab experiments, and pentesting research by Vali Hakuryuko." />
+  <meta property="og:image" content="https://valihakuryuko.github.io/image/profile.jpg" />
+  <meta property="og:url" content="https://valihakuryuko.github.io/blog.html" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Blog - Vali Hakuryuko" />
+  <meta name="twitter:description" content="Security writeups, PortSwigger lab notes, web exploitation walkthroughs, homelab experiments, and pentesting research by Vali Hakuryuko." />
+  <meta name="twitter:image" content="https://valihakuryuko.github.io/image/profile.jpg" />
+  <link rel="canonical" href="https://valihakuryuko.github.io/blog.html" />
+<link rel="icon" href="favicon/favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg">
+  <link rel="apple-touch-icon" href="favicon/apple-touch-icon.png">
   <title>Blog - Vali Hakuryuko</title>
   <meta name="description" content="Writeups, techniques, homelab builds, and pentesting notes by Vali Hakuryuko. Security research, storage experiments, Linux notes, and hands-on technical work.">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -10,6 +24,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="site.css" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="interactive.css" />
   <style>
     .page-header {
       padding: 5rem 6vw 2.8rem;
@@ -215,12 +230,14 @@
     <ul class="nav-links">
       <li><a href="index.html#about">About</a></li>
       <li><a href="blog.html" class="active">Blog</a></li>
+      <li><a href="learning-path.html">Path</a></li>
       <li><a href="index.html#contact">Contact</a></li>
     </ul>
     <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
   </nav>
 
-  <div class="page-header">
+  <div class="page-header header-with-particles" data-particle-scope data-particle-density="82" data-particle-link-distance="122">
+    <canvas class="site-particle-canvas page-particle-canvas" data-hero-particles aria-hidden="true"></canvas>
     <div class="page-breadcrumb"><a href="index.html">~</a> / Blog</div>
     <h1>Blog</h1>
     <p class="page-desc">Technical write-ups, homelab builds, lab notes, and security walkthroughs focused on hands-on learning, tooling, and real troubleshooting.</p>
@@ -231,7 +248,7 @@
       <span class="blog-search-label">Search the archive</span>
       <input id="post-search" type="search" placeholder="Search write-ups, labs, tools, and topics" autocomplete="off" />
     </label>
-    <p class="blog-search-note">Use <code>/</code> to focus search. Filters and search work together.</p>
+    <p class="blog-search-note">Use <code>/</code> or <code>Ctrl+K</code> for the command palette. Filters and search work together.</p>
   </div>
 
   <div class="filters">
@@ -252,16 +269,16 @@
   <main>
     <div class="posts-count" id="posts-count">8 posts</div>
 
-    <a href="/blog/jwt-labs.html" class="post-featured fade-in" data-tags="web port-swigger burp-suite jwt"><div><div class="post-featured-meta"><span class="post-date">2026-06-07</span><span class="post-tag">Web</span><span class="post-tag">JWT</span></div><div class="post-title">PortSwigger JWT Labs Write-Up</div><p class="post-excerpt">A Burp-first walkthrough of PortSwigger's JWT labs, covering none-alg abuse, weak secrets, header injection, and algorithm confusion without Python automation.</p><span class="post-read-more">read post</span></div></a>
+    <a href="blog/jwt-labs.html" class="post-featured fade-in" data-tags="web port-swigger burp-suite jwt"><div><div class="post-featured-meta"><span class="post-date">2026-06-07</span><span class="post-tag">Web</span><span class="post-tag">JWT</span></div><div class="post-title">PortSwigger JWT Labs Write-Up</div><p class="post-excerpt">A Burp-first walkthrough of PortSwigger's JWT labs, covering none-alg abuse, weak secrets, header injection, and algorithm confusion without Python automation.</p><span class="post-read-more">read post</span></div></a>
 
     <div class="posts-grid" id="posts-grid">
-      <a href="/blog/nas-frankenstein-build.html" class="post-card fade-in" data-tags="homelab tools networking storage"><div class="post-meta"><span class="post-date">2026-04-18</span><span class="post-tag">Home Lab</span><span class="post-tag">Networking</span></div><div class="post-title">Frankenstein NAS Build</div><p class="post-excerpt">Turning an old ISP router and a powered 1TB drive into a working home NAS, including Windows 11 SMB fixes, iPhone access, and the limits of a LAN-only build.</p><span class="post-read-more">read post</span></a>
-      <a href="/blog/juice-shop-writeup.html" class="post-card fade-in" data-tags="web xss sqli owasp ctf"><div class="post-meta"><span class="post-date">2026-04-03</span><span class="post-tag">Web</span><span class="post-tag">Burp Suite</span></div><div class="post-title">OWASP Juice Shop Write-Up</div><p class="post-excerpt">A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target.</p><span class="post-read-more">read post</span></a>
-      <a href="/blog/sqli-labs.html" class="post-card fade-in" data-tags="web port-swigger"><div class="post-meta"><span class="post-date">2026-04-02</span><span class="post-tag">Web</span><span class="post-tag">Port Swigger</span></div><div class="post-title">PortSwigger SQLi Labs Write-Up</div><p class="post-excerpt">A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step.</p><span class="post-read-more">read post</span></a>
-      <a href="/blog/Linux-Privilege-Escalation.html" class="post-card fade-in" data-tags="linux"><div class="post-meta"><span class="post-date">2025-07-30</span><span class="post-tag">Linux</span></div><div class="post-title">Understanding Linux Privilege Escalation</div><p class="post-excerpt">A focused guide to common Linux privilege escalation paths, including SUID abuse, cron jobs, weak permissions, and systematic enumeration.</p><span class="post-read-more">read post</span></a>
-      <a href="/blog/burp-suite-basics.html" class="post-card fade-in" data-tags="burp-suite web"><div class="post-meta"><span class="post-date">2025-07-23</span><span class="post-tag">Burp Suite</span></div><div class="post-title">Getting Started with Burp Suite</div><p class="post-excerpt">A practical introduction to Burp Suite&#x27;s core tools, showing how Proxy, Repeater, Intruder, and Scanner fit into a modern web testing workflow.</p><span class="post-read-more">read post</span></a>
-      <a href="/blog/hosting-xampp-localnet.html" class="post-card fade-in" data-tags="tools"><div class="post-meta"><span class="post-date">2025-07-22</span><span class="post-tag">Tools</span></div><div class="post-title">Hosting a Local Website with XAMPP and LocalToNet</div><p class="post-excerpt">A step-by-step guide to exposing a locally hosted site with XAMPP and LocalToNet for demos, testing, and short-lived external access.</p><span class="post-read-more">read post</span></a>
-      <a href="/blog/sql-injection.html" class="post-card fade-in" data-tags="web"><div class="post-meta"><span class="post-date">2025-06-15</span><span class="post-tag">Web</span></div><div class="post-title">Understanding SQL Injection</div><p class="post-excerpt">A technical overview of SQL injection testing, covering union-based, blind, and time-based techniques with a methodical assessment mindset.</p><span class="post-read-more">read post</span></a>
+      <a href="blog/nas-frankenstein-build.html" class="post-card fade-in" data-tags="homelab tools networking storage"><div class="post-meta"><span class="post-date">2026-04-18</span><span class="post-tag">Home Lab</span><span class="post-tag">Networking</span></div><div class="post-title">Frankenstein NAS Build</div><p class="post-excerpt">Turning an old ISP router and a powered 1TB drive into a working home NAS, including Windows 11 SMB fixes, iPhone access, and the limits of a LAN-only build.</p><span class="post-read-more">read post</span></a>
+      <a href="blog/juice-shop-writeup.html" class="post-card fade-in" data-tags="web xss sqli owasp ctf"><div class="post-meta"><span class="post-date">2026-04-03</span><span class="post-tag">Web</span><span class="post-tag">Burp Suite</span></div><div class="post-title">OWASP Juice Shop Write-Up</div><p class="post-excerpt">A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target.</p><span class="post-read-more">read post</span></a>
+      <a href="blog/sqli-labs.html" class="post-card fade-in" data-tags="web port-swigger"><div class="post-meta"><span class="post-date">2026-04-02</span><span class="post-tag">Web</span><span class="post-tag">Port Swigger</span></div><div class="post-title">PortSwigger SQLi Labs Write-Up</div><p class="post-excerpt">A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step.</p><span class="post-read-more">read post</span></a>
+      <a href="blog/Linux-Privilege-Escalation.html" class="post-card fade-in" data-tags="linux"><div class="post-meta"><span class="post-date">2025-07-30</span><span class="post-tag">Linux</span></div><div class="post-title">Understanding Linux Privilege Escalation</div><p class="post-excerpt">A focused guide to common Linux privilege escalation paths, including SUID abuse, cron jobs, weak permissions, and systematic enumeration.</p><span class="post-read-more">read post</span></a>
+      <a href="blog/burp-suite-basics.html" class="post-card fade-in" data-tags="burp-suite web"><div class="post-meta"><span class="post-date">2025-07-23</span><span class="post-tag">Burp Suite</span></div><div class="post-title">Getting Started with Burp Suite</div><p class="post-excerpt">A practical introduction to Burp Suite&#x27;s core tools, showing how Proxy, Repeater, Intruder, and Scanner fit into a modern web testing workflow.</p><span class="post-read-more">read post</span></a>
+      <a href="blog/hosting-xampp-localnet.html" class="post-card fade-in" data-tags="tools"><div class="post-meta"><span class="post-date">2025-07-22</span><span class="post-tag">Tools</span></div><div class="post-title">Hosting a Local Website with XAMPP and LocalToNet</div><p class="post-excerpt">A step-by-step guide to exposing a locally hosted site with XAMPP and LocalToNet for demos, testing, and short-lived external access.</p><span class="post-read-more">read post</span></a>
+      <a href="blog/sql-injection.html" class="post-card fade-in" data-tags="web"><div class="post-meta"><span class="post-date">2025-06-15</span><span class="post-tag">Web</span></div><div class="post-title">Understanding SQL Injection</div><p class="post-excerpt">A technical overview of SQL injection testing, covering union-based, blind, and time-based techniques with a methodical assessment mindset.</p><span class="post-read-more">read post</span></a>
     </div>
 
     <div class="posts-empty" id="posts-empty" hidden>

@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="../favicon/favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg">
+  <link rel="apple-touch-icon" href="../favicon/apple-touch-icon.png">
   <title>PortSwigger JWT Labs 1-8 Write-Up, Burp Workflows &amp; Python Scripts - Vali Hakuryuko</title>
   <meta name="description" content="A detailed walkthrough of PortSwigger's JWT labs using both Burp Suite and Python scripts, covering none-alg abuse, weak secrets, header injection, and algorithm confusion." />
   <meta property="og:title" content="PortSwigger JWT Labs 1-8 Write-Up, Burp Workflows &amp; Python Scripts - Vali Hakuryuko" />
@@ -12,25 +15,28 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css" />
-  <link rel="stylesheet" href="/post.css" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../post.css" />
+  <link rel="stylesheet" href="../interactive.css" />
 </head>
-<body class="post-page">
+<body class="post-page" data-playground="jwt">
   <nav>
-    <a href="/index.html" class="nav-logo"><span>~/</span>Vali</a>
+    <a href="../index.html" class="nav-logo"><span>~/</span>Vali</a>
     <ul class="nav-links">
-      <li><a href="/index.html#about">About</a></li>
-      <li><a href="/blog.html">Blog</a></li>
-      <li><a href="/index.html#contact">Contact</a></li>
+      <li><a href="../index.html#about">About</a></li>
+      <li><a href="../blog.html">Blog</a></li>
+      <li><a href="../learning-path.html">Path</a></li>
+      <li><a href="../index.html#contact">Contact</a></li>
     </ul>
     <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
   </nav>
   <div class="layout">
-    <header class="post-header">
-      <div class="post-breadcrumb"><a href="/index.html">~</a> / <a href="/blog.html">blog</a> / jwt-labs</div>
+    <header class="post-header header-with-particles" data-particle-scope data-particle-density="48" data-particle-link-distance="112">
+      <canvas class="site-particle-canvas post-particle-canvas" data-hero-particles aria-hidden="true"></canvas>
+      <div class="post-breadcrumb"><a href="../index.html">~</a> / <a href="../blog.html">blog</a> / jwt-labs</div>
       <div class="post-meta-row">
         <span class="post-date">2026-06-07</span>
-        <a href="/blog.html?tag=web" class="post-tag-link" aria-label="Browse Web posts"><span class="post-tag">Web</span></a><a href="/blog.html?tag=port-swigger" class="post-tag-link" aria-label="Browse Port Swigger posts"><span class="post-tag">Port Swigger</span></a><a href="/blog.html?tag=burp-suite" class="post-tag-link" aria-label="Browse Burp Suite posts"><span class="post-tag blue">Burp Suite</span></a><a href="/blog.html?tag=jwt" class="post-tag-link" aria-label="Browse JWT posts"><span class="post-tag orange">JWT</span></a>
+        <a href="../blog.html?tag=web" class="post-tag-link" aria-label="Browse Web posts"><span class="post-tag">Web</span></a><a href="../blog.html?tag=port-swigger" class="post-tag-link" aria-label="Browse Port Swigger posts"><span class="post-tag">Port Swigger</span></a><a href="../blog.html?tag=burp-suite" class="post-tag-link" aria-label="Browse Burp Suite posts"><span class="post-tag blue">Burp Suite</span></a><a href="../blog.html?tag=jwt" class="post-tag-link" aria-label="Browse JWT posts"><span class="post-tag orange">JWT</span></a>
         <span class="post-read-time">~50 min read</span>
       </div>
       <h1 class="post-title">PortSwigger JWT Labs 1-8<br>Write-Up, Burp Workflows &amp; Python Scripts</h1>
@@ -1127,9 +1133,9 @@ print(f"Modified token: {modified_token}\n")</code></pre>
           <span class="post-section-label">Continue reading</span>
           <h2 id="post-navigation-title" class="post-section-title">Move through the archive</h2>
         </div>
-        <a href="/blog.html" class="btn">Browse all posts</a>
+        <a href="../blog.html" class="btn">Browse all posts</a>
       </div>
-      <div class="post-nav-grid"><a href="/blog/nas-frankenstein-build.html" class="post-nav-card">
+      <div class="post-nav-grid"><a href="nas-frankenstein-build.html" class="post-nav-card">
   <span class="post-nav-label">Older post</span>
   <strong class="post-nav-title">Frankenstein NAS Build</strong>
   <span class="post-nav-meta">2026-04-18 . ~12 min read</span>
@@ -1143,7 +1149,7 @@ print(f"Modified token: {modified_token}\n")</code></pre>
         </div>
         <p class="post-section-copy">Posts that overlap with the same tools, techniques, or training targets.</p>
       </div>
-      <div class="related-posts-grid"><a href="/blog/sqli-labs.html" class="related-post-card">
+      <div class="related-posts-grid"><a href="sqli-labs.html" class="related-post-card">
   <div class="related-post-meta">
     <span class="post-date">2026-04-02</span>
     <span class="post-tag">Web</span><span class="post-tag">Port Swigger</span>
@@ -1151,7 +1157,7 @@ print(f"Modified token: {modified_token}\n")</code></pre>
   <h3 class="related-post-title">PortSwigger SQLi Labs Write-Up</h3>
   <p class="related-post-excerpt">A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step.</p>
   <span class="related-post-read">Read article</span>
-</a><a href="/blog/burp-suite-basics.html" class="related-post-card">
+</a><a href="burp-suite-basics.html" class="related-post-card">
   <div class="related-post-meta">
     <span class="post-date">2025-07-23</span>
     <span class="post-tag">Burp Suite</span>
@@ -1159,7 +1165,7 @@ print(f"Modified token: {modified_token}\n")</code></pre>
   <h3 class="related-post-title">Getting Started with Burp Suite</h3>
   <p class="related-post-excerpt">A practical introduction to Burp Suite's core tools, showing how Proxy, Repeater, Intruder, and Scanner fit into a modern web testing workflow.</p>
   <span class="related-post-read">Read article</span>
-</a><a href="/blog/juice-shop-writeup.html" class="related-post-card">
+</a><a href="juice-shop-writeup.html" class="related-post-card">
   <div class="related-post-meta">
     <span class="post-date">2026-04-03</span>
     <span class="post-tag">Web</span><span class="post-tag">Burp Suite</span>
@@ -1170,7 +1176,7 @@ print(f"Modified token: {modified_token}\n")</code></pre>
 </a></div>
     </section>
     <div class="post-footer">
-      <a href="/blog.html" class="btn">&larr; Back to blog</a>
+      <a href="../blog.html" class="btn">&larr; Back to blog</a>
       <span class="post-footer-note">Use the topic tags above to jump straight into the matching archive filter.</span>
     </div>
   </div>
@@ -1178,6 +1184,6 @@ print(f"Modified token: {modified_token}\n")</code></pre>
     <span>(c) 2026 Vali Hakuryuko</span>
     <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">^ back to top</span>
   </footer>
-  <script src="/script.js"></script>
+  <script src="../script.js"></script>
 </body>
 </html>

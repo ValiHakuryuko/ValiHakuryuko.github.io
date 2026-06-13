@@ -10,6 +10,7 @@
   margin: 0 auto;
   position: relative;
   isolation: isolate;
+  overflow: hidden;
 }
 
 .hero::before {
@@ -24,6 +25,29 @@
   opacity: 0.88;
   z-index: -1;
   pointer-events: none;
+}
+
+.hero-particle-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  pointer-events: none;
+  opacity: 0.78;
+  mix-blend-mode: screen;
+  mask-image: radial-gradient(circle at 44% 42%, #000 0%, #000 54%, transparent 96%);
+}
+
+html[data-theme="light"] .hero-particle-canvas {
+  opacity: 0.44;
+  mix-blend-mode: multiply;
+}
+
+.hero-text,
+.hero-visual {
+  position: relative;
+  z-index: 1;
 }
 
 .hero-tag {
@@ -361,6 +385,11 @@ h2 {
 .about-fact dd {
   color: var(--text);
   line-height: 1.75;
+}
+
+/* Tighter About → Certifications handoff */
+#about {
+  padding-bottom: clamp(3rem, 5vw, 4.5rem);
 }
 
 /* CERTIFICATIONS */
@@ -815,6 +844,7 @@ h2 {
   section::before,
   section::after,
   .hero::before,
+  .hero-particle-canvas,
   .cert-card,
   .cert-card::before,
   .cert-chevron::before,

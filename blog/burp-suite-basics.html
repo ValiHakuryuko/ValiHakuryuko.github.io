@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="../favicon/favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg">
+  <link rel="apple-touch-icon" href="../favicon/apple-touch-icon.png">
   <title>Getting Started with Burp Suite - Vali Hakuryuko</title>
   <meta name="description" content="A practical introduction to Burp Suite&#x27;s core tools, showing how Proxy, Repeater, Intruder, and Scanner fit into a modern web testing workflow." />
   <meta property="og:title" content="Getting Started with Burp Suite - Vali Hakuryuko" />
@@ -12,25 +15,28 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css" />
-  <link rel="stylesheet" href="/post.css" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../post.css" />
+  <link rel="stylesheet" href="../interactive.css" />
 </head>
 <body class="post-page">
   <nav>
-    <a href="/index.html" class="nav-logo"><span>~/</span>Vali</a>
+    <a href="../index.html" class="nav-logo"><span>~/</span>Vali</a>
     <ul class="nav-links">
-      <li><a href="/index.html#about">About</a></li>
-      <li><a href="/blog.html">Blog</a></li>
-      <li><a href="/index.html#contact">Contact</a></li>
+      <li><a href="../index.html#about">About</a></li>
+      <li><a href="../blog.html">Blog</a></li>
+      <li><a href="../learning-path.html">Path</a></li>
+      <li><a href="../index.html#contact">Contact</a></li>
     </ul>
     <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
   </nav>
   <div class="layout">
-    <header class="post-header">
-      <div class="post-breadcrumb"><a href="/index.html">~</a> / <a href="/blog.html">blog</a> / burp-suite-basics</div>
+    <header class="post-header header-with-particles" data-particle-scope data-particle-density="48" data-particle-link-distance="112">
+      <canvas class="site-particle-canvas post-particle-canvas" data-hero-particles aria-hidden="true"></canvas>
+      <div class="post-breadcrumb"><a href="../index.html">~</a> / <a href="../blog.html">blog</a> / burp-suite-basics</div>
       <div class="post-meta-row">
         <span class="post-date">2025-07-23</span>
-        <a href="/blog.html?tag=burp-suite" class="post-tag-link" aria-label="Browse Burp Suite posts"><span class="post-tag">Burp Suite</span></a><a href="/blog.html?tag=web" class="post-tag-link" aria-label="Browse Web posts"><span class="post-tag">Web</span></a>
+        <a href="../blog.html?tag=burp-suite" class="post-tag-link" aria-label="Browse Burp Suite posts"><span class="post-tag">Burp Suite</span></a><a href="../blog.html?tag=web" class="post-tag-link" aria-label="Browse Web posts"><span class="post-tag">Web</span></a>
         <span class="post-read-time">~5 min read</span>
       </div>
       <h1 class="post-title">Getting Started with Burp Suite</h1>
@@ -111,10 +117,10 @@
         Burp Suite is an integrated platform for web application security testing made by PortSwigger. It sits between your browser and the target web server, letting you intercept, inspect, and modify every HTTP/S request and response in real time.
       </p>
       <p>
-        The <strong>Community Edition</strong> is free and covers everything you need to get started â€” Proxy, Repeater, and a rate-limited Intruder. The Professional edition adds an active scanner and unlimited Intruder speed, which is what the <strong>BSCP</strong> exam uses.
+        The <strong>Community Edition</strong> is free and covers everything you need to get started — Proxy, Repeater, and a rate-limited Intruder. The Professional edition adds an active scanner and unlimited Intruder speed, which is what the <strong>BSCP</strong> exam uses.
       </p>
       <div class="callout info">
-        <div class="callout-title">â„¹ï¸ Setup</div>
+        <div class="callout-title">ℹ️ Setup</div>
         <p>To use Burp, configure your browser to send traffic through Burp's proxy (default: <code>127.0.0.1:8080</code>), then install the <strong>Burp CA certificate</strong> in your browser to intercept HTTPS without errors. Use the FoxyProxy extension to toggle it easily.</p>
       </div>
 
@@ -129,7 +135,7 @@
         </div>
         <div class="tool-card">
           <div class="tool-card-name">HTTP History</div>
-          <p>A running log of every request and response that has passed through the proxy â€” even when Intercept is off. Your primary browsing audit trail.</p>
+          <p>A running log of every request and response that has passed through the proxy — even when Intercept is off. Your primary browsing audit trail.</p>
         </div>
       </div>
       <p>
@@ -138,26 +144,26 @@
 
       <h2 id="repeater">Repeater</h2>
       <p>
-        Repeater lets you take a single HTTP request and send it to the server as many times as you want â€” with manual modifications each time. It's your workbench for testing individual inputs.
+        Repeater lets you take a single HTTP request and send it to the server as many times as you want — with manual modifications each time. It's your workbench for testing individual inputs.
       </p>
       <div class="callout info">
-        <div class="callout-title">â„¹ï¸ Proxy vs. Repeater â€” what's the difference?</div>
+        <div class="callout-title">ℹ️ Proxy vs. Repeater — what's the difference?</div>
         <p>Proxy intercepts <em>live</em> browser traffic. Repeater works on a <em>copy</em> of a request, completely decoupled from your browser. Changes in Repeater don't affect your actual session unless you want them to.</p>
       </div>
       <p>How to send a request to Repeater:</p>
       <ul>
-        <li>From HTTP History or Intercept: right-click â†’ <strong>Send to Repeater</strong></li>
+        <li>From HTTP History or Intercept: right-click → <strong>Send to Repeater</strong></li>
         <li>Keyboard shortcut: <code>Ctrl+R</code></li>
       </ul>
       <p>Once in Repeater, you can:</p>
       <ul>
-        <li><strong>Edit</strong> â€” change headers, body parameters, cookies, anything</li>
-        <li><strong>Send</strong> â€” fire the modified request and immediately see the response</li>
-        <li><strong>Compare</strong> â€” use the built-in diff to compare two responses side by side</li>
-        <li><strong>History</strong> â€” step back through previous sends in the same Repeater tab</li>
+        <li><strong>Edit</strong> — change headers, body parameters, cookies, anything</li>
+        <li><strong>Send</strong> — fire the modified request and immediately see the response</li>
+        <li><strong>Compare</strong> — use the built-in diff to compare two responses side by side</li>
+        <li><strong>History</strong> — step back through previous sends in the same Repeater tab</li>
       </ul>
       <p>
-        Repeater is where you'll spend most of your time during manual testing â€” probing for SQLi, XSS, IDOR, authentication bypasses, and anything else that requires tweaking one parameter at a time.
+        Repeater is where you'll spend most of your time during manual testing — probing for SQLi, XSS, IDOR, authentication bypasses, and anything else that requires tweaking one parameter at a time.
       </p>
 
       <h2 id="intruder">Intruder</h2>
@@ -177,16 +183,16 @@
         </div>
         <div class="attack-type">
           <div class="attack-type-name">Pitchfork</div>
-          <p>Multiple payload lists, one per position. Pairs values together â€” useful for username+password combinations where they're matched.</p>
+          <p>Multiple payload lists, one per position. Pairs values together — useful for username+password combinations where they're matched.</p>
         </div>
         <div class="attack-type">
           <div class="attack-type-name">Cluster Bomb</div>
-          <p>Multiple payload lists, tries every combination. Generates huge request volumes â€” use carefully.</p>
+          <p>Multiple payload lists, tries every combination. Generates huge request volumes — use carefully.</p>
         </div>
       </div>
       <div class="callout warning">
-        <div class="callout-title">âš ï¸ Community Edition Limitation</div>
-        <p>Intruder is rate-limited in Community Edition â€” it throttles requests to slow the attack down significantly. For serious brute-forcing, use <strong>ffuf</strong>, <strong>hydra</strong>, or <strong>wfuzz</strong> from the command line instead.</p>
+        <div class="callout-title">⚠️ Community Edition Limitation</div>
+        <p>Intruder is rate-limited in Community Edition — it throttles requests to slow the attack down significantly. For serious brute-forcing, use <strong>ffuf</strong>, <strong>hydra</strong>, or <strong>wfuzz</strong> from the command line instead.</p>
       </div>
 
       <h2 id="other-tools">Other Tools Worth Knowing</h2>
@@ -200,11 +206,11 @@
           <p>Diff two requests or responses side by side. Great for spotting subtle differences between a successful and failed response.</p>
         </div>
         <div class="tool-card">
-          <div class="tool-card-name">Target â†’ Site Map</div>
+          <div class="tool-card-name">Target → Site Map</div>
           <p>Visualizes the application structure as you browse. Shows all discovered endpoints, paths, and parameters in a tree.</p>
         </div>
         <div class="tool-card">
-          <div class="tool-card-name">Target â†’ Scope</div>
+          <div class="tool-card-name">Target → Scope</div>
           <p>Define what's in scope for the engagement. Burp can filter history and tools to only show in-scope traffic.</p>
         </div>
       </div>
@@ -212,18 +218,18 @@
       <h2 id="workflow">Typical Testing Workflow</h2>
       <p>Here's a rough order of operations when approaching a new web app with Burp:</p>
       <ol>
-        <li>Set up proxy + browser. Define scope in <strong>Target â†’ Scope</strong>.</li>
-        <li>Browse the entire application manually with Intercept off â€” let HTTP History record everything.</li>
+        <li>Set up proxy + browser. Define scope in <strong>Target → Scope</strong>.</li>
+        <li>Browse the entire application manually with Intercept off — let HTTP History record everything.</li>
         <li>Review HTTP History. Identify interesting endpoints: login, search, file upload, APIs, anything accepting user input.</li>
         <li>Send interesting requests to <strong>Repeater</strong>. Manually probe each input.</li>
-        <li>For anything requiring iteration (brute-force, fuzzing) â€” send to <strong>Intruder</strong> or use a CLI tool.</li>
+        <li>For anything requiring iteration (brute-force, fuzzing) — send to <strong>Intruder</strong> or use a CLI tool.</li>
         <li>Use <strong>Decoder</strong> to analyze any encoded values (tokens, cookies, hidden params).</li>
       </ol>
 
       <hr />
 
       <div class="callout success">
-        <div class="callout-title">âœ… Key Takeaways</div>
+        <div class="callout-title">✅ Key Takeaways</div>
         <p><strong>Proxy</strong> = intercept and log all traffic. <strong>Repeater</strong> = manually test and tweak a single request. <strong>Intruder</strong> = automate across many payloads. Start with Proxy, use HTTP History to find targets, then pivot to Repeater for manual testing. That's 90% of your Burp workflow.</p>
       </div>
 
@@ -235,13 +241,13 @@
           <span class="post-section-label">Continue reading</span>
           <h2 id="post-navigation-title" class="post-section-title">Move through the archive</h2>
         </div>
-        <a href="/blog.html" class="btn">Browse all posts</a>
+        <a href="../blog.html" class="btn">Browse all posts</a>
       </div>
-      <div class="post-nav-grid"><a href="/blog/Linux-Privilege-Escalation.html" class="post-nav-card">
+      <div class="post-nav-grid"><a href="Linux-Privilege-Escalation.html" class="post-nav-card">
   <span class="post-nav-label">Newer post</span>
   <strong class="post-nav-title">Understanding Linux Privilege Escalation</strong>
   <span class="post-nav-meta">2025-07-30 . ~8 min read</span>
-</a><a href="/blog/hosting-xampp-localnet.html" class="post-nav-card">
+</a><a href="hosting-xampp-localnet.html" class="post-nav-card">
   <span class="post-nav-label">Older post</span>
   <strong class="post-nav-title">Hosting a Local Website with XAMPP and LocalToNet</strong>
   <span class="post-nav-meta">2025-07-22 . ~4 min read</span>
@@ -255,7 +261,7 @@
         </div>
         <p class="post-section-copy">Posts that overlap with the same tools, techniques, or target areas.</p>
       </div>
-      <div class="related-posts-grid"><a href="/blog/juice-shop-writeup.html" class="related-post-card">
+      <div class="related-posts-grid"><a href="juice-shop-writeup.html" class="related-post-card">
   <div class="related-post-meta">
     <span class="post-date">2026-04-03</span>
     <span class="post-tag">Web</span><span class="post-tag">Burp Suite</span>
@@ -263,7 +269,7 @@
   <h3 class="related-post-title">OWASP Juice Shop Write-Up</h3>
   <p class="related-post-excerpt">A practical walkthrough of OWASP Juice Shop, covering challenge discovery, exploitation paths, and the use of Burp Suite against a modern training target.</p>
   <span class="related-post-read">Read article</span>
-</a><a href="/blog/sqli-labs.html" class="related-post-card">
+</a><a href="sqli-labs.html" class="related-post-card">
   <div class="related-post-meta">
     <span class="post-date">2026-04-02</span>
     <span class="post-tag">Web</span><span class="post-tag">Port Swigger</span>
@@ -271,7 +277,7 @@
   <h3 class="related-post-title">PortSwigger SQLi Labs Write-Up</h3>
   <p class="related-post-excerpt">A structured walkthrough of PortSwigger SQL injection labs, including manual testing, Python-assisted exploitation, and the reasoning behind each step.</p>
   <span class="related-post-read">Read article</span>
-</a><a href="/blog/sql-injection.html" class="related-post-card">
+</a><a href="sql-injection.html" class="related-post-card">
   <div class="related-post-meta">
     <span class="post-date">2025-06-15</span>
     <span class="post-tag">Web</span>
@@ -282,7 +288,7 @@
 </a></div>
     </section>
     <div class="post-footer">
-      <a href="/blog.html" class="btn">&larr; Back to blog</a>
+      <a href="../blog.html" class="btn">&larr; Back to blog</a>
       <span class="post-footer-note">Use the topic tags above to jump into the matching archive filter.</span>
     </div>
   </div>
@@ -290,6 +296,6 @@
     <span>(c) 2026 Vali Hakuryuko</span>
     <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">^ back to top</span>
   </footer>
-  <script src="/script.js"></script>
+  <script src="../script.js"></script>
 </body>
 </html>

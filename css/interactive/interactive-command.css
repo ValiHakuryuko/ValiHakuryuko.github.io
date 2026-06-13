@@ -1,0 +1,128 @@
+/* ---------- command palette ---------- */
+.command-palette {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: start center;
+  padding: 10vh 1rem 1rem;
+  background: rgba(5, 8, 12, 0.56);
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.18s ease, visibility 0.18s ease;
+}
+
+.command-palette.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.command-panel {
+  width: min(760px, 100%);
+  background: var(--interactive-panel);
+  border: 1px solid rgba(79, 140, 255, 0.22);
+  border-radius: 18px;
+  box-shadow: var(--interactive-shadow);
+  overflow: hidden;
+}
+
+.command-head {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.95rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.command-prompt {
+  font-family: var(--mono);
+  color: var(--accent);
+  font-size: 0.9rem;
+}
+
+.command-input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font: 500 1rem var(--mono);
+}
+
+.command-input::placeholder {
+  color: var(--text3);
+}
+
+.command-hint {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--text3);
+  white-space: nowrap;
+}
+
+.command-results {
+  max-height: 420px;
+  overflow: auto;
+  padding: 0.5rem;
+}
+
+.command-result {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  padding: 0.78rem 0.85rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition), transform var(--transition);
+}
+
+.command-result:hover,
+.command-result.is-selected {
+  background: rgba(79, 140, 255, 0.1);
+  border-color: rgba(79, 140, 255, 0.22);
+  transform: translateY(-1px);
+}
+
+.command-title {
+  font-weight: 600;
+  font-size: 0.93rem;
+}
+
+.command-desc {
+  margin-top: 0.15rem;
+  color: var(--text3);
+  font-family: var(--mono);
+  font-size: 0.68rem;
+}
+
+.command-chip {
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  color: var(--accent);
+  border: 1px solid rgba(79, 140, 255, 0.22);
+  background: rgba(79, 140, 255, 0.08);
+  border-radius: 999px;
+  padding: 0.2rem 0.5rem;
+}
+
+.command-output {
+  border-top: 1px solid var(--border);
+  padding: 0.9rem 1rem;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--text2);
+  background: rgba(0, 0, 0, 0.12);
+  display: none;
+  white-space: pre-wrap;
+}
+
+.command-output:not(:empty) {
+  display: block;
+}

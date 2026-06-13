@@ -1,0 +1,219 @@
+/* ---------- playgrounds ---------- */
+.security-playground {
+  margin: -1.2rem 0 3rem;
+  border: 1px solid rgba(79, 140, 255, 0.22);
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(79, 140, 255, 0.08), rgba(255, 255, 255, 0.025));
+  overflow: hidden;
+}
+
+.playground-head {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  gap: 0.2rem;
+}
+
+.playground-kicker {
+  font: 0.65rem var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+
+.playground-head h2 {
+  font-family: var(--display);
+  font-size: 1.35rem;
+  margin: 0;
+}
+
+.playground-head p {
+  color: var(--text2);
+  margin: 0;
+}
+
+.playground-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.playground-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.playground-field label,
+.playground-label {
+  font: 0.68rem var(--mono);
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.playground-input,
+.playground-select,
+.playground-output {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.16);
+  color: var(--text);
+  font: 0.82rem/1.65 var(--mono);
+  padding: 0.75rem;
+}
+
+.playground-input {
+  min-height: 150px;
+  resize: vertical;
+}
+
+.playground-output {
+  min-height: 150px;
+  white-space: pre-wrap;
+  overflow: auto;
+}
+
+.playground-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.playground-warning-list {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.playground-warning {
+  color: var(--warning, #d3a35f);
+  font: 0.73rem var(--mono);
+  border: 1px solid rgba(211, 163, 95, 0.22);
+  border-radius: 10px;
+  padding: 0.45rem 0.55rem;
+  background: rgba(211, 163, 95, 0.08);
+}
+
+.playground-note {
+  color: var(--text3);
+  font-size: 0.85rem;
+}
+
+/* ---------- lab modules / progressive hints ---------- */
+.lab-controls {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 1rem 0 1.2rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.lab-controls::before {
+  content: "lab view";
+  font: 0.64rem var(--mono);
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-right: 0.25rem;
+}
+
+.lab-section[data-lab-view="code"] > :not(.lab-header):not(.lab-controls):not(.code-block):not(h3),
+.lab-section[data-lab-view="overview"] .code-block,
+.lab-section[data-lab-view="overview"] table,
+.lab-section[data-lab-view="overview"] .breakdown,
+.lab-section[data-lab-view="overview"] .screenshot-wrap,
+.lab-section[data-lab-view="overview"] .screenshot-grid {
+  display: none !important;
+}
+
+.progressive-hints {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0 0 1.25rem;
+  padding: 0.75rem;
+  border: 1px dashed rgba(79, 140, 255, 0.24);
+  border-radius: 14px;
+  background: rgba(79, 140, 255, 0.05);
+}
+
+.progressive-hints-title {
+  font: 0.67rem var(--mono);
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hint-reveal {
+  display: none;
+  color: var(--text2);
+  font-size: 0.92rem;
+}
+
+.hint-reveal.is-visible {
+  display: block;
+}
+
+.hint-reveal code {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.1rem 0.28rem;
+}
+
+.redacted {
+  display: inline-block;
+  color: transparent;
+  background: linear-gradient(90deg, rgba(79, 140, 255, 0.25), rgba(255, 255, 255, 0.08));
+  border-radius: 4px;
+  padding: 0 0.25rem;
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition);
+}
+
+.redacted.is-revealed,
+.redacted:hover {
+  color: var(--text);
+  background: rgba(79, 140, 255, 0.12);
+}
+
+/* ---------- enhanced code blocks ---------- */
+.code-block-header {
+  gap: 0.45rem;
+}
+
+.code-tool-group {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: end;
+}
+
+.code-block.is-collapsed pre {
+  display: none;
+}
+
+.code-block.is-wrapped pre,
+.code-block.is-wrapped code {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.code-explain {
+  display: none;
+  padding: 0.8rem 1rem;
+  border-top: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 0.9rem;
+  background: rgba(79, 140, 255, 0.05);
+}
+
+.code-block.is-explaining .code-explain {
+  display: block;
+}

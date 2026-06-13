@@ -1,0 +1,121 @@
+/* Interactive security-lab layer
+   Adds command palette, playgrounds, lab controls, reader modes,
+   alive cards, activity graph, and learning path UI. */
+
+:root {
+  --interactive-shadow: 0 26px 80px rgba(0, 0, 0, 0.36);
+  --interactive-panel: rgba(17, 22, 28, 0.92);
+  --interactive-line: rgba(79, 140, 255, 0.32);
+}
+
+[data-theme="light"] {
+  --interactive-panel: rgba(255, 255, 255, 0.94);
+  --interactive-shadow: 0 26px 70px rgba(15, 23, 42, 0.16);
+}
+
+/* ---------- alive cards / cursor-reactive glow ---------- */
+[data-glow-card] {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+[data-glow-card]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(79, 140, 255, 0.14), transparent 42%);
+  opacity: 0;
+  transition: opacity var(--transition);
+  z-index: 0;
+}
+
+[data-glow-card] > * {
+  position: relative;
+  z-index: 1;
+}
+
+[data-glow-card]:hover::after,
+[data-glow-card]:focus-within::after {
+  opacity: 1;
+}
+
+.scanline-sweep {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -2px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(79, 140, 255, 0.7), transparent);
+  transform: translateX(-110%);
+  opacity: 0;
+  transition: transform 0.65s ease, opacity 0.25s ease;
+  pointer-events: none;
+  z-index: 2;
+}
+
+[data-glow-card]:hover > .scanline-sweep {
+  transform: translateX(110%);
+  opacity: 1;
+}
+
+/* ---------- first-visit boot overlay ---------- */
+.boot-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: grid;
+  place-items: center;
+  background: rgba(5, 8, 12, 0.94);
+  backdrop-filter: blur(18px);
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+
+.boot-overlay.is-done {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.boot-terminal {
+  width: min(560px, calc(100vw - 2rem));
+  border: 1px solid rgba(79, 140, 255, 0.28);
+  background: linear-gradient(180deg, rgba(17, 22, 28, 0.96), rgba(9, 13, 18, 0.96));
+  border-radius: 16px;
+  box-shadow: var(--interactive-shadow);
+  overflow: hidden;
+}
+
+.boot-terminal-bar {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.boot-dot {
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.6;
+}
+
+.boot-lines {
+  padding: 1.2rem;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--text2);
+  display: grid;
+  gap: 0.55rem;
+}
+
+.boot-lines span::before {
+  content: "$ ";
+  color: var(--accent);
+}
+
+.boot-lines strong {
+  color: var(--text);
+  font-weight: 500;
+}

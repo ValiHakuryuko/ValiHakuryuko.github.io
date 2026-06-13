@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="../favicon/favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg">
+  <link rel="apple-touch-icon" href="../favicon/apple-touch-icon.png">
   <title>Frankenstein NAS Build - Vali Hakuryuko</title>
   <meta name="description" content="A zero-cost home NAS build using an old ISP router, a powered 1TB drive, SMB, and a lot of compatibility troubleshooting across Windows 11 and iPhone." />
   <meta property="og:title" content="Frankenstein NAS Build - Vali Hakuryuko" />
@@ -12,25 +15,28 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/style.css" />
-  <link rel="stylesheet" href="/post.css" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../post.css" />
+  <link rel="stylesheet" href="../interactive.css" />
 </head>
 <body class="post-page">
   <nav>
-    <a href="/index.html" class="nav-logo"><span>~/</span>Vali</a>
+    <a href="../index.html" class="nav-logo"><span>~/</span>Vali</a>
     <ul class="nav-links">
-      <li><a href="/index.html#about">About</a></li>
-      <li><a href="/blog.html">Blog</a></li>
-      <li><a href="/index.html#contact">Contact</a></li>
+      <li><a href="../index.html#about">About</a></li>
+      <li><a href="../blog.html">Blog</a></li>
+      <li><a href="../learning-path.html">Path</a></li>
+      <li><a href="../index.html#contact">Contact</a></li>
     </ul>
     <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
   </nav>
   <div class="layout">
-    <header class="post-header">
-      <div class="post-breadcrumb"><a href="/index.html">~</a> / <a href="/blog.html">blog</a> / nas-frankenstein-build</div>
+    <header class="post-header header-with-particles" data-particle-scope data-particle-density="48" data-particle-link-distance="112">
+      <canvas class="site-particle-canvas post-particle-canvas" data-hero-particles aria-hidden="true"></canvas>
+      <div class="post-breadcrumb"><a href="../index.html">~</a> / <a href="../blog.html">blog</a> / nas-frankenstein-build</div>
       <div class="post-meta-row">
         <span class="post-date">2026-04-18</span>
-        <a href="/blog.html?tag=homelab" class="post-tag-link" aria-label="Browse Home Lab posts"><span class="post-tag blue">Home Lab</span></a><a href="/blog.html?tag=tools" class="post-tag-link" aria-label="Browse Tools posts"><span class="post-tag">Tools</span></a><a href="/blog.html?tag=networking" class="post-tag-link" aria-label="Browse Networking posts"><span class="post-tag orange">Networking</span></a>
+        <a href="../blog.html?tag=homelab" class="post-tag-link" aria-label="Browse Home Lab posts"><span class="post-tag blue">Home Lab</span></a><a href="../blog.html?tag=tools" class="post-tag-link" aria-label="Browse Tools posts"><span class="post-tag">Tools</span></a><a href="../blog.html?tag=networking" class="post-tag-link" aria-label="Browse Networking posts"><span class="post-tag orange">Networking</span></a>
         <span class="post-read-time">~12 min read</span>
       </div>
       <h1 class="post-title">Frankenstein NAS Build<br>from an Old Router + 1TB Drive</h1>
@@ -247,8 +253,8 @@
     </div>
 
     <div class="resource-links">
-      <a href="https://github.com/ValiHakuryuko/frankenstein-nas-homelab" target="_blank" class="resource-link">repo -> frankenstein-nas-homelab</a>
-      <a href="/blog.html" class="resource-link">archive -> more writeups</a>
+      <a href="https://github.com/ValiHakuryuko/frankenstein-nas-homelab" target="_blank" rel="noopener noreferrer" class="resource-link">repo -> frankenstein-nas-homelab</a>
+      <a href="../blog.html" class="resource-link">archive -> more writeups</a>
     </div>
 
     <div class="toc">
@@ -501,9 +507,9 @@ Home LAN
           <span class="post-section-label">Continue reading</span>
           <h2 id="post-navigation-title" class="post-section-title">Move through the archive</h2>
         </div>
-        <a href="/blog.html" class="btn">Browse all posts</a>
+        <a href="../blog.html" class="btn">Browse all posts</a>
       </div>
-      <div class="post-nav-grid"><a href="/blog/juice-shop-writeup.html" class="post-nav-card">
+      <div class="post-nav-grid"><a href="juice-shop-writeup.html" class="post-nav-card">
   <span class="post-nav-label">Older post</span>
   <strong class="post-nav-title">OWASP Juice Shop Write-Up</strong>
   <span class="post-nav-meta">2026-04-03 . ~20 min read</span>
@@ -518,7 +524,7 @@ Home LAN
         </div>
         <p class="post-section-copy">Adjacent build notes, tooling posts, and hands-on writeups from the archive.</p>
       </div>
-      <div class="related-posts-grid"><a href="/blog/hosting-xampp-localnet.html" class="related-post-card">
+      <div class="related-posts-grid"><a href="hosting-xampp-localnet.html" class="related-post-card">
   <div class="related-post-meta">
     <span class="post-date">2025-07-22</span>
     <span class="post-tag">Tools</span>
@@ -526,7 +532,7 @@ Home LAN
   <h3 class="related-post-title">Hosting a Local Website with XAMPP and LocalToNet</h3>
   <p class="related-post-excerpt">A step-by-step guide to exposing a locally hosted site with XAMPP and LocalToNet for demos, testing, and short-lived external access.</p>
   <span class="related-post-read">Read article</span>
-</a><a href="/blog/Linux-Privilege-Escalation.html" class="related-post-card">
+</a><a href="Linux-Privilege-Escalation.html" class="related-post-card">
   <div class="related-post-meta">
     <span class="post-date">2025-07-30</span>
     <span class="post-tag">Linux</span>
@@ -534,7 +540,7 @@ Home LAN
   <h3 class="related-post-title">Understanding Linux Privilege Escalation</h3>
   <p class="related-post-excerpt">A focused guide to common Linux privilege escalation paths, including SUID abuse, cron jobs, weak permissions, and systematic enumeration.</p>
   <span class="related-post-read">Read article</span>
-</a><a href="/blog/juice-shop-writeup.html" class="related-post-card">
+</a><a href="juice-shop-writeup.html" class="related-post-card">
   <div class="related-post-meta">
     <span class="post-date">2026-04-03</span>
     <span class="post-tag">Web</span><span class="post-tag">Burp Suite</span>
@@ -546,7 +552,7 @@ Home LAN
     </section>
 
     <div class="post-footer">
-      <a href="/blog.html" class="btn">&larr; Back to blog</a>
+      <a href="../blog.html" class="btn">&larr; Back to blog</a>
       <span class="post-footer-note">Read the repo for the fuller build log, then come back here for the article version.</span>
     </div>
   </div>
@@ -554,6 +560,6 @@ Home LAN
     <span>(c) 2026 Vali Hakuryuko</span>
     <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">^ back to top</span>
   </footer>
-  <script src="/script.js"></script>
+  <script src="../script.js"></script>
 </body>
 </html>
