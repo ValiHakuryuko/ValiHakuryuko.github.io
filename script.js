@@ -741,6 +741,7 @@
 
 
   const sitePosts = [
+    { title: "PortSwigger SSTI Labs Write-Up", url: "blog/ssti-labs.html", date: "2026-06-14", tags: ["web", "portswigger", "burp", "ssti"], desc: "SSTI labs across ERB, Tornado, FreeMarker, Handlebars, Django, and Twig with screenshots, fingerprinting, and exploit reasoning." },
     { title: "PortSwigger JWT Labs Write-Up", url: "blog/jwt-labs.html", date: "2026-06-07", tags: ["web", "portswigger", "burp", "jwt"], desc: "JWT labs: none-alg, weak secrets, header injection, JWKS, JKU, KID, algorithm confusion." },
     { title: "Frankenstein NAS Build", url: "blog/nas-frankenstein-build.html", date: "2026-04-18", tags: ["homelab", "networking", "storage"], desc: "Old router + powered drive NAS experiment with SMB and mobile access notes." },
     { title: "OWASP Juice Shop Write-Up", url: "blog/juice-shop-writeup.html", date: "2026-04-03", tags: ["web", "xss", "sqli", "owasp", "ctf"], desc: "Juice Shop challenge discovery, Burp workflow, XSS, and SQLi paths." },
@@ -775,6 +776,7 @@
       storage: "Storage",
       web: "Web",
       jwt: "JWT",
+      ssti: "SSTI",
       sqli: "SQLi",
       xss: "XSS",
       owasp: "OWASP",
@@ -1030,14 +1032,16 @@
     const commands = [
       { title: "Open blog archive", chip: "nav", desc: "See every write-up", keywords: "posts archive blog", run: () => go("blog.html") },
       { title: "Open learning path", chip: "path", desc: "View the BSCP → OSCP roadmap", keywords: "roadmap progress learning path bscp oscp", run: () => go("learning-path.html") },
+      { title: "Open SSTI labs", chip: "post", desc: "SSTI write-up with framework fingerprints and screenshot evidence", keywords: "ssti template injection erb tornado freemarker handlebars django twig labs", run: () => go("blog/ssti-labs.html") },
       { title: "Open JWT labs", chip: "post", desc: "JWT write-up and decoder playground", keywords: "jwt token json web token labs", run: () => go("blog/jwt-labs.html") },
       { title: "Open SQLi labs", chip: "post", desc: "SQL injection labs and payload builder", keywords: "sqli sql injection union blind labs", run: () => go("blog/sqli-labs.html") },
+      { title: "Filter: SSTI", chip: "filter", desc: "Show SSTI posts", keywords: "ssti template injection filter", run: () => filterTag("ssti") },
       { title: "Filter: JWT", chip: "filter", desc: "Show JWT posts", keywords: "jwt filter", run: () => filterTag("jwt") },
       { title: "Filter: SQLi", chip: "filter", desc: "Show SQL injection posts", keywords: "sqli sql injection filter", run: () => filterTag("sqli") },
       { title: "Filter: Linux", chip: "filter", desc: "Show Linux posts", keywords: "linux privesc privilege escalation", run: () => filterTag("linux") },
       { title: "Toggle theme", chip: "ui", desc: "Switch light/dark mode", keywords: "theme dark light", run: () => { window.toggleTheme(); renderCommandOutput("$ theme\ntheme toggled"); } },
       { title: "whoami", chip: "shell", desc: "Print a terminal-style profile", keywords: "whoami profile about", run: () => { renderCommandOutput("$ whoami\nVali Hakuryuko — university student, web security learner, CRTA, BSCP in progress, building toward OSCP-level work.", [{ id: "blog", label: "open blog" }, { id: "certs", label: "view certs" }, { id: "path", label: "learning path" }, { id: "contact", label: "contact" }]); } },
-      { title: "status", chip: "shell", desc: "Print current track status", keywords: "status bscp progress", run: () => { renderCommandOutput("$ status\ncurrent: BSCP prep\nfocus: JWT, SQLi, Burp workflow, Linux privilege escalation\nnext: access control, SSRF, OAuth, OSCP foundations", [{ id: "path", label: "open roadmap" }, { id: "blog", label: "browse posts" }]); } },
+      { title: "status", chip: "shell", desc: "Print current track status", keywords: "status bscp progress", run: () => { renderCommandOutput("$ status\ncurrent: BSCP prep\nfocus: SSTI, JWT, SQLi, Burp workflow, Linux privilege escalation\nnext: access control, SSRF, OAuth, OSCP foundations", [{ id: "path", label: "open roadmap" }, { id: "blog", label: "browse posts" }]); } },
       { title: "Contact", chip: "nav", desc: "Jump to contact section", keywords: "email contact github linkedin", run: () => go("index.html#contact") }
     ];
 
